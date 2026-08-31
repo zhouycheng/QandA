@@ -52,7 +52,7 @@ feat fix chore docs test refactor build ci
 
 Require `description` to contain lowercase English letters, digits, and hyphens only. Do not rename an invalid branch automatically. Report the violation in Chinese and stop before planning commits.
 
-Do not perform daily development commits on `main` or `develop`.
+Create new task branches from the latest `origin/develop` and do not perform daily development commits on `main` or `develop`.
 
 ## Change analysis and commit plan
 
@@ -121,6 +121,8 @@ Use this body format:
 Keep the `Summary` and `Notes` headings because they are part of the project convention, but write their content in Chinese. Omit `Notes` when it has no useful content.
 
 Do not add `Verification`, routine test commands, complete file lists, commit lists, document lists, or generic rollback language to the PR body.
+
+For a new task, the normal target branch is `develop`. After the task PR is merged, the integration branch is promoted to `main` through a separate PR.
 
 ## Safety rules
 
