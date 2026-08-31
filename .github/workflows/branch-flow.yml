@@ -1,0 +1,31 @@
+name: branch-flow
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  allowed-branch-flow:
+    name: allowed-branch-flow
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check allowed source branch
+        env:
+          BASE_REPO: ${{ github.repository }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          allowed=false
+          if [ "$HEAD_REPO" = "$BASE_REPO" ]; then
+            case "$BASE_REF:$HEAD_REF" in
+              main:develop|develop:justin|develop:hope|develop:peter|develop:curry)
+                allowed=true
+                ;;
+            esac
+          fi
+
+          if [ "$allowed" != true ]; then
+            echo "PR source $HEAD_REPO:$HEAD_REF is not allowed for $BASE_REF"
+            exit 1
+          fi
