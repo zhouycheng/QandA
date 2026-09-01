@@ -28,7 +28,7 @@
 最新 develop
     ↓
 个人任务分支
-    ↓ PR + 2 人审核 + CI
+    ↓ PR + 1 人审核 + CI
 develop
     ↓ PR + 3 人审核 + CI
 main
@@ -39,7 +39,7 @@ GitHub 支持 Mermaid 时，可以直接查看下面的流程图：
 ```mermaid
 flowchart LR
     A["origin/develop"] --> B["个人任务分支"]
-    B -->|"PR · 2 人审核 · CI"| C["develop"]
+    B -->|"PR · 1 人审核 · CI"| C["develop"]
     C -->|"PR · 3 人审核 · CI"| D["main"]
 ```
 
@@ -72,7 +72,7 @@ git push -u origin <当前分支>
 4. 按逻辑拆分 commit
 5. 推送当前任务分支
 6. 创建 PR 到 `develop`
-7. 等待 **2 人审核 + CI**
+7. 等待 **1 人审核 + CI**
 8. 使用 squash merge
 9. 删除已合并的任务分支
 
@@ -80,7 +80,7 @@ git push -u origin <当前分支>
 
 | PR 类型 | 来源 | 目标 | 审核要求 |
 |---|---|---|---:|
-| 任务 PR | 个人任务分支 | `develop` | 2 人 |
+| 任务 PR | 个人任务分支 | `develop` | 1 人 |
 | 发布 PR | `develop` | `main` | 3 人 |
 
 ---
@@ -201,7 +201,7 @@ develop
 - 必须通过 PR；
 - 必须通过 CI；
 - 必须解决所有 PR 对话；
-- 需要 2 个有效审核；
+- 需要 1 个有效审核；
 - 新提交导致旧审核失效时，需要重新审核；
 - 合并使用 squash merge。
 
@@ -653,7 +653,7 @@ flowchart LR
 | PR 无法比较 | 确认任务分支已推送，并确认目标分支为 `develop`。 |
 | 分支名不符合规则 | 按 `gitname/type/description` 重建任务分支。 |
 | CI 失败 | 打开失败检查，修复真实问题后重新提交和推送。 |
-| 审核数量不足 | 任务 PR 需要 2 人；`develop → main` 需要 3 人。 |
+| 审核数量不足 | 任务 PR 需要 1 人；`develop → main` 需要 3 人。 |
 | 新提交后审核失效 | 这是保护规则正常行为，需要重新审核。 |
 | 提交了临时文件 | 用 `git status` 和 `git diff` 检查，再按项目规则处理。 |
 
@@ -757,7 +757,7 @@ git push
     ↓
 PR → develop
     ↓
-2 人审核 + CI
+1 人审核 + CI
     ↓
 squash merge
 ```
