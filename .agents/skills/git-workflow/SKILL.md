@@ -1,132 +1,71 @@
 ---
 name: git-workflow
-description: Review the current Git workspace, verify branch synchronization, propose logically separated commits, obtain explicit user approval, create the approved commits, push the current branch, and prepare a pull request message. Use this skill whenever the user asks to inspect, organize, commit, push, or prepare a PR for current Git changes.
+description: Inspect Git changes, prepare coherent commits, and perform explicitly authorized commits, task-branch pushes, and pull-request actions using QandA's single-main workflow.
 ---
 
 # Git Workflow
 
-Follow this workflow for all current-workspace commit and pull-request tasks.
+Read `docs/git-workflow.md` before planning changes. It is the project policy. Keep this file in English and communicate with the user in Chinese.
 
-## Language
+## Current workflow
 
-This file is written for Agents and must remain in English. Communicate with the user in Chinese at every point, including status updates, commit plans, questions, errors, and the final result. Generated commit messages and pull-request content must follow the Chinese output rules in `docs/git-workflow.md`.
+Use `main` as the only integration branch. Start short-lived task branches from the latest `origin/main` and target pull requests at `main`.
 
-## Source of truth
+Human approval is not a required merge gate during the initial project stage. A collaborator with write access may merge their own PR. This does not authorize an Agent to merge or delete anything without the user's permission.
 
-Read `docs/git-workflow.md` before planning or committing. Treat it as the detailed project Git policy. Do not invent a conflicting branch, commit, or pull-request rule.
+Do not push directly to `main`, force-push, delete `main`, bypass branch protection, require a personal username prefix, or require a `develop` promotion PR. Branch names should describe the task; naming style is advisory, not a blocking validation rule.
 
-## Preflight checks
+## Preflight
 
-Run the following checks before proposing any commit:
+Inspect the current branch, working tree, staged and unstaged changes, relevant untracked files, unresolved conflicts, and any in-progress merge or rebase. Run `git fetch origin --prune` before assessing remote state. If the network operation fails, report that remote synchronization could not be verified.
 
-1. Inspect the current branch with `git branch --show-current`.
-2. Inspect the working tree with `git status --short`.
-3. Identify the upstream with `git rev-parse --abbrev-ref --symbolic-full-name '@{u}'`.
-4. Check unresolved merge or rebase conflicts with `git ls-files --unmerged` and the Git metadata state.
-5. Run `git fetch origin --prune`.
-6. Compare `HEAD` with the upstream using `git rev-list --left-right --count HEAD...@{u}`.
+Compare with the same-named remote task branch when it exists. Separately compare with `origin/main` to understand integration drift. Do not treat `origin/main` or an unrelated upstream as the publication target of a task branch.
 
-Interpret the synchronization result as follows:
+A newly created task branch may have no upstream. This is normal and does not block local commits. Before its first push, check whether a same-named remote branch already exists; inspect its history instead of overwriting it.
 
-- `behind > 0` means the branch is not current. Stop and report this in Chinese.
-- `behind > 0` and `ahead > 0` means the branch has diverged. Stop and report this in Chinese.
-- `behind == 0` and `ahead >= 0` allows the workflow to continue.
-- A missing upstream is a blocking condition. Stop and report it in Chinese.
-- Any unresolved conflict is a blocking condition. Stop and report it in Chinese.
+Remote task-branch commits absent locally block a push, not an otherwise conflict-free local commit. Being behind `main` alone does not block local commits; check integration conflicts before merging the PR.
 
-Do not automatically pull, merge, rebase, reset, stash, or rewrite history to resolve a blocking condition.
+Unresolved conflicts, detached HEAD, or an ambiguous in-progress history operation require inspection before writing. Never resolve these conditions by automatically running pull, merge, rebase, reset, stash, a force push, or history rewriting.
 
-## Branch validation
+## New task branches
 
-Validate the current branch against:
+After checking and preserving existing work, use an explicitly authorized task branch:
 
-```text
-gitname/type/description
+```bash
+git fetch origin --prune
+git switch --no-track -c <task-branch> origin/main
 ```
 
-Use the GitHub username for `gitname`. Allow only these values for `type`:
+Do not switch branches in a way that silently carries, discards, or overwrites unrelated user changes.
 
-```text
-feat fix chore docs test refactor build ci
+## Plan and authorization
+
+Explain the proposed scope and coherent commit boundaries in Chinese. Keep inseparable functionality and its tests together. Do not mechanically split a change to increase the commit count.
+
+Without explicit authorization, propose changes and ask before committing or publishing. When the user has already authorized the exact current operation and scope, carry it out without a redundant confirmation. Authorization to commit does not imply authorization to merge, delete branches, or change repository settings.
+
+Treat all existing workspace changes as user-owned. Stage only files and hunks within the authorized scope. Do not mix unrelated edits, secrets, generated output, or temporary files into the commit.
+
+## Execution
+
+Recheck relevant state before writing, inspect the staged diff, run `git diff --cached --check`, and perform checks appropriate to the change. Do not claim a build or test passed if no corresponding runnable check exists.
+
+Use informative commit messages, preferably `type(scope): Chinese description`. Do not create empty commits. After authorized commits succeed, publish only the task branch:
+
+```bash
+git push -u origin HEAD
 ```
 
-Require `description` to contain lowercase English letters, digits, and hyphens only. Do not rename an invalid branch automatically. Report the violation in Chinese and stop before planning commits.
+Check the destination before pushing. This command is for a task branch, never `main`.
 
-Create new task branches from the latest `origin/develop` and do not perform daily development commits on `main` or `develop`.
+Stop on failure, preserve the worktree, and report the actual outcome. Do not bypass access controls or use destructive retries.
 
-## Change analysis and commit plan
+## Pull requests
 
-Inspect the complete current change set, including staged changes, unstaged changes, and relevant untracked files. Do not use a broad staging command that would silently include unrelated files.
+Target `main`. Follow `.github/pull_request_template.md`, keeping its headings and writing the content in Chinese. Omit empty optional sections and repetitive boilerplate.
 
-Group changes by logical responsibility. Separate independent documentation, tests, features, fixes, refactors, build changes, and CI changes when they can be reviewed independently. Do not split a single inseparable change only to increase the commit count.
+Creating, updating, merging, or deleting after a PR requires authorization for that action. Before an authorized merge, verify the current PR head, diff, mergeability, outstanding discussions, and any actual required checks. Use an expected head SHA when supported. Normal short-lived task PRs use squash merge unless the user requests another method.
 
-Before changing the worktree, present the plan in Chinese using this structure:
+Delete a task branch only after verifying its PR merged and no unmerged work remains. For the specifically requested retirement of `develop`, verify its latest commit is contained in `main` and no other open PR depends on it; respect deletion protection and report any missing administration capability.
 
-```text
-Commit plan (write all explanatory text in Chinese):
-
-1. Message: type(scope): <Chinese description>
-   Content: <Chinese description of the changes>
-   Reason: <Chinese explanation of why this commit is independent>
-
-2. Message: type(scope): <Chinese description>
-   Content: <Chinese description of the changes>
-   Reason: <Chinese explanation of why this commit is independent>
-```
-
-Ask the user in Chinese whether the plan is approved. Do not stage, edit, commit, or push anything before explicit approval.
-
-## Approved execution
-
-After explicit approval:
-
-1. Repeat the preflight checks. If the workspace or upstream changed, update the plan and ask for approval again when the change affects commit boundaries.
-2. Stage only the files assigned to the first approved commit.
-3. Run `git diff --cached --check`.
-4. Create the commit with the exact approved message.
-5. Repeat the staging, validation, and commit steps for each approved segment.
-6. Do not create empty commits.
-7. Do not force-push, merge, rebase, reset, stash, or rewrite history.
-8. After all commits succeed, push with:
-
-   ```bash
-   git push -u origin <current-branch>
-   ```
-
-If staging, commit, or push fails, stop, preserve the worktree, and explain the failure in Chinese. Do not retry with a destructive or history-rewriting alternative.
-
-## Pull request message
-
-After a successful push, provide a PR title and body in Chinese. Do not create the PR automatically.
-
-Use this title format:
-
-```text
-type(scope): <Chinese description>
-```
-
-Use this body format:
-
-```markdown
-## Summary
-
-- <Chinese summary of what changed and why it was needed>
-- <Chinese issue or design-document link when relevant>
-
-## Notes
-
-- <Chinese notes about migration, compatibility, risk, screenshots, or special decisions when relevant>
-```
-
-Keep the `Summary` and `Notes` headings because they are part of the project convention, but write their content in Chinese. Omit `Notes` when it has no useful content.
-
-Do not add `Verification`, routine test commands, complete file lists, commit lists, document lists, or generic rollback language to the PR body.
-
-For a new task, the normal target branch is `develop`. After the task PR is merged, the integration branch is promoted to `main` through a separate PR.
-
-## Safety rules
-
-- Treat existing workspace changes as user-owned.
-- Do not overwrite, delete, or silently exclude existing changes.
-- Include untracked files in a commit only when the approved plan assigns them to that commit.
-- Keep user-facing communication in Chinese even though these instructions are in English.
+In the final report, separate completed operations, unperformed operations, and blockers. Link or cite the actual PRs and commits. Do not describe planned settings as verified server-side configuration.

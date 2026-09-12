@@ -1,155 +1,92 @@
 # Git 工作流
 
-本文档定义 QandA 项目的分支、提交、推送和 Pull Request 规则。项目级 Git Workflow Skill 会读取并遵循本文档。
+本文档是 QandA 当前项目阶段的 Git 协作规则。开发者手册和 Agent Skill 均以本文档为准。
 
-## 分支流转
+## 单主干开发
 
 ```text
-个人任务分支 ── PR + 1 人审核 + CI ──> develop
-develop ────── PR + 3 人审核 + CI ──> main
+main → 短期任务分支 → PR → main
 ```
 
-规则如下：
+main 是唯一日常集成主干。不再使用 develop 作为任务起点或合并中转。
 
-- `main` 是稳定分支，禁止直接推送；
-- `main` 只能接受来自 `develop` 的 PR；
-- 合并到 `main` 至少需要 3 个有效审核；
-- `develop` 是团队集成分支，禁止直接推送；
-- 合并到 `develop` 至少需要 1 个有效审核；
-- 个人任务分支必须通过 CI 后才能合并；
-- PR 来源必须来自同一个仓库；
-- PR 合并后应删除个人任务分支；
-- `main` 和 `develop` 禁止强制推送和删除；
-- 管理员不能绕过 `main` 和 `develop` 的保护规则。
+前期采用轻量协作：
 
-## 创建任务分支
+- 所有变更必须通过 PR 合入 main，禁止直接推送、强推或删除 main；管理员同样遵守 PR 要求。
+- 有写入权限的协作者可以合并自己的 PR，不强制要求他人审批或 Code Owner 审核。
+- 分支名称不与 GitHub 用户名绑定，不要求固定的个人分支。
+- 不设置旧 allowed-branch-flow 检查，不要求分支必须始终与 main 最新同步；有冲突时仍须处理冲突。
+- 已有 PR 讨论须处理完毕，合并前自行核对差异并验证本次变更。无需审批不等于无需自检。
+- 当前阶段不配置必需状态检查；后续应用骨架和真实 CI 就绪后，另行决定哪些检查成为合并门禁。
+- 普通短期任务 PR 推荐 squash merge，确认合并成功后删除该任务分支。不要批量删除他人分支。
 
-任务分支必须从最新的 `develop` 创建：
+以上是团队目标规则，实际服务端限制由 GitHub 后台设置执行。文档变更不能代替后台配置，也不能授权绕过尚未调整的保护规则。
+
+## 创建和推送任务分支
+
+先确认工作区状态，不要丢弃或覆盖现有改动。再从最新 origin/main 创建分支：
 
 ```bash
+git status
 git fetch origin --prune
-git switch -c <github-username>/<type>/<description> origin/develop
+git switch --no-track -c feat/your-task origin/main
 ```
 
-示例：
+推荐名称包括 feat/question-list、fix/session-restore、chore/workspace-bootstrap。推荐格式是 type/description，使用能说明任务的名称；不把命名格式作为 CI 或 Agent 的硬性门禁。
 
-```text
-zhouycheng/feat/add-question-filter
-hopehoudini/fix/session-restore
-JiangfengPang/docs/update-install-guide
-Currycyber/test/add-question-cases
+--no-track 用来避免把任务分支的 upstream 误设成 origin/main。首次推送之前没有 upstream 是正常状态，不阻止本地提交。
+
+```bash
+git add <本次任务的文件>
+git diff --cached
+git diff --cached --check
+git commit -m "feat(scope): 中文描述"
+git push -u origin HEAD
 ```
 
-任务完成并合并后删除任务分支。
+首次推送成功后，后续可以使用 git push。推送目标必须是当前任务分支，不能是 main。
 
-## 分支命名
+## 提交与同步
 
-格式：
+推荐提交信息采用 type(scope): 中文描述。一个提交表达一个完整逻辑；功能和与其不可分割的测试可以放在一起，不为凑提交数量机械拆分。不要混入无关格式化、临时文件或密钥。
 
-```text
-gitname/type/description
-```
+同步检查区分两件事：
 
-命名规则：
+- 任务分支与同名远程任务分支的关系：fetch 后发现远程含有本地没有的提交时，停止推送并先处理，不能强推覆盖；本地无冲突的工作仍可提交保存。
+- 任务分支与 origin/main 的关系：落后于 main 不阻止本地提交；合并前检查差异、冲突与集成影响，必要时经明确授权同步。
 
-- `gitname` 使用 GitHub 用户名；
-- `type` 只能使用 `feat`、`fix`、`chore`、`docs`、`test`、`refactor`、`build`、`ci`；
-- `description` 使用小写英文、数字和短横线；
-- 不使用空格、中文、下划线和随机编号；
-- 不在 `main` 或 `develop` 上进行日常开发提交。
+首次发布没有 upstream 时，应先检查是否已经存在同名远程分支；存在则检查提交关系，不能当作全新分支覆盖。upstream 指向 main 或其他非同名分支时，不据此认定任务分支已同步，也不要不加检查地执行 git push。
 
-## 提交信息
-
-格式：
-
-```text
-type(scope): 中文描述
-```
-
-类型说明：
-
-| 类型 | 用途 |
-| --- | --- |
-| `feat` | 新功能 |
-| `fix` | 缺陷修复 |
-| `chore` | 工程维护 |
-| `docs` | 文档变更 |
-| `test` | 测试变更 |
-| `refactor` | 重构 |
-| `build` | 构建或依赖变更 |
-| `ci` | CI 配置变更 |
-
-提交规则：
-
-- 一个 commit 只表达一个独立逻辑；
-- 文档、测试、功能、重构和 CI 改动尽量分开；
-- 不将无关格式化、临时文件或生成文件混入业务提交；
-- 每个 commit 都应具备独立的内容描述和提交原因；
-- 提交前检查暂存区，确认没有混入无关改动。
-
-## 分段提交
-
-Agent 在规划提交前必须检查当前分支、upstream、工作区改动、冲突和远程同步状态。
-
-Agent 执行 `git fetch origin --prune` 后比较当前分支和 upstream：
-
-- 分支落后远程时停止提交并提示用户先同步；
-- 分支与远程分叉时停止提交并提示用户处理分叉；
-- 没有 upstream 时停止提交并提示用户配置远程跟踪；
-- 分支与远程一致或仅领先远程时，才允许继续生成提交计划；
-- Agent 不自动执行 pull、merge、rebase、reset、stash 或历史重写。
-
-Agent 必须先用中文输出每个分段的提交信息、提交内容和独立提交原因，并询问用户是否同意。
-
-用户未同意时不得暂存、提交或推送。用户同意后，Agent 只暂存计划中属于当前分段的文件，依次创建 commit，全部成功后自动 push 当前分支。
+发现未解决冲突、正在进行的 merge/rebase 或不明确的历史状态时，先停止相关写操作并处理。Agent 不擅自 pull、merge、rebase、reset、stash、强推或改写历史。
 
 ## Pull Request
 
-PR 标题格式：
-
-```text
-type(scope): 中文描述
-```
-
-PR 正文格式：
+PR 目标统一为 main。推荐标题采用 type(scope): 中文描述，正文沿用仓库模板：
 
 ```markdown
 ## Summary
 
-- 说明改动了什么；
-- 说明为什么需要改；
-- 必要时附关联 issue 或设计文档链接。
+- 改动了什么，为什么修改。
 
 ## Notes
 
-- 仅在存在迁移、兼容性、风险、截图或特殊决策时填写；
-- 没有内容时删除本章节。
+- 仅在存在迁移、兼容性、风险或其他必要说明时填写；无内容则删除。
 ```
 
-章节名沿用项目约定，但内容使用中文。普通 PR 不写 `Verification`，也不复制例行测试命令、完整文件清单、commit 清单、文档清单或通用回滚说明。
+在 GitHub 页面核对目标、差异、冲突和讨论状态，再由有写入权限的协作者合并。可以自愿邀请同伴审核，但不把等待他人批准作为前期强制步骤。
 
-## 合并流程
+## Agent 操作边界
 
-个人任务分支合并到 `develop`：
+Agent 先检查分支、工作区、冲突和远程同步，再说明本次变更范围。
 
-1. 从最新 `develop` 创建任务分支；
-2. 完成开发并按逻辑拆分 commit；
-3. 创建 PR 到 `develop`；
-4. 获得至少 1 个有效审核并通过 CI；
-5. 使用 squash merge 合并；
-6. 删除任务分支。
+用户明确授权本次提交、推送、创建 PR 或合并后，可以在该授权范围内执行对应操作；没有授权时先给出计划并征得同意。授权提交不自动等于授权合并、删除分支或修改后台保护设置。
 
-`develop` 合并到 `main`：
+Agent 必须保留用户已有修改，只暂存本次授权的文件；失败后保留现场并报告实际结果，不擅自采用破坏性替代操作。与用户沟通使用中文。
 
-1. 创建 `develop` 到 `main` 的 PR；
-2. 通过来源分支检查；
-3. 获得至少 3 个有效审核；
-4. CI 全部通过；
-5. 使用 squash merge 合并。
+## 从旧双分支流程迁移
 
-## 文档与 Skill 的关系
+旧 develop 已通过 PR #2 合入 main，原提交历史得到保留。现有任务分支应检查是否存在尚未合并的独有提交，再决定调整 PR 目标或新建分支，不要直接删除个人工作。
 
-- `.agents/skills/git-workflow/SKILL.md` 是给 Agent 读取的英文执行规则；
-- 本文档是给开发者阅读的中文 Git 规则；
-- 如果 Skill 与本文档不一致，以本文档中的项目 Git 规则为准；
-- Agent 与用户沟通时始终使用中文，即使 Agent 读取的规则文件使用英文。
+删除远程 develop 前，必须再次确认其最新提交已被 main 包含、没有其他未合并 PR 依赖它，并处理其删除保护。后台仍保留 develop 时，不代表它继续承担日常集成职责。不得为了删除 develop 而取消 main 的 PR 保护。
+
+维护阶段是否增加审批、Code Owners 或必需 CI，由团队另行决定；不要提前引入第二条长期集成分支。
