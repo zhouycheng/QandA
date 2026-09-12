@@ -1,0 +1,5 @@
+# Governance files require review from the repository owner.
+/.github/ @zhouycheng
+/.agents/ @zhouycheng
+/AGENTS.md @zhouycheng
+/docs/ @zhouycheng
