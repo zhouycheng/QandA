@@ -1,10 +1,19 @@
 # QandA
 
-刷题系统，目标包含小程序端、用户网页端、管理端和统一后端。
+刷题系统，目标包含微信小程序端、用户 Web 端、管理端和统一后端。
 
 ## 当前阶段
 
-仓库处于项目初始化阶段，目前提供 MVP 功能清单和协作规范，尚未提供可运行的应用骨架。不要把下面的 Git 命令当作应用启动命令。
+仓库处于第一阶段 Independent MVP 开发准备期。
+
+当前已经完成：
+
+- Git 协作与仓库治理规则；
+- Monorepo 空目录骨架；
+- 四端 Independent MVP PRD；
+- MVP 功能范围基线。
+
+当前尚未提供可运行的应用骨架。各端第一阶段先独立完成自身 MVP 闭环，前端通过 Playground / Mock Adapter 模拟外部依赖，后端通过 Swagger / HTTP Client / Integration Test + PostgreSQL 独立验证业务闭环；之后再进入 Contract Freeze、联调和 E2E。
 
 ## 开发流程
 
@@ -30,12 +39,15 @@ git commit -m "feat(scope): 说明本次改动"
 git push -u origin HEAD
 ```
 
-随后创建目标为 main 的 PR，核对改动后合并。不要直接执行 git push origin main。
+随后创建目标为 main 的 PR，核对改动后合并。不要直接执行 `git push origin main`。
 
 ## 文档
 
-- [MVP 功能清单](docs/mvp-functions.md)
+- [文档索引](docs/README.md)
+- [四端 MVP PRD](docs/prd/README.md)
 - [Git 协作规则](docs/git-workflow.md)
 - [Git 操作速查与常见问题](docs/sops/QandA-Git-Workflow-Handbook.md)
+
+当前是第一阶段，不再为 PRD 按开发阶段拆分目录；后续确有多阶段产品文档需求时再调整。
 
 后续维护阶段再根据实际需要增加审批和必需 CI。文档不会自动修改 GitHub 的后台分支保护设置。
