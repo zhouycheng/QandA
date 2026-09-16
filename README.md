@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-仓库处于第一阶段 Independent MVP 开发准备期。
+仓库处于第一阶段 Independent MVP 开发期。
 
 当前已经完成：
 
@@ -13,7 +13,7 @@
 - 四端 Independent MVP PRD；
 - MVP 功能范围基线。
 
-当前尚未提供可运行的应用骨架。各端第一阶段先独立完成自身 MVP 闭环，前端通过 Playground / Mock Adapter 模拟外部依赖，后端通过 Swagger / HTTP Client / Integration Test + PostgreSQL 独立验证业务闭环；之后再进入 Contract Freeze、联调和 E2E。
+管理端已提供可运行的前端与 Mock Playground，运行方式见 [apps/admin/README.md](apps/admin/README.md)。其他端第一阶段仍按各自 PRD 独立完成 MVP 闭环；之后再进入 Contract Freeze、联调和 E2E。
 
 ## 开发流程
 
