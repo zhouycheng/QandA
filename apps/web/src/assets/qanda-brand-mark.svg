@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-labelledby="title">
+  <title id="title">QandA</title>
+  <defs>
+    <linearGradient id="g" x1="6" y1="4" x2="43" y2="45" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2F6BFF"/>
+      <stop offset="1" stop-color="#7B4DFF"/>
+    </linearGradient>
+  </defs>
+  <rect width="48" height="48" rx="15" fill="url(#g)"/>
+  <path d="M24 12.5c-7.1 0-12 4.9-12 11.7 0 6.9 4.9 11.8 12 11.8 1.7 0 3.2-.3 4.6-.8l4.4 3.3 2.4-3.3-3.1-2.3a11.4 11.4 0 0 0 3.7-8.7c0-6.8-4.9-11.7-12-11.7Zm0 5c4.1 0 6.8 2.7 6.8 6.7 0 2.2-.8 4-2.2 5.2l-3.4-2.6-2.5 3.3 1.2.9c-4-.1-6.7-2.8-6.7-6.8 0-4 2.7-6.7 6.8-6.7Z" fill="white"/>
+</svg>
