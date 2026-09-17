@@ -1,0 +1,26 @@
+.playground-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.playground-card {
+  min-height: 175px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  color: var(--ink);
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.playground-card:hover,
+.playground-card.active {
+  border-color: #9eb9ff;
+  box-shadow: 0 0 0 3px rgb(47 107 255 / 8%);
+}
+
+.playground-card > span { font-size: 16px; font-weight: 820; }
+.playground-card p { min-height: 48px; margin: 10px 0 18px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.playground-card strong { color: var(--primary); font-size: 12px; }
