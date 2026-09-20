@@ -51,6 +51,37 @@ function createSession(storage, input) {
   return activeGateway.createSession(storage, input)
 }
 
+/**
+ * 查询会话 / 查询成绩（API PRD 8 的另外两个读接口）。
+ *
+ * 这两个**不在** PRD 8 的 PracticeGateway 四方法里，所以按可选能力处理：
+ * 网关没实现就返回失败，而不是抛异常——将来接一个只实现了四方法的网关时，
+ * 页面不该因为多调了一次查询就崩掉。
+ */
+function callOptional(methodName, storage, sessionId) {
+  const method = activeGateway[methodName]
+
+  if (typeof method !== 'function') {
+    return Promise.resolve({
+      ok: false,
+      sessionId: sessionId || '',
+      session: null,
+      result: null,
+      reason: '当前网关不支持该查询'
+    })
+  }
+
+  return method(storage, sessionId)
+}
+
+function getSession(storage, sessionId) {
+  return callOptional('getSession', storage, sessionId)
+}
+
+function getResult(storage, sessionId) {
+  return callOptional('getResult', storage, sessionId)
+}
+
 function submitSession(storage, input) {
   return activeGateway.submitSession(storage, input)
 }
@@ -67,6 +98,8 @@ module.exports = {
   createSession,
   getGatewayName,
   getQuestionBanks,
+  getResult,
+  getSession,
   getSubjects,
   resetGateway,
   retrySubmit,

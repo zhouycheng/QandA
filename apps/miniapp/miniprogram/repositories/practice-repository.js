@@ -93,6 +93,9 @@ module.exports = {
   createSession: practiceGateway.createSession,
   submitSession: practiceGateway.submitSession,
   retrySubmit: practiceGateway.retrySubmit,
+  // API PRD 8 的两个读接口：补齐 HTTP 契约，端内暂不主动调用
+  getRemoteSession: practiceGateway.getSession,
+  getRemoteResult: practiceGateway.getResult,
   setGateway: practiceGateway.setGateway,
   resetGateway: practiceGateway.resetGateway,
   getGatewayName: practiceGateway.getGatewayName,

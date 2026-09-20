@@ -1,14 +1,22 @@
-const { SYNC_STATUS } = require('../models/practice-session-state.js')
+const {
+  SESSION_STATUS,
+  SYNC_STATUS
+} = require('../models/practice-session-state.js')
 const mockScenario = require('../utils/mock-scenario.js')
 const questionBankCatalog = require('../utils/question-bank-catalog.js')
+const sessionRepository = require('../repositories/session-repository.js')
 const fixtures = require('./playground-fixtures.js')
 
 /**
  * MockPracticeGateway（PRD 第 8 节 Gateway 边界的 Mock 实现，放在 playground/mock-gateways/）。
  *
- * 四个方法与 PRD 8 的 PracticeGateway 接口一致：
- *   getSubjects / getQuestionBanks / createSession / submitSession
- * 页面与 ViewModel 只认这四个方法，不感知底下是 Mock 还是 HTTP。
+ * 六个方法与 API PRD 第 8 节用户侧接口一一对应：
+ *   getSubjects / getQuestionBanks / createSession
+ *   getSession / submitSession / getResult
+ * 页面与 ViewModel 只认这些方法，不感知底下是 Mock 还是 HTTP。
+ *
+ * 两个查询方法必须有 Mock 实现：联调时上层代码不变，若 Mock 缺这两个方法，
+ * 「切到 HTTP 才第一次被执行」的代码路径等于从没验证过。
  *
  * 一律返回 Promise：真实 HTTP 一定是异步的，现在就统一，联调时不必再改调用方（PRD 12）。
  * Mock 的「网络延迟」靠 setTimeout 兑现，因此慢网络分支也能被真走到。
@@ -66,6 +74,48 @@ function createSession(storage, input) {
 }
 
 /**
+ * 查询会话（Mock 版）。
+ *
+ * Mock 语境下没有服务端，**本地持久化就是服务端的唯一事实**——
+ * 直接读 session-repository，而不是复制一份状态。
+ * 这样 Playground 里改一次答题数据，查询结果立刻跟着变，不会出现两份数据打架。
+ */
+function getSession(storage, sessionId) {
+  const config = mockScenario.getScenarioConfig(storage)
+  const saved = sessionRepository.getSession(storage)
+  const id = sessionId || ''
+  const matches = !!saved && (!id || saved.sessionId === id)
+
+  return resolveLater({
+    ok: matches,
+    sessionId: id || (saved ? saved.sessionId : ''),
+    session: matches ? saved : null,
+    reason: matches ? '' : '会话不存在或已过期'
+  }, config.latencyMs)
+}
+
+/**
+ * 查询结果（Mock 版）。
+ *
+ * 只有已交卷的会话才有成绩——没交卷就查应当返回「成绩尚未生成」而不是报错，
+ * 与 HTTP 版 404 的语义保持一致。
+ */
+function getResult(storage, sessionId) {
+  const config = mockScenario.getScenarioConfig(storage)
+  const saved = sessionRepository.getSession(storage)
+  const id = sessionId || ''
+  const isSubmitted = !!saved && saved.status === SESSION_STATUS.SUBMITTED
+  const matches = isSubmitted && (!id || saved.sessionId === id)
+
+  return resolveLater({
+    ok: matches,
+    sessionId: id || (saved ? saved.sessionId : ''),
+    result: matches ? fixtures.buildResultFixture(saved) : null,
+    reason: matches ? '' : '成绩尚未生成'
+  }, config.latencyMs)
+}
+
+/**
  * 提交：成败与延迟都由当前场景决定，而不是写死成功——
  * 否则 SYNC_PENDING 与重试分支永远是一段走不到的死代码。
  */
@@ -105,6 +155,8 @@ module.exports = {
   DEFAULT_FAIL_REASON,
   createSession,
   getQuestionBanks,
+  getResult,
+  getSession,
   getSubjects,
   retrySubmit,
   submitSession
