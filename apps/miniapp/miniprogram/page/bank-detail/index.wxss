@@ -74,6 +74,18 @@
   opacity: 0.72;
 }
 
+/* 「导入题库」是入口而不是科目：用虚线框与常规科目区分开，
+   避免被当成第九个科目（它没有题库列表，点进去是导入流程） */
+.rail-import {
+  margin-top: 12rpx;
+  padding-top: 26rpx;
+  border-top: 2rpx dashed var(--line);
+}
+
+.rail-import .rail-name {
+  color: var(--brand);
+}
+
 /* 科目栏按压：整行轻微回缩 + 淡背景，左侧色条由 .is-active 控制不受影响 */
 /* 左栏科目项在 scroll-view 里：不做 transform，否则会被当成内容尺寸变化、
    滚动位置跟着跳。改用左侧色条 + 描边，按下时"整条亮起来"同样明显。 */

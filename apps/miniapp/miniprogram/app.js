@@ -1,5 +1,6 @@
 const { createWxStorageAdapter } = require('./utils/wx-storage.js')
 const playgroundSwitch = require('./utils/playground-switch.js')
+const practiceRepository = require('./repositories/practice-repository.js')
 
 App({
   globalData: {
@@ -11,6 +12,9 @@ App({
 
   onLaunch() {
     this.globalData.launchAt = Date.now()
+    // 用户自助导入的题库存在 storage 里，也要在冷启动时挂回 catalog，
+    // 否则上次导入的题库这次打开就不见了
+    practiceRepository.syncUserBanks(createWxStorageAdapter())
     // Playground 开关存在 storage 里，冷启动必须先同步到内存，
     // 否则上一次开启的 Playground 题库在这次启动中会凭空消失
     playgroundSwitch.syncFromStorage(createWxStorageAdapter())

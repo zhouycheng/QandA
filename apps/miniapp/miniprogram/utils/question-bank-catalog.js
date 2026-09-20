@@ -1,6 +1,7 @@
 const catalog = require('../data/catalog.js')
 const playgroundSwitch = require('./playground-switch.js')
 const playgroundFixtures = require('../playground/playground-fixtures.js')
+const userBankRepository = require('../repositories/user-bank-repository.js')
 
 /**
  * 微信小程序的 require 不支持完全动态路径（require(`../data/banks/${id}.js`) 无法被静态分析），
@@ -43,6 +44,47 @@ const SUBJECT_UI = {
     theme: 'chinese',
     shortName: 'P',
     description: '开发工具专用：正常题库 / 空题库 / 100 题压力，随 Playground 开关出现。'
+  },
+  'subject-user': {
+    theme: 'user',
+    shortName: '我',
+    description: '你自己导入的题库，存在本机，清缓存会一起清掉。'
+  }
+}
+
+/**
+ * 用户自助导入的题库存在 storage 里，require 拿不到，
+ * 只能由 app.onLaunch 读出来后注册到这个模块级快照上。
+ * 之后所有取科目 / 取卷的逻辑都不用关心题库是内置的还是导入的。
+ */
+let userBanks = []
+
+function registerUserBanks(banks) {
+  userBanks = (Array.isArray(banks) ? banks : [])
+    .map(userBankRepository.normalizeBank)
+    .filter(Boolean)
+
+  return userBanks.length
+}
+
+function buildUserSubject() {
+  if (!userBanks.length) {
+    return null
+  }
+
+  return {
+    id: userBankRepository.USER_SUBJECT_ID,
+    name: userBankRepository.USER_SUBJECT_NAME,
+    theme: 'user',
+    order: 900,
+    bankCount: userBanks.length,
+    questionCount: userBanks.reduce((total, bank) => total + (bank.questions || []).length, 0),
+    banks: userBanks.map((bank) => ({
+      id: bank.bankId,
+      name: bank.bankName,
+      questionCount: (bank.questions || []).length,
+      sourceChapterId: ''
+    }))
   }
 }
 
@@ -61,10 +103,12 @@ const DEFAULT_PRACTICE_COUNT = 10
  */
 function getRawSubjects() {
   const subjects = Array.isArray(catalog.subjects) ? catalog.subjects : []
-
-  return playgroundSwitch.isEnabled()
+  const withPlayground = playgroundSwitch.isEnabled()
     ? subjects.concat(playgroundFixtures.getPlaygroundSubjects())
     : subjects
+  const userSubject = buildUserSubject()
+
+  return userSubject ? withPlayground.concat([userSubject]) : withPlayground
 }
 
 function getSubjectUi(subjectId) {
@@ -194,6 +238,12 @@ function getSubjectDetail(subjectId) {
 }
 
 function loadBank(bankId) {
+  const userBank = userBanks.find((bank) => bank.bankId === bankId)
+
+  if (userBank) {
+    return { questions: userBank.questions || [] }
+  }
+
   const loader = BANK_LOADERS[bankId]
   return loader ? loader() : null
 }
@@ -300,16 +350,22 @@ function getFirstBankQuiz() {
 
 function getCatalogStats() {
   const subjects = getRawSubjects()
+  const userSubject = buildUserSubject()
+  // 内置题库用 catalog 里已经算好的计数，用户题库按当前快照累加。
+  // 直接汇总 subjects 会在「catalog 数值 + 用户题库」上重复计数。
+  const baseSubjectCount = typeof catalog.subjectCount === 'number' ? catalog.subjectCount : subjects.length
+  const baseBankCount = typeof catalog.bankCount === 'number'
+    ? catalog.bankCount
+    : subjects.reduce((total, subject) => total + (subject.bankCount || 0), 0)
+  const baseQuestionCount = typeof catalog.questionCount === 'number'
+    ? catalog.questionCount
+    : subjects.reduce((total, subject) => total + (subject.questionCount || 0), 0)
 
   return {
     version: catalog.version || '',
-    subjectCount: typeof catalog.subjectCount === 'number' ? catalog.subjectCount : subjects.length,
-    bankCount: typeof catalog.bankCount === 'number'
-      ? catalog.bankCount
-      : subjects.reduce((total, subject) => total + (subject.bankCount || 0), 0),
-    questionCount: typeof catalog.questionCount === 'number'
-      ? catalog.questionCount
-      : subjects.reduce((total, subject) => total + (subject.questionCount || 0), 0)
+    subjectCount: baseSubjectCount + (userSubject ? 1 : 0),
+    bankCount: baseBankCount + (userSubject ? userSubject.bankCount : 0),
+    questionCount: baseQuestionCount + (userSubject ? userSubject.questionCount : 0)
   }
 }
 
@@ -424,7 +480,9 @@ function getScopeMeta(scopeKey) {
 module.exports = {
   DEFAULT_PRACTICE_COUNT,
   QUESTION_TYPE_TEXT,
+  USER_SUBJECT_ID: userBankRepository.USER_SUBJECT_ID,
   catalog,
+  registerUserBanks,
   getSubjectSummaries,
   getSubjectDetail,
   getBankQuiz,

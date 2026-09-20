@@ -8,6 +8,7 @@
     "page/my/index",
     "page/wrong-book/index",
     "page/settings/index",
+    "page/import-bank/index",
     "page/playground/index"
   ],
   "window": {

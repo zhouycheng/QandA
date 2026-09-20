@@ -54,6 +54,12 @@ Page(wrapTaps({
     this.applyViewModelResult(this.viewModel.switchSubject(subjectId))
   },
 
+  handleImportTap() {
+    wx.navigateTo({
+      url: '/page/import-bank/index'
+    })
+  },
+
   handleModeSelect(e) {
     this.applyViewModelResult(this.viewModel.selectMode(e.currentTarget.dataset.mode))
   },

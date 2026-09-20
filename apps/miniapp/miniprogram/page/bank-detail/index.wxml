@@ -17,6 +17,18 @@
             <text class="rail-meta">{{item.bankCount}} 个单元</text>
           </view>
         </view>
+
+        <view
+          class="rail-item rail-import"
+          bindtap="handleImportTap"
+          hover-class="rail-item-hover"
+          hover-start-time="0" hover-stay-time="200"
+        >
+          <view class="rail-body">
+            <text class="rail-name">导入题库</text>
+            <text class="rail-meta">CSV 表格</text>
+          </view>
+        </view>
       </view>
     </scroll-view>
 

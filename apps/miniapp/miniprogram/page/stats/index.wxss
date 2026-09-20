@@ -304,6 +304,10 @@
   background: #2b7ffc;
 }
 
+.dot-user {
+  background: #6941c6;
+}
+
 .subject-name {
   flex: 1;
   min-width: 0;
@@ -376,6 +380,10 @@
 
 .fill-english {
   background: linear-gradient(90deg, #53b1fd, #2b7ffc);
+}
+
+.fill-user {
+  background: linear-gradient(90deg, #9b8afb, #6941c6);
 }
 
 /* ==================== 错题与收藏 ==================== */

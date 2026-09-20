@@ -12,12 +12,23 @@ const practiceGateway = require('./practice-gateway.js')
 const mockScenario = require('../utils/mock-scenario.js')
 const playgroundSwitch = require('../utils/playground-switch.js')
 const playgroundScenarios = require('../playground/playground-scenarios.js')
+const userBankRepository = require('./user-bank-repository.js')
 
 /**
  * 仓储层：页面与 ViewModel 只依赖这里，不直接依赖 utils。
  * 未来接入服务端接口时，只需替换本文件的实现，上层保持不变。
  */
+
+/**
+ * 冷启动时把 storage 里的用户题库同步进 catalog 快照。
+ * 不做这一步，上一次导入的题库在这次启动里会凭空消失。
+ */
+function syncUserBanks(storage) {
+  return questionBankCatalog.registerUserBanks(userBankRepository.getUserBanks(storage))
+}
+
 module.exports = {
+  syncUserBanks,
   getSubjectSummaries: questionBankCatalog.getSubjectSummaries,
   getSubjectDetail: questionBankCatalog.getSubjectDetail,
   getBankQuiz: questionBankCatalog.getBankQuiz,
@@ -94,5 +105,14 @@ module.exports = {
   // Playground 场景开关
   getMockScenario: mockScenario.getScenario,
   setMockScenario: mockScenario.setScenario,
-  getMockScenarioConfig: mockScenario.getScenarioConfig
+  getMockScenarioConfig: mockScenario.getScenarioConfig,
+  // 用户自助导入的题库（存在 storage 里，与内置题库走同一套取卷逻辑）
+  registerUserBanks: questionBankCatalog.registerUserBanks,
+  getUserBanks: userBankRepository.getUserBanks,
+  getUserBank: userBankRepository.getUserBank,
+  saveUserBank: userBankRepository.saveUserBank,
+  removeUserBank: userBankRepository.removeUserBank,
+  clearUserBanks: userBankRepository.clearUserBanks,
+  parseBankText: userBankRepository.parseBankText,
+  buildUserBank: userBankRepository.buildUserBank
 }

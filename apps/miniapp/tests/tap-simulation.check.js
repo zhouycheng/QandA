@@ -76,6 +76,22 @@ function makeRuntime() {
     getSystemInfoSync() { return { platform: 'devtools', windowWidth: 375, windowHeight: 667, SDKVersion: '3.15.2' } },
     getSystemInfo(o) { if (o && o.success) o.success({ platform: 'devtools' }) },
     vibrateShort() { calls.push('vibrateShort') },
+    setClipboardData(o) {
+      calls.push(`复制(${o && o.data ? String(o.data).slice(0, 12) : ''})`)
+      if (o && o.success) o.success({ data: o.data })
+    },
+    chooseMessageFile(o) {
+      calls.push('chooseMessageFile')
+      // 模拟「用户取消」：真实环境里最常见的分支，不该被当成错误
+      if (o && o.fail) o.fail({ errMsg: 'chooseMessageFile:fail cancel' })
+    },
+    getFileSystemManager() {
+      return {
+        readFileSync() {
+          return '题型,题干,选项A,选项B,答案\n单选,模拟题干,甲,乙,A'
+        }
+      }
+    },
     getAppBaseInfo() { return { SDKVersion: '3.15.2', theme: 'light' } },
     onThemeChange() {},
   }

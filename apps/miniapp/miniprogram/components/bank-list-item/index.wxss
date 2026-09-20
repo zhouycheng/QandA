@@ -85,6 +85,11 @@
   background: linear-gradient(90deg, #53b1fd, #2b7ffc);
 }
 
+/* 用户自助导入的题库：紫色，与三个内置科目区分开 */
+.fill-user {
+  background: linear-gradient(90deg, #9b8afb, #6941c6);
+}
+
 .is-complete {
   background: linear-gradient(90deg, #32d583, #17b26a);
 }
