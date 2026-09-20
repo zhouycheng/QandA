@@ -1,0 +1,304 @@
+.imp {
+  padding: 28rpx 28rpx 60rpx;
+}
+
+.hero {
+  padding: 8rpx 8rpx 24rpx;
+}
+
+.hero-title {
+  display: block;
+  font-size: 40rpx;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.hero-desc {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  line-height: 1.6;
+  color: var(--text-sub);
+}
+
+/* ===== 输入方式切换 ===== */
+.modes {
+  display: flex;
+  margin-bottom: 24rpx;
+}
+
+.mode {
+  padding: 14rpx 28rpx;
+  margin-right: 16rpx;
+  border-radius: 999rpx;
+  background: #ffffff;
+  font-size: 27rpx;
+  color: var(--text-sub);
+  box-shadow: inset 0 0 0 2rpx var(--line);
+}
+
+.mode-on {
+  background: var(--brand);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: inset 0 0 0 2rpx var(--brand);
+}
+
+/* ===== 卡片与表单 ===== */
+.card {
+  padding: 26rpx;
+  margin-bottom: 24rpx;
+  border-radius: 24rpx;
+  background: var(--card);
+  box-shadow: 0 8rpx 24rpx rgba(31, 42, 55, 0.05);
+}
+
+.field-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 14rpx;
+  font-size: 27rpx;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.link {
+  font-size: 25rpx;
+  color: var(--brand);
+}
+
+.field-input {
+  width: 100%;
+  height: 84rpx;
+  padding: 0 20rpx;
+  border-radius: 16rpx;
+  background: #f6f8fb;
+  font-size: 28rpx;
+  color: var(--text-main);
+}
+
+.field-area {
+  width: 100%;
+  height: 320rpx;
+  padding: 20rpx;
+  border-radius: 16rpx;
+  background: #f6f8fb;
+  font-size: 25rpx;
+  line-height: 1.6;
+  color: var(--text-main);
+}
+
+.field-ph {
+  color: var(--text-muted);
+}
+
+.field-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14rpx;
+}
+
+.field-hint {
+  flex: 1;
+  padding-right: 20rpx;
+  font-size: 23rpx;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.guide {
+  display: block;
+  font-size: 25rpx;
+  line-height: 1.7;
+  color: var(--text-sub);
+}
+
+.guide-sub {
+  margin-top: 16rpx;
+  font-size: 23rpx;
+  color: var(--text-muted);
+}
+
+.pick {
+  margin-top: 20rpx;
+  padding: 22rpx 0;
+  border-radius: 16rpx;
+  background: var(--brand-soft);
+  text-align: center;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--brand-dark);
+}
+
+.picked {
+  display: block;
+  margin-top: 16rpx;
+  font-size: 24rpx;
+  color: var(--success);
+}
+
+/* ===== 警告 ===== */
+.warn {
+  border-left: 8rpx solid var(--warning);
+}
+
+.warn-title {
+  display: block;
+  font-size: 27rpx;
+  font-weight: 600;
+  color: var(--warning);
+}
+
+.warn-line {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: var(--text-sub);
+}
+
+/* ===== 预览 ===== */
+.preview-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.preview-count {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--success);
+}
+
+.preview-types {
+  font-size: 24rpx;
+  color: var(--text-sub);
+}
+
+.issue {
+  margin-top: 18rpx;
+  padding-top: 18rpx;
+  border-top: 2rpx solid var(--line);
+}
+
+.issue-title {
+  display: block;
+  font-size: 25rpx;
+  font-weight: 600;
+  color: var(--danger);
+}
+
+.issue-warn .issue-title {
+  color: var(--warning);
+}
+
+.issue-line {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 23rpx;
+  line-height: 1.6;
+  color: var(--text-sub);
+}
+
+/* ===== 导入按钮 ===== */
+.submit {
+  padding: 28rpx 0;
+  margin-bottom: 32rpx;
+  border-radius: 20rpx;
+  background: var(--brand);
+  text-align: center;
+  font-size: 31rpx;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.submit-off {
+  background: #c3cddb;
+}
+
+/* ===== 已导入列表 ===== */
+.block-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0 8rpx 16rpx;
+}
+
+.block-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.block-extra {
+  font-size: 24rpx;
+  color: var(--text-muted);
+}
+
+.list {
+  padding: 8rpx 0;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 26rpx;
+  border-radius: 18rpx;
+}
+
+.row-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.row-title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.row-desc {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 23rpx;
+  color: var(--text-muted);
+}
+
+.row-del {
+  padding: 8rpx 16rpx;
+  font-size: 24rpx;
+  color: var(--danger);
+}
+
+.row-arrow {
+  padding-left: 12rpx;
+  font-size: 30rpx;
+  color: var(--text-muted);
+}
+
+.empty {
+  padding: 60rpx 0;
+  text-align: center;
+}
+
+.empty-text {
+  font-size: 25rpx;
+  color: var(--text-muted);
+}
+
+.footer-note {
+  padding: 12rpx 8rpx 0;
+}
+
+.footer-note text {
+  font-size: 23rpx;
+  line-height: 1.7;
+  color: var(--text-muted);
+}

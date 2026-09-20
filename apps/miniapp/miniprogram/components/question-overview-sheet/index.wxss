@@ -1,0 +1,151 @@
+.overview {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 900;
+}
+
+.mask {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #ffffff;
+  border-radius: 28rpx 28rpx 0 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  animation: overview-rise 0.22s ease-out;
+}
+
+@keyframes overview-rise {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+.panel-header {
+  padding: 28rpx 32rpx;
+  border-bottom: 1rpx solid var(--line);
+}
+
+.panel-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.panel-sub {
+  margin-left: 16rpx;
+  font-size: 24rpx;
+  color: var(--text-muted);
+}
+
+.grid-scroll {
+  max-height: 56vh;
+  padding: 28rpx 32rpx;
+}
+
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.cell {
+  position: relative;
+  width: 96rpx;
+  height: 96rpx;
+  margin: 0 16rpx 16rpx 0;
+  border-radius: 16rpx;
+  background: #f2f4f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cell-number {
+  font-size: 28rpx;
+  color: var(--text-sub);
+}
+
+.cell.correct {
+  background: #dcfae6;
+}
+
+.cell.correct .cell-number {
+  color: var(--success);
+}
+
+.cell.wrong {
+  background: #fee4e2;
+}
+
+.cell.wrong .cell-number {
+  color: var(--danger);
+}
+
+.cell.current {
+  border: 2rpx solid var(--brand);
+}
+
+/* 格子按压：只回缩不动背景——背景已被答对/答错/当前三个状态占用 */
+/* 答题卡格子在 scroll-view 里：格子小、又密，缩放会让整片网格一起晃，
+   所以只做描边 + 底色 */
+.cell-hover {
+  background: rgba(43, 127, 252, 0.16);
+  box-shadow: inset 0 0 0 4rpx rgba(43, 127, 252, 0.45);
+  transition-duration: 90ms;
+}
+
+.cell-star {
+  position: absolute;
+  right: 6rpx;
+  top: 2rpx;
+  font-size: 20rpx;
+  color: var(--warning);
+}
+
+.legend {
+  display: flex;
+  padding: 0 32rpx 32rpx;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-right: 32rpx;
+  font-size: 22rpx;
+  color: var(--text-muted);
+}
+
+.dot {
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: 50%;
+  margin-right: 10rpx;
+}
+
+.dot.correct {
+  background: #dcfae6;
+}
+
+.dot.wrong {
+  background: #fee4e2;
+}
+
+.dot.pending {
+  background: #f2f4f7;
+}

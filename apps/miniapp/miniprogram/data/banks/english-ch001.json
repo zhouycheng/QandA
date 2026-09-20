@@ -1,0 +1,751 @@
+{
+  "status": "released",
+  "subjectId": "subject-english",
+  "subjectName": "大学英语",
+  "bankId": "english-ch001",
+  "bankName": "第一单元",
+  "sourceChapterId": "ch-001",
+  "questionCount": 20,
+  "questions": [
+    {
+      "id": "q-ce-ch001-vocabulary-001",
+      "type": "single",
+      "stem": "“adequately” 是什么意思?",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "足够地;适当地"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "很少地"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "快速地"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "缓慢地"
+        }
+      ],
+      "answerKeys": [
+        "A"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第一单元",
+        "词汇题"
+      ],
+      "explanation": "本题考查 adequately 的词义。正确答案是 A，因为它表示“足够地;适当地”。"
+    },
+    {
+      "id": "q-ce-ch001-vocabulary-002",
+      "type": "single",
+      "stem": "“adjust” 的意思是____。",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "增加"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "调整;调节"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "减少"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "删除"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第一单元",
+        "词汇题"
+      ],
+      "explanation": "本题考查 adjust 的词义。正确答案是 B，因为它表示“调整;调节”。"
+    },
+    {
+      "id": "q-ce-ch001-vocabulary-003",
+      "type": "single",
+      "stem": "“asset” 是什么意思?",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "债务"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "资产;财产"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "损失"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "费用"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第一单元",
+        "词汇题"
+      ],
+      "explanation": "本题考查 asset 的词义。正确答案是 B，因为它表示“资产;财产”。"
+    },
+    {
+      "id": "q-ce-ch001-vocabulary-004",
+      "type": "single",
+      "stem": "“competent” 是什么意思?",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "无能力的"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "有能力的;能胜任的"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "懒惰的"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "忙碌的"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第一单元",
+        "词汇题"
+      ],
+      "explanation": "本题考查 competent 的词义。正确答案是 B，因为它表示“有能力的;能胜任的”。"
+    },
+    {
+      "id": "q-ce-ch001-vocabulary-005",
+      "type": "single",
+      "stem": "“condense” 是什么意思?",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "扩展"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "连接"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "分散"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "压缩;精简"
+        }
+      ],
+      "answerKeys": [
+        "D"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第一单元",
+        "词汇题"
+      ],
+      "explanation": "本题考查 condense 的词义。正确答案是 D，因为它表示“压缩;精简”。"
+    },
+    {
+      "id": "q-ce-ch001-vocabulary-006",
+      "type": "single",
+      "stem": "“deficit” 是什么意思?",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "盈余"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "赤字;亏损"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "收入"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "利润"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第一单元",
+        "词汇题"
+      ],
+      "explanation": "本题考查 deficit 的词义。正确答案是 B，因为它表示“赤字;亏损”。"
+    },
+    {
+      "id": "q-ce-ch001-vocabulary-007",
+      "type": "single",
+      "stem": "“distinguish” 是什么意思?",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "区分;辨别"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "混淆"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "混合"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "忽视"
+        }
+      ],
+      "answerKeys": [
+        "A"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第一单元",
+        "词汇题"
+      ],
+      "explanation": "本题考查 distinguish 的词义。正确答案是 A，因为它表示“区分;辨别”。"
+    },
+    {
+      "id": "q-ce-ch001-vocabulary-008",
+      "type": "single",
+      "stem": "“exceed” 是什么意思?",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "低于"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "等于"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "超过;超出"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "接近"
+        }
+      ],
+      "answerKeys": [
+        "C"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第一单元",
+        "词汇题"
+      ],
+      "explanation": "本题考查 exceed 的词义。正确答案是 C，因为它表示“超过;超出”。"
+    },
+    {
+      "id": "q-ce-ch001-vocabulary-009",
+      "type": "single",
+      "stem": "“precise” 是什么意思?",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "模糊的"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "错误的"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "大概的"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "精确的;准确的"
+        }
+      ],
+      "answerKeys": [
+        "D"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第一单元",
+        "词汇题"
+      ],
+      "explanation": "本题考查 precise 的词义。正确答案是 D，因为它表示“精确的;准确的”。"
+    },
+    {
+      "id": "q-ce-ch001-vocabulary-010",
+      "type": "single",
+      "stem": "“proficiency” 是什么意思?",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "熟练;精通"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "新手状态"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "错误操作"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "业余爱好"
+        }
+      ],
+      "answerKeys": [
+        "A"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第一单元",
+        "词汇题"
+      ],
+      "explanation": "本题考查 proficiency 的词义。正确答案是 A，因为它表示“熟练;精通”。"
+    },
+    {
+      "id": "q-ce-ch001-single-choice-001",
+      "type": "single",
+      "stem": "In Chinese culture, adult children are expected to take care of their aged parents, so they ________to contact or visit their parents regularly.",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "are obliged to"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "look after"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "care for"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "abandon"
+        }
+      ],
+      "answerKeys": [
+        "A"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第一单元",
+        "单选题"
+      ],
+      "explanation": "本题考查 are obliged to 的语义和搭配。正确答案是 A，因为它符合句意并能自然衔接上下文。"
+    },
+    {
+      "id": "q-ce-ch001-single-choice-002",
+      "type": "single",
+      "stem": "People won’t ______ avoiding natural disasters until personally affected.",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "get over"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "get forward to"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "get serious about"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "get through with"
+        }
+      ],
+      "answerKeys": [
+        "C"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第一单元",
+        "单选题"
+      ],
+      "explanation": "本题考查 get serious about 的语义和搭配。正确答案是 C，因为它符合句意并能自然衔接上下文。"
+    },
+    {
+      "id": "q-ce-ch001-single-choice-003",
+      "type": "single",
+      "stem": "When you ______ a long-lost friend, you’ll be delighted.",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "run into"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "run out of"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "run after"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "run over"
+        }
+      ],
+      "answerKeys": [
+        "A"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第一单元",
+        "单选题"
+      ],
+      "explanation": "本题考查 run into 的语义和搭配。正确答案是 A，因为它符合句意并能自然衔接上下文。"
+    },
+    {
+      "id": "q-ce-ch001-single-choice-004",
+      "type": "single",
+      "stem": "We need to ______ facts and opinions for better comprehension.",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "ignore"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "mix up"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "compare with"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "distinguish between"
+        }
+      ],
+      "answerKeys": [
+        "D"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第一单元",
+        "单选题"
+      ],
+      "explanation": "本题考查 distinguish between 的语义和搭配。正确答案是 D，因为它符合句意并能自然衔接上下文。"
+    },
+    {
+      "id": "q-ce-ch001-single-choice-005",
+      "type": "single",
+      "stem": "The growth of the food e-commerce sector in China has played an important role in promoting the sales of agricultural products_________ the fields.",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "failed to support"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "fresh from"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "focused only on"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "opposed to"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第一单元",
+        "单选题"
+      ],
+      "explanation": "本题考查 fresh from 的语义和搭配。正确答案是 B，因为它符合句意并能自然衔接上下文。"
+    },
+    {
+      "id": "q-ce-ch001-single-choice-006",
+      "type": "single",
+      "stem": "If I don’t like someone or something, I might just say I am ______ even if it sounds rude.",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "always right"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "silent in"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "apologize"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "allergic to"
+        }
+      ],
+      "answerKeys": [
+        "D"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第一单元",
+        "单选题"
+      ],
+      "explanation": "本题考查 allergic to 的语义和搭配。正确答案是 D，因为它符合句意并能自然衔接上下文。"
+    },
+    {
+      "id": "q-ce-ch001-single-choice-007",
+      "type": "single",
+      "stem": "Researchers conducted tests to determine the negative consequences of a sleep ______.",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "surplus"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "habit"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "deficit"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "cycle"
+        }
+      ],
+      "answerKeys": [
+        "C"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第一单元",
+        "单选题"
+      ],
+      "explanation": "本题考查 deficit 的语义和搭配。正确答案是 C，因为它符合句意并能自然衔接上下文。"
+    },
+    {
+      "id": "q-ce-ch001-single-choice-008",
+      "type": "single",
+      "stem": "Bees can ______ more than 10 similar flower odors due to their sense of smell.",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "confuse"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "destroy"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "distinguish"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "Create"
+        }
+      ],
+      "answerKeys": [
+        "C"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第一单元",
+        "单选题"
+      ],
+      "explanation": "本题考查 distinguish 的语义和搭配。正确答案是 C，因为它符合句意并能自然衔接上下文。"
+    },
+    {
+      "id": "q-ce-ch001-single-choice-009",
+      "type": "single",
+      "stem": "Moving forward even in the face of difficulties has become the most important ______ in my life and career.",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "challenge"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "mistake"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "reward"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "asset"
+        }
+      ],
+      "answerKeys": [
+        "D"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第一单元",
+        "单选题"
+      ],
+      "explanation": "本题考查 asset 的语义和搭配。正确答案是 D，因为它符合句意并能自然衔接上下文。"
+    },
+    {
+      "id": "q-ce-ch001-single-choice-010",
+      "type": "single",
+      "stem": "The lawyer proclaimed that conclusions must be ______ supported by evidence.",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "randomly"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "adequately"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "partially"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "Temporarily"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第一单元",
+        "单选题"
+      ],
+      "explanation": "本题考查 adequately 的语义和搭配。正确答案是 B，因为它符合句意并能自然衔接上下文。"
+    }
+  ]
+}

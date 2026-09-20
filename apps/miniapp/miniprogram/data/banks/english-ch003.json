@@ -1,0 +1,1343 @@
+{
+  "status": "released",
+  "subjectId": "subject-english",
+  "subjectName": "大学英语",
+  "bankId": "english-ch003",
+  "bankName": "第三单元",
+  "sourceChapterId": "ch-003",
+  "questionCount": 36,
+  "questions": [
+    {
+      "id": "q-ce-ch003-vocabulary-001",
+      "type": "single",
+      "stem": "assign",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "解雇"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "分配"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "忽略"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "评估"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "词汇题"
+      ],
+      "explanation": "本题考查 assign 的词义。正确答案是 B，因为它表示“分配”。"
+    },
+    {
+      "id": "q-ce-ch003-vocabulary-002",
+      "type": "single",
+      "stem": "endure",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "逃避"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "享受"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "忍受"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "加速"
+        }
+      ],
+      "answerKeys": [
+        "C"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "词汇题"
+      ],
+      "explanation": "本题考查 endure 的词义。正确答案是 C，因为它表示“忍受”。"
+    },
+    {
+      "id": "q-ce-ch003-vocabulary-003",
+      "type": "single",
+      "stem": "exhibit",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "隐藏"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "破坏"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "展示"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "模仿"
+        }
+      ],
+      "answerKeys": [
+        "C"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "词汇题"
+      ],
+      "explanation": "本题考查 exhibit 的词义。正确答案是 C，因为它表示“展示”。"
+    },
+    {
+      "id": "q-ce-ch003-vocabulary-004",
+      "type": "single",
+      "stem": "flexible",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "僵硬的"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "复杂的"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "灵活的"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "脆弱的"
+        }
+      ],
+      "answerKeys": [
+        "C"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "词汇题"
+      ],
+      "explanation": "本题考查 flexible 的词义。正确答案是 C，因为它表示“灵活的”。"
+    },
+    {
+      "id": "q-ce-ch003-vocabulary-005",
+      "type": "single",
+      "stem": "internal",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "外部的"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "内部的"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "临时的"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "次要的"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "词汇题"
+      ],
+      "explanation": "本题考查 internal 的词义。正确答案是 B，因为它表示“内部的”。"
+    },
+    {
+      "id": "q-ce-ch003-vocabulary-006",
+      "type": "single",
+      "stem": "parallel",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "垂直的"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "平行的"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "交叉的"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "分散的"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "词汇题"
+      ],
+      "explanation": "本题考查 parallel 的词义。正确答案是 B，因为它表示“平行的”。"
+    },
+    {
+      "id": "q-ce-ch003-vocabulary-007",
+      "type": "single",
+      "stem": "persistence",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "放弃"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "坚持"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "犹豫"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "改变"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "词汇题"
+      ],
+      "explanation": "本题考查 persistence 的词义。正确答案是 B，因为它表示“坚持”。"
+    },
+    {
+      "id": "q-ce-ch003-vocabulary-008",
+      "type": "single",
+      "stem": "recruit",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "解雇"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "招募"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "培训"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "退休"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "词汇题"
+      ],
+      "explanation": "本题考查 recruit 的词义。正确答案是 B，因为它表示“招募”。"
+    },
+    {
+      "id": "q-ce-ch003-vocabulary-009",
+      "type": "single",
+      "stem": "stunning",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "普通的"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "乏味的"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "惊人的"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "可怕的"
+        }
+      ],
+      "answerKeys": [
+        "C"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "词汇题"
+      ],
+      "explanation": "本题考查 stunning 的词义。正确答案是 C，因为它表示“惊人的”。"
+    },
+    {
+      "id": "q-ce-ch003-vocabulary-010",
+      "type": "single",
+      "stem": "vigorous",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "懒散的"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "虚弱的"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "充满活力的"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "缓慢的"
+        }
+      ],
+      "answerKeys": [
+        "C"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "词汇题"
+      ],
+      "explanation": "本题考查 vigorous 的词义。正确答案是 C，因为它表示“充满活力的”。"
+    },
+    {
+      "id": "q-ce-ch003-vocabulary-011",
+      "type": "single",
+      "stem": "be accustomed to",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "习惯于"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "反对"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "依赖"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "忽视"
+        }
+      ],
+      "answerKeys": [
+        "A"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "词汇题"
+      ],
+      "explanation": "本题考查 be accustomed to 的词义。正确答案是 A，因为它表示“习惯于”。"
+    },
+    {
+      "id": "q-ce-ch003-vocabulary-012",
+      "type": "single",
+      "stem": "be based on",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "基于"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "超越"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "忽略"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "怀疑"
+        }
+      ],
+      "answerKeys": [
+        "A"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "词汇题"
+      ],
+      "explanation": "本题考查 be based on 的词义。正确答案是 A，因为它表示“基于”。"
+    },
+    {
+      "id": "q-ce-ch003-vocabulary-013",
+      "type": "single",
+      "stem": "for the sake of",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "为了…的利益"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "反对"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "由于"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "除非"
+        }
+      ],
+      "answerKeys": [
+        "A"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "词汇题"
+      ],
+      "explanation": "本题考查 for the sake of 的词义。正确答案是 A，因为它表示“为了…的利益”。"
+    },
+    {
+      "id": "q-ce-ch003-vocabulary-014",
+      "type": "single",
+      "stem": "have a passion for",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "对…有热情"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "对…冷漠"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "对…恐惧"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "对…厌倦"
+        }
+      ],
+      "answerKeys": [
+        "A"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "词汇题"
+      ],
+      "explanation": "本题考查 have a passion for 的词义。正确答案是 A，因为它表示“对…有热情”。"
+    },
+    {
+      "id": "q-ce-ch003-vocabulary-015",
+      "type": "single",
+      "stem": "no exaggeration",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "夸张地说"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "毫不夸张"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "沉默"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "虚构"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "词汇题"
+      ],
+      "explanation": "本题考查 no exaggeration 的词义。正确答案是 B，因为它表示“毫不夸张；并非言过其实”。"
+    },
+    {
+      "id": "q-ce-ch003-vocabulary-016",
+      "type": "single",
+      "stem": "strive for",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "放弃"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "妥协"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "努力争取"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "忽视"
+        }
+      ],
+      "answerKeys": [
+        "C"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "词汇题"
+      ],
+      "explanation": "本题考查 strive for 的词义。正确答案是 C，因为它表示“努力争取”。"
+    },
+    {
+      "id": "q-ce-ch003-vocabulary-017",
+      "type": "single",
+      "stem": "take it for granted that",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "认为…是理所当然的"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "质疑…的真实性"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "对…感到惊讶"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "对…表示感谢"
+        }
+      ],
+      "answerKeys": [
+        "A"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "词汇题"
+      ],
+      "explanation": "本题考查 take it for granted that 的词义。正确答案是 A，因为它表示“认为…是理所当然的”。"
+    },
+    {
+      "id": "q-ce-ch003-vocabulary-018",
+      "type": "single",
+      "stem": "tap into",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "堵塞"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "开发(潜力、资源)"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "忽略"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "复制"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "词汇题"
+      ],
+      "explanation": "本题考查 tap into 的词义。正确答案是 B，因为它表示“开发(潜力、资源)”。"
+    },
+    {
+      "id": "q-ce-ch003-single-choice-001",
+      "type": "single",
+      "stem": "The boss said, \"The schedule is completely ______ because I do not need to be around and watch when you do your work.\"",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "strict"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "flexible"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "fixed"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "rigid"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "单选题"
+      ],
+      "explanation": "本题考查 flexible 的语义和搭配。正确答案是 B，因为它符合句意并能自然衔接上下文。"
+    },
+    {
+      "id": "q-ce-ch003-single-choice-002",
+      "type": "single",
+      "stem": "Currently, the stock market is not very stable, but over the long run, the growth of stock funds will ______ the growth of the economy.",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "oppose"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "parallel"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "hinder"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "diverge"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "单选题"
+      ],
+      "explanation": "本题考查 parallel 的语义和搭配。正确答案是 B，因为它符合句意并能自然衔接上下文。"
+    },
+    {
+      "id": "q-ce-ch003-single-choice-003",
+      "type": "single",
+      "stem": "These student volunteers can decide how to perform any ______ work, for which they are qualified and have a strong passion.",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "optional"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "assigned"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "chosen"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "random"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "单选题"
+      ],
+      "explanation": "本题考查 assigned 的语义和搭配。正确答案是 B，因为它符合句意并能自然衔接上下文。"
+    },
+    {
+      "id": "q-ce-ch003-single-choice-004",
+      "type": "single",
+      "stem": "Human beings, by providing environmental enrichment, encourage animals to explore, interact, and ______ natural behaviors.",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "suppress"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "ignore"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "restrain"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "exhibit"
+        }
+      ],
+      "answerKeys": [
+        "D"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "单选题"
+      ],
+      "explanation": "本题考查 exhibit 的语义和搭配。正确答案是 D，因为它符合句意并能自然衔接上下文。"
+    },
+    {
+      "id": "q-ce-ch003-single-choice-005",
+      "type": "single",
+      "stem": "Along with extraordinary courage, qualities like ______, teamwork, and most importantly, leadership shine in all of our student activities.",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "laziness"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "hesitation"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "persistence"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "inconsistency"
+        }
+      ],
+      "answerKeys": [
+        "C"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "单选题"
+      ],
+      "explanation": "本题考查 persistence 的语义和搭配。正确答案是 C，因为它符合句意并能自然衔接上下文。"
+    },
+    {
+      "id": "q-ce-ch003-single-choice-006",
+      "type": "single",
+      "stem": "This is a beautiful part of the city to live in, with stylish and architecturally ______ historic buildings lining the clean and quiet streets.",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "ordinary"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "stunning"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "plain"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "ugly"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "单选题"
+      ],
+      "explanation": "本题考查 stunning 的语义和搭配。正确答案是 B，因为它符合句意并能自然衔接上下文。"
+    },
+    {
+      "id": "q-ce-ch003-single-choice-007",
+      "type": "single",
+      "stem": "An energetic search will soon be put in place to ______ a qualified person who can continue with the leadership of a big company.",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "remix"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "dismiss"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "retain"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "recruit"
+        }
+      ],
+      "answerKeys": [
+        "D"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "单选题"
+      ],
+      "explanation": "本题考查 recruit 的语义和搭配。正确答案是 D，因为它符合句意并能自然衔接上下文。"
+    },
+    {
+      "id": "q-ce-ch003-single-choice-008",
+      "type": "single",
+      "stem": "I've ______ hardships throughout my life, so I think I can handle the stress and achieve my full potential in this company.",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "enjoyed"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "endured"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "avoided"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "escaped"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "单选题"
+      ],
+      "explanation": "本题考查 endured 的语义和搭配。正确答案是 B，因为它符合句意并能自然衔接上下文。"
+    },
+    {
+      "id": "q-ce-ch003-single-choice-009",
+      "type": "single",
+      "stem": "Many people believe that ______ exercise and outdoor sports could better help people stay healthy and strong.",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "discouraging"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "informative"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "vigorous"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "talented"
+        }
+      ],
+      "answerKeys": [
+        "C"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "单选题"
+      ],
+      "explanation": "本题考查 vigorous 的语义和搭配。正确答案是 C，因为它符合句意并能自然衔接上下文。"
+    },
+    {
+      "id": "q-ce-ch003-single-choice-010",
+      "type": "single",
+      "stem": "With the help of my family and friends, all of my ______ doubts about myself gradually disappeared and my confidence was restored.",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "external"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "surface"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "internal"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "outward"
+        }
+      ],
+      "answerKeys": [
+        "C"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "单选题"
+      ],
+      "explanation": "本题考查 internal 的语义和搭配。正确答案是 C，因为它符合句意并能自然衔接上下文。"
+    },
+    {
+      "id": "q-ce-ch003-single-choice-011",
+      "type": "single",
+      "stem": "The course project that I completed weeks ago has helped me ______ my creativity and intuition which I didn’t even realize I had.",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "trap into"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "tap into"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "trip into"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "trade into"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "单选题"
+      ],
+      "explanation": "本题考查 tap into 的语义和搭配。正确答案是 B，因为它符合句意并能自然衔接上下文。"
+    },
+    {
+      "id": "q-ce-ch003-single-choice-012",
+      "type": "single",
+      "stem": "Many people probably ______ fast Internet access is almost everywhere – at home, at work, and even in the most remote areas.",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "take it for"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "take it for granted"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "take it as"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "take after"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "单选题"
+      ],
+      "explanation": "本题考查 take it for granted 的语义和搭配。正确答案是 B，因为它符合句意并能自然衔接上下文。"
+    },
+    {
+      "id": "q-ce-ch003-single-choice-013",
+      "type": "single",
+      "stem": "It’s probably true that we always ______ the goal that we consider challenging but achievable to gain a sense of accomplishment.",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "strive for"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "shiver to"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "shrink to"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "sprint to"
+        }
+      ],
+      "answerKeys": [
+        "A"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "单选题"
+      ],
+      "explanation": "本题考查 strive for 的语义和搭配。正确答案是 A，因为它符合句意并能自然衔接上下文。"
+    },
+    {
+      "id": "q-ce-ch003-single-choice-014",
+      "type": "single",
+      "stem": "It’s ______ say that the kitchen he installed last month is 100 times better, and now I fortunately have the kitchen I dreamed of.",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "no exaggeration"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "no exaggeration to"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "no exception to"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "no exception"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "单选题"
+      ],
+      "explanation": "本题考查 no exaggeration to 的语义和搭配。正确答案是 B，因为它符合句意并能自然衔接上下文。"
+    },
+    {
+      "id": "q-ce-ch003-single-choice-015",
+      "type": "single",
+      "stem": "Since the exam ______ what you have learned, you can expect to see some questions from previous assignments.",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "is based on"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "is built for"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "is derived from"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "is focused to"
+        }
+      ],
+      "answerKeys": [
+        "A"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "单选题"
+      ],
+      "explanation": "本题考查 is based on 的语义和搭配。正确答案是 A，因为它符合句意并能自然衔接上下文。"
+    },
+    {
+      "id": "q-ce-ch003-single-choice-016",
+      "type": "single",
+      "stem": "I think journalists work in a timely manner and ______ deadlines or tight working schedules because they were well trained in this way.",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "are accustomed by"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "are accustomed to"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "are adjusted by"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "are adjusted to"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "单选题"
+      ],
+      "explanation": "本题考查 are accustomed to 的语义和搭配。正确答案是 B，因为它符合句意并能自然衔接上下文。"
+    },
+    {
+      "id": "q-ce-ch003-single-choice-017",
+      "type": "single",
+      "stem": "The situation between us is very challenging, but we have to learn how to handle the difficult situation ______ improving our relations.",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "for the sake"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "for the sake of"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "for the purpose"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "for the cause"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "单选题"
+      ],
+      "explanation": "本题考查 for the sake of 的语义和搭配。正确答案是 B，因为它符合句意并能自然衔接上下文。"
+    },
+    {
+      "id": "q-ce-ch003-single-choice-018",
+      "type": "single",
+      "stem": "The award-winning chef says that since he was young, he ________ for Chinese food because of its rich ingredients and well-balanced nutrition.",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "has had a passion for"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "has kept a positive mindset"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "has maintained positivity"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "has designed balanced"
+        }
+      ],
+      "answerKeys": [
+        "A"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三单元",
+        "单选题"
+      ],
+      "explanation": "本题考查 has had a passion for 的语义和搭配。正确答案是 A，因为它符合句意并能自然衔接上下文。"
+    }
+  ]
+}

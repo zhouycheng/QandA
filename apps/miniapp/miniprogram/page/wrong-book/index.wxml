@@ -1,0 +1,69 @@
+<view class="page wrong-book-page">
+  <view class="tabs card">
+    <view
+      wx:for="{{tabs}}"
+      wx:key="key"
+      class="tab {{activeTab === item.key ? 'active' : ''}}"
+      data-tab="{{item.key}}"
+      bindtap="onTabChange"
+      hover-class="tab-hover"
+      hover-start-time="0" hover-stay-time="200"
+    >
+      <text class="tab-text">{{item.text}}</text>
+      <text class="tab-count">{{item.count}}</text>
+    </view>
+  </view>
+
+  <view class="filters" wx:if="{{activeTab === 'wrong'}}">
+    <view
+      wx:for="{{filters}}"
+      wx:key="key"
+      class="chip {{wrongFilter === item.key ? 'active' : ''}}"
+      data-filter="{{item.key}}"
+      bindtap="onFilterChange"
+      hover-class="chip-hover"
+      hover-start-time="0" hover-stay-time="200"
+    >{{item.text}}</view>
+  </view>
+
+  <view class="list stagger" wx:if="{{items.length}}">
+    <view wx:for="{{items}}" wx:key="id" class="q-card card anim-fade-up">
+      <view class="q-head">
+        <text class="q-number">{{item.number}}</text>
+        <text class="q-type">{{item.typeText}}</text>
+        <text class="q-flag" wx:if="{{item.mastered}}">已攻克</text>
+        <text class="q-flag favorite" wx:if="{{item.isFavorite}}">已收藏</text>
+      </view>
+
+      <text class="q-stem">{{item.stem}}</text>
+
+      <view class="q-meta">
+        <text class="q-source">{{item.sourceText}}</text>
+        <text class="q-stat" wx:if="{{activeTab === 'wrong'}}">{{item.metaText}}</text>
+      </view>
+
+      <view class="q-answer">
+        <text class="q-answer-label">正确答案</text>
+        <text class="q-answer-value">{{item.answerText}}</text>
+      </view>
+
+      <view class="q-actions">
+        <view class="q-action" data-id="{{item.id}}" bindtap="onToggleFavorite" hover-class="chip-hover" hover-start-time="0" hover-stay-time="200">
+          {{item.isFavorite ? '取消收藏' : '收藏'}}
+        </view>
+        <view class="q-action danger" data-id="{{item.id}}" bindtap="onRemove" hover-class="chip-hover" hover-start-time="0" hover-stay-time="200">
+          {{activeTab === 'wrong' ? '移出错题本' : '取消收藏'}}
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty-block" wx:else>
+    <text>{{emptyText}}</text>
+  </view>
+
+  <view class="footer-bar" wx:if="{{currentCount}}">
+    <view class="footer-btn ghost" bindtap="handleClear" hover-class="btn-hover" hover-start-time="0" hover-stay-time="240">{{activeTab === 'wrong' ? '移除本组' : '清空收藏'}}</view>
+    <view class="footer-btn primary" bindtap="handlePractice" hover-class="btn-hover" hover-start-time="0" hover-stay-time="240">{{practiceText}}</view>
+  </view>
+</view>

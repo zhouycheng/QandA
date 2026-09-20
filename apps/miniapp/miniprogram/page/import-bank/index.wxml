@@ -1,0 +1,164 @@
+<view class="page imp">
+  <view class="hero">
+    <text class="hero-title">导入题库</text>
+    <text class="hero-desc">把 CSV / TSV 表格变成可练习的题库，存在本机。{{limitText}}</text>
+  </view>
+
+  <view class="modes">
+    <view
+      wx:for="{{inputModes}}"
+      wx:key="value"
+      class="mode {{inputMode === item.value ? 'mode-on' : ''}}"
+      hover-class="chip-flat-hover"
+      hover-start-time="0"
+      hover-stay-time="240"
+      data-mode="{{item.value}}"
+      bindtap="handleModeTap"
+    >
+      <text>{{item.label}}</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <text class="field-label">题库名称</text>
+    <input
+      class="field-input"
+      value="{{bankName}}"
+      placeholder="例如：第三章 课后作业"
+      placeholder-class="field-ph"
+      maxlength="30"
+      bindinput="handleNameInput"
+    />
+  </view>
+
+  <!-- 粘贴模式：直接把表格贴进来 -->
+  <view wx:if="{{inputMode === 'paste'}}" class="card">
+    <view class="field-head">
+      <text class="field-label">表格内容</text>
+      <text
+        class="link"
+        hover-class="ghost-flat-hover"
+        hover-start-time="0"
+        hover-stay-time="240"
+        bindtap="handleCopyTemplate"
+      >复制表头</text>
+    </view>
+    <textarea
+      class="field-area"
+      value="{{text}}"
+      placeholder="题型,题干,选项A,选项B,答案&#10;单选,下列句子没有语病的一项是：,水平提高,水平改进,A"
+      placeholder-class="field-ph"
+      maxlength="-1"
+      bindblur="handleTextBlur"
+    ></textarea>
+    <view class="field-foot">
+      <text class="field-hint">{{textLengthText ? '已输入 ' + textLengthText : '从 Excel 复制后直接粘贴，或先点右上角复制表头'}}</text>
+      <text
+        wx:if="{{text}}"
+        class="link"
+        hover-class="ghost-flat-hover"
+        hover-start-time="0"
+        hover-stay-time="240"
+        bindtap="handleClearText"
+      >清空</text>
+    </view>
+  </view>
+
+  <!-- 选文件模式：只能从微信聊天记录里选，引导文案必须说清楚 -->
+  <view wx:else class="card">
+    <text class="field-label">从聊天记录选择文件</text>
+    <text class="guide">微信只允许从这里选「聊天里的文件」：先把 CSV 发到任意一个聊天窗口（文件传输助手最方便），再回来点下面的按钮。</text>
+    <view
+      class="pick"
+      hover-class="btn-flat-hover"
+      hover-start-time="0"
+      hover-stay-time="240"
+      bindtap="handlePickFile"
+    >选择文件（.csv / .txt / .json）</view>
+    <text wx:if="{{sourceName}}" class="picked">已选：{{sourceName}}</text>
+    <text class="guide guide-sub">表格太大或文件选不到时，用「粘贴表格」更快。</text>
+  </view>
+
+  <view wx:if="{{missing.length}}" class="card warn">
+    <text class="warn-title">表格缺少这些列：{{missing.length}} 项</text>
+    <text class="warn-line">缺：题型 / 题干 / 答案（或第一行不是表头）</text>
+  </view>
+
+  <view wx:if="{{brokenEncoding}}" class="card warn">
+    <text class="warn-title">文件可能是 GBK 编码</text>
+    <text class="warn-line">在 Excel 里「另存为 → CSV UTF-8」再导入，否则中文会乱码。</text>
+  </view>
+
+  <view wx:if="{{preview}}" class="card preview">
+    <view class="preview-head">
+      <text class="preview-count">解析出 {{preview.questionCount}} 题</text>
+      <text class="preview-types">{{preview.typeText}}</text>
+    </view>
+
+    <view wx:if="{{preview.errorCount}}" class="issue">
+      <text class="issue-title">{{preview.errorCount}} 行有问题（不会导入）</text>
+      <text
+        wx:for="{{preview.errors}}"
+        wx:key="line"
+        class="issue-line"
+      >第 {{item.line}} 行 · {{item.field}}：{{item.reason}}</text>
+    </view>
+
+    <view wx:if="{{preview.warningCount}}" class="issue issue-warn">
+      <text class="issue-title">{{preview.warningCount}} 条提醒</text>
+      <text
+        wx:for="{{preview.warnings}}"
+        wx:key="line"
+        class="issue-line"
+      >第 {{item.line}} 行 · {{item.field}}：{{item.reason}}</text>
+    </view>
+  </view>
+
+  <view
+    class="submit {{canImport ? '' : 'submit-off'}}"
+    hover-class="btn-flat-hover"
+    hover-start-time="0"
+    hover-stay-time="240"
+    bindtap="handleImport"
+  >导入题库</view>
+
+  <view class="block-head">
+    <text class="block-title">已导入</text>
+    <text class="block-extra">{{banks.length ? banks.length + ' 个' : ''}}</text>
+  </view>
+
+  <view wx:if="{{banks.length}}" class="card list">
+    <view
+      wx:for="{{banks}}"
+      wx:key="bankId"
+      class="row"
+      hover-class="row-hover"
+      hover-start-time="0"
+      hover-stay-time="240"
+      data-bank-id="{{item.bankId}}"
+      bindtap="handleOpenBank"
+    >
+      <view class="row-main">
+        <text class="row-title">{{item.name}}</text>
+        <text class="row-desc">{{item.questionText}} · {{item.importedAtText}} · {{item.sourceText}}</text>
+      </view>
+      <text
+        class="row-del"
+        hover-class="ghost-flat-hover"
+        hover-start-time="0"
+        hover-stay-time="240"
+        data-bank-id="{{item.bankId}}"
+        catchtap="handleRemoveBank"
+      >删除</text>
+      <text class="row-arrow">›</text>
+    </view>
+  </view>
+
+  <view wx:else class="empty">
+    <text class="empty-text">{{emptyText}}</text>
+  </view>
+
+  <view class="footer-note">
+    <text>导入的题库存在本机，清缓存会一起清掉；要长期保留请用开发者脚本导入。</text>
+  </view>
+</view>

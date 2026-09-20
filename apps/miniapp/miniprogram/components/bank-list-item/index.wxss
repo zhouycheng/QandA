@@ -1,0 +1,102 @@
+.bank-item {
+  padding: 24rpx 26rpx;
+  margin-bottom: 20rpx;
+  border-radius: 22rpx;
+  background: var(--card);
+  box-shadow: 0 6rpx 20rpx rgba(31, 42, 55, 0.05);
+}
+
+.bank-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bank-unit {
+  padding: 4rpx 14rpx;
+  border-radius: 8rpx;
+  background: #eef4ff;
+  color: var(--brand);
+  font-size: 21rpx;
+}
+
+.bank-arrow {
+  font-size: 38rpx;
+  line-height: 1;
+  color: var(--text-muted);
+}
+
+.bank-name {
+  display: block;
+  margin-top: 14rpx;
+  font-size: 31rpx;
+  font-weight: 600;
+  color: var(--text-main);
+  line-height: 1.4;
+}
+
+.bank-meta {
+  margin-top: 12rpx;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.meta-item {
+  font-size: 22rpx;
+  color: var(--text-muted);
+}
+
+.meta-dot {
+  margin: 0 10rpx;
+  font-size: 22rpx;
+  color: var(--text-muted);
+}
+
+.bank-progress {
+  margin-top: 18rpx;
+  display: flex;
+  align-items: center;
+}
+
+.progress-track {
+  flex: 1;
+  height: 10rpx;
+  border-radius: 999rpx;
+  background: #eef2f8;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 999rpx;
+  transition: width 0.3s ease;
+}
+
+.fill-chinese {
+  background: linear-gradient(90deg, #f97066, #f04438);
+}
+
+.fill-mental {
+  background: linear-gradient(90deg, #32d583, #17b26a);
+}
+
+.fill-english {
+  background: linear-gradient(90deg, #53b1fd, #2b7ffc);
+}
+
+/* 用户自助导入的题库：紫色，与三个内置科目区分开 */
+.fill-user {
+  background: linear-gradient(90deg, #9b8afb, #6941c6);
+}
+
+.is-complete {
+  background: linear-gradient(90deg, #32d583, #17b26a);
+}
+
+.progress-caption {
+  flex: none;
+  margin-left: 16rpx;
+  font-size: 21rpx;
+  color: var(--text-muted);
+}

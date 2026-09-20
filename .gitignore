@@ -3,3 +3,7 @@ node_modules/
 dist/
 .pnpm-store/
 *.tsbuildinfo
+
+# 微信小程序
+miniprogram_npm/
+project.private.config.json

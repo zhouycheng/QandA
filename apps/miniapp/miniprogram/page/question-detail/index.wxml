@@ -1,0 +1,59 @@
+<view class="page detail-page">
+  <view wx:if="{{!ready}}" class="detail-loading">
+    <text>加载中…</text>
+  </view>
+
+  <block wx:else>
+    <view wx:if="{{emptyText}}" class="detail-empty">
+      <text>{{emptyText}}</text>
+    </view>
+
+    <scroll-view wx:else class="detail-area" scroll-y enhanced bounces show-scrollbar="{{false}}">
+      <view class="detail-card card">
+        <view class="detail-head">
+          <text class="detail-type">{{typeText}}</text>
+          <text class="detail-source">{{subjectName}} · {{bankName}}</text>
+        </view>
+
+        <text class="detail-stem">{{stem}}</text>
+
+        <view
+          wx:for="{{options}}"
+          wx:key="key"
+          class="detail-option {{item.isCorrectOption ? 'correct' : ''}} {{item.isSelected && !item.isCorrectOption ? 'wrong' : ''}}"
+        >
+          <text class="detail-option-label">{{item.label}}</text>
+          <text class="detail-option-text">{{item.text}}</text>
+        </view>
+      </view>
+
+      <view wx:if="{{hasAnswer}}" class="answer-card card">
+        <text class="section-title">作答情况</text>
+        <view class="answer-row">
+          <text class="answer-label">你的答案</text>
+          <text class="answer-value {{isCorrect ? 'ok' : 'no'}}">{{selectedText}}</text>
+        </view>
+        <view class="answer-row">
+          <text class="answer-label">正确答案</text>
+          <text class="answer-value correct-value">{{correctText}}</text>
+        </view>
+        <view class="answer-flag {{isCorrect ? 'ok' : 'no'}}">
+          <text>{{isCorrect ? '回答正确' : '回答错误'}}</text>
+        </view>
+      </view>
+
+      <view class="explain-card card">
+        <text class="section-title">解析</text>
+        <text class="explain-text">{{explanation}}</text>
+      </view>
+
+      <view
+        class="favorite-btn {{isFavorite ? 'active' : ''}}"
+        bindtap="handleToggleFavorite"
+        hover-class="btn-flat-hover"
+        hover-start-time="0"
+        hover-stay-time="240"
+      >{{isFavorite ? '已收藏' : '收藏本题'}}</view>
+    </scroll-view>
+  </block>
+</view>

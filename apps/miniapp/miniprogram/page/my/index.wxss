@@ -1,0 +1,181 @@
+.my-page {
+  padding: 24rpx 24rpx 60rpx;
+}
+
+/* ==================== 资料卡 ==================== */
+.profile {
+  display: flex;
+  align-items: center;
+  padding: 28rpx 26rpx;
+  border-radius: 28rpx;
+  background: linear-gradient(135deg, #4f7dfb 0%, #2bb3fc 100%);
+  box-shadow: 0 14rpx 30rpx rgba(43, 127, 252, 0.26);
+}
+
+.profile-avatar {
+  flex: none;
+  width: 96rpx;
+  height: 96rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.profile-avatar .mi-icon {
+  width: 52rpx;
+  height: 52rpx;
+}
+
+.profile-main {
+  flex: 1;
+  min-width: 0;
+  margin-left: 24rpx;
+}
+
+.profile-name {
+  display: block;
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.profile-sub {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 21rpx;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.profile-badge {
+  flex: none;
+  margin-left: 16rpx;
+  padding: 8rpx 18rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.2);
+  font-size: 20rpx;
+  color: #ffffff;
+}
+
+/* ==================== 数据快照 ==================== */
+.snapshot {
+  margin-top: 20rpx;
+  padding: 24rpx 0;
+  display: flex;
+  align-items: center;
+}
+
+.snapshot-item {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.snapshot-divider {
+  flex: none;
+  width: 1rpx;
+  height: 48rpx;
+  background: var(--line);
+}
+
+.snapshot-value {
+  font-size: 40rpx;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--text-main);
+}
+
+.value-danger {
+  color: #f04438;
+}
+
+.value-warning {
+  color: #f79009;
+}
+
+.snapshot-label {
+  margin-top: 8rpx;
+  font-size: 21rpx;
+  color: var(--text-muted);
+}
+
+/* ==================== 菜单 ==================== */
+.section {
+  margin-top: 40rpx;
+}
+
+.section-title {
+  display: block;
+  margin: 0 6rpx 18rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.menu {
+  padding: 0 24rpx;
+}
+
+.menu-row {
+  display: flex;
+  align-items: center;
+  padding: 26rpx 0;
+}
+
+.menu-row + .menu-row {
+  border-top: 1rpx solid var(--line);
+}
+
+.menu-main {
+  flex: 1;
+  min-width: 0;
+  margin-left: 20rpx;
+}
+
+.menu-title {
+  display: block;
+  font-size: 28rpx;
+  color: var(--text-main);
+}
+
+.menu-desc {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 21rpx;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.menu-value {
+  flex: none;
+  margin-left: 16rpx;
+  font-size: 25rpx;
+  color: var(--text-muted);
+}
+
+.menu-arrow {
+  flex: none;
+  margin-left: 8rpx;
+  color: var(--text-muted);
+  font-size: 32rpx;
+}
+
+.menu-tag {
+  flex: none;
+  margin-left: 14rpx;
+  padding: 4rpx 14rpx;
+  border-radius: 999rpx;
+  background: #f2f4f7;
+  font-size: 20rpx;
+  color: var(--text-muted);
+}
+
+.footer-note {
+  margin-top: 32rpx;
+  text-align: center;
+  font-size: 22rpx;
+  color: var(--text-muted);
+}

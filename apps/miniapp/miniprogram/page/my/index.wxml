@@ -1,0 +1,121 @@
+<view class="page my-page stagger">
+  <view class="profile anim-fade-up">
+    <view class="profile-avatar">
+      <view class="mi-icon mi-user"></view>
+    </view>
+    <view class="profile-main">
+      <text class="profile-name">本地学习者</text>
+      <text class="profile-sub">本地题库模式 · 数据仅存本机</text>
+    </view>
+    <view class="profile-badge">{{version}}</view>
+  </view>
+
+  <view class="snapshot card anim-fade-up">
+    <view class="snapshot-item">
+      <text class="snapshot-value">{{questionCount}}</text>
+      <text class="snapshot-label">题库题目</text>
+    </view>
+    <view class="snapshot-divider"></view>
+    <view class="snapshot-item">
+      <text class="snapshot-value value-danger">{{wrongCount}}</text>
+      <text class="snapshot-label">待复习错题</text>
+    </view>
+    <view class="snapshot-divider"></view>
+    <view class="snapshot-item">
+      <text class="snapshot-value value-warning">{{favoriteCount}}</text>
+      <text class="snapshot-label">我的收藏</text>
+    </view>
+  </view>
+
+  <view class="section anim-fade-up">
+    <text class="section-title">学习工具</text>
+
+    <view class="menu card">
+      <view class="menu-row" data-tab="wrong" bindtap="handleOpenWrongBook" hover-class="row-hover" hover-start-time="0" hover-stay-time="200">
+        <view class="mi-tile mi-tile-wrong">
+          <view class="mi-icon mi-wrong"></view>
+        </view>
+        <view class="menu-main">
+          <text class="menu-title">错题本</text>
+          <text class="menu-desc">连续答对 2 次即视为已攻克</text>
+        </view>
+        <text class="menu-value">{{wrongCount}} 题</text>
+        <text class="menu-arrow">›</text>
+      </view>
+
+      <view class="menu-row" data-tab="favorite" bindtap="handleOpenWrongBook" hover-class="row-hover" hover-start-time="0" hover-stay-time="200">
+        <view class="mi-tile mi-tile-star">
+          <view class="mi-icon mi-star"></view>
+        </view>
+        <view class="menu-main">
+          <text class="menu-title">我的收藏</text>
+          <text class="menu-desc">答题页点星标即可收藏</text>
+        </view>
+        <text class="menu-value">{{favoriteCount}} 题</text>
+        <text class="menu-arrow">›</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="section anim-fade-up">
+    <text class="section-title">设置</text>
+
+    <view class="menu card">
+      <view class="menu-row" data-focus="practice" bindtap="handleOpenSettings" hover-class="row-hover" hover-start-time="0" hover-stay-time="200">
+        <view class="mi-tile mi-tile-switch">
+          <view class="mi-icon mi-switch"></view>
+        </view>
+        <view class="menu-main">
+          <text class="menu-title">学习偏好</text>
+          <text class="menu-desc">解析展示、自动翻页、答题卡与字号</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+
+      <view class="menu-row" data-focus="account" bindtap="handleOpenSettings" hover-class="row-hover" hover-start-time="0" hover-stay-time="200">
+        <view class="mi-tile mi-tile-shield">
+          <view class="mi-icon mi-shield"></view>
+        </view>
+        <view class="menu-main">
+          <text class="menu-title">账户与安全</text>
+          <text class="menu-desc">修改密码、更换邮箱与登录状态</text>
+        </view>
+        <text class="menu-tag">未登录</text>
+        <text class="menu-arrow">›</text>
+      </view>
+
+      <view class="menu-row" bindtap="handleClearRecords" hover-class="row-hover" hover-start-time="0" hover-stay-time="200">
+        <view class="mi-tile mi-tile-trash">
+          <view class="mi-icon mi-trash"></view>
+        </view>
+        <view class="menu-main">
+          <text class="menu-title">清空学习数据</text>
+          <text class="menu-desc">进度、错题、收藏、时长一并清除</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="section anim-fade-up">
+    <text class="section-title">关于</text>
+
+    <view class="menu card">
+      <view class="menu-row" data-focus="about" bindtap="handleOpenSettings" hover-class="row-hover" hover-start-time="0" hover-stay-time="200">
+        <view class="mi-tile mi-tile-info">
+          <view class="mi-icon mi-info"></view>
+        </view>
+        <view class="menu-main">
+          <text class="menu-title">QandA 刷题</text>
+          <text class="menu-desc">版本信息与题库规模</text>
+        </view>
+        <text class="menu-value">{{version}}</text>
+        <text class="menu-arrow">›</text>
+      </view>
+    </view>
+
+    <view class="footer-note">
+      <text>练习进度与错题都保存在本机，不上传服务端</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,7 @@
+<view class="route-loading" wx:if="{{visible}}">
+  <view class="loading-card">
+    <view class="spinner"></view>
+    <text class="loading-title">{{title}}</text>
+    <text class="loading-desc" wx:if="{{description}}">{{description}}</text>
+  </view>
+</view>

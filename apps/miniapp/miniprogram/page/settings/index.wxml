@@ -1,0 +1,152 @@
+<scroll-view
+  class="settings-scroll"
+  scroll-y
+  enhanced
+  bounces
+  show-scrollbar="{{false}}"
+  scroll-into-view="{{scrollTarget}}"
+  scroll-with-animation
+>
+  <view class="page settings-page stagger">
+    <!-- 学习偏好 -->
+    <view id="section-practice" class="section anim-fade-up">
+      <view class="section-head">
+        <text class="section-title">学习偏好</text>
+        <text class="section-reset" bindtap="handleResetPreferences" hover-class="ghost-flat-hover" hover-start-time="0" hover-stay-time="200">恢复默认</text>
+      </view>
+
+      <view class="menu card">
+        <view class="menu-row" wx:for="{{switches}}" wx:key="key">
+          <view class="menu-main">
+            <text class="menu-title">{{item.label}}</text>
+            <text class="menu-desc">{{item.description}}</text>
+          </view>
+          <switch
+            class="menu-switch"
+            checked="{{item.value}}"
+            color="#2b7ffc"
+            data-key="{{item.key}}"
+            bindchange="handleSwitchChange"
+          />
+        </view>
+      </view>
+
+      <view class="menu card choice-card">
+        <view class="choice-row" wx:for="{{choices}}" wx:key="key">
+          <view class="choice-head">
+            <text class="menu-title">{{item.label}}</text>
+            <text class="choice-badge" wx:if="{{!item.available}}">即将支持</text>
+          </view>
+          <text class="menu-desc">{{item.description}}</text>
+          <view class="choice-options">
+            <view
+              wx:for="{{item.options}}"
+              wx:for-item="option"
+              wx:key="value"
+              class="choice-chip {{option.selected ? 'active' : ''}} {{item.available ? '' : 'disabled'}}"
+              data-key="{{item.key}}"
+              data-value="{{option.value}}"
+              bindtap="handleChoiceTap"
+              hover-class="chip-flat-hover"
+              hover-start-time="0" hover-stay-time="200"
+            >{{option.label}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 账户与安全 -->
+    <view id="section-account" class="section anim-fade-up">
+      <view class="section-head">
+        <text class="section-title">账户与安全</text>
+        <text class="section-note">本地模式</text>
+      </view>
+
+      <view class="account-hint">
+        <text>当前为本地题库模式：答题进度、错题与收藏只保存在本机，不上传服务端。接入账号体系后，以下能力会直接可用。</text>
+      </view>
+
+      <view class="menu card">
+        <view
+          class="menu-row"
+          wx:for="{{accountActions}}"
+          wx:key="key"
+          data-key="{{item.key}}"
+          bindtap="handleAccountTap"
+          hover-class="row-hover"
+          hover-start-time="0" hover-stay-time="200"
+        >
+          <view class="mi-tile mi-tile-{{item.icon}}">
+            <view class="mi-icon mi-{{item.icon}}"></view>
+          </view>
+          <view class="menu-main">
+            <text class="menu-title">{{item.title}}</text>
+            <text class="menu-desc">{{item.description}}</text>
+          </view>
+          <text class="menu-tag">待接入</text>
+          <text class="menu-arrow">›</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 关于 -->
+    <view id="section-about" class="section anim-fade-up">
+      <view class="section-head">
+        <text class="section-title">关于</text>
+      </view>
+
+      <view class="menu card">
+        <view
+          class="about-row"
+          hover-class="row-hover"
+          hover-start-time="0"
+          hover-stay-time="240"
+          bindtap="handleVersionTap"
+        >
+          <view class="mi-tile mi-tile-info">
+            <view class="mi-icon mi-info"></view>
+          </view>
+          <view class="menu-main">
+            <text class="menu-title">QandA 刷题</text>
+            <text class="menu-desc">版本 {{version}}</text>
+          </view>
+        </view>
+
+        <view
+          wx:if="{{playgroundEnabled}}"
+          class="about-row"
+          hover-class="row-hover"
+          hover-start-time="0"
+          hover-stay-time="240"
+          bindtap="handlePlaygroundTap"
+        >
+          <view class="mi-tile mi-tile-info">
+            <view class="mi-icon mi-info"></view>
+          </view>
+          <view class="menu-main">
+            <text class="menu-title">开发者 Playground</text>
+            <text class="menu-desc">模拟空题库 / 100 题 / 提交失败等场景</text>
+          </view>
+          <text class="menu-arrow">›</text>
+        </view>
+
+        <view class="about-line">
+          <text class="about-label">题库题量</text>
+          <text class="about-value">{{catalog.questionCount}} 题</text>
+        </view>
+        <view class="about-line">
+          <text class="about-label">题库覆盖</text>
+          <text class="about-value">{{catalog.subjectCount}} 个科目 · {{catalog.bankCount}} 个题库</text>
+        </view>
+        <view class="about-line">
+          <text class="about-label">技术形态</text>
+          <text class="about-value">原生小程序 · 零依赖零构建</text>
+        </view>
+      </view>
+
+      <view class="footer-note">
+        <text>所有学习数据保存在本机，卸载或清空数据后无法恢复</text>
+      </view>
+    </view>
+  </view>
+</scroll-view>

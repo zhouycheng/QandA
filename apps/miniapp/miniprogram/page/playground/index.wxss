@@ -1,0 +1,158 @@
+.pg {
+  padding: 28rpx;
+}
+
+.hero {
+  padding: 8rpx 8rpx 28rpx;
+}
+
+.hero-title {
+  display: block;
+  font-size: 40rpx;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.hero-desc {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  line-height: 1.6;
+  color: var(--text-sub);
+}
+
+.switch-card {
+  display: flex;
+  align-items: center;
+  padding: 28rpx;
+}
+
+.switch-main {
+  flex: 1;
+  padding-right: 24rpx;
+}
+
+.switch-title {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.switch-desc {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  line-height: 1.5;
+  color: var(--text-sub);
+}
+
+.block-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 32rpx 8rpx 18rpx;
+}
+
+.block-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.block-extra {
+  font-size: 24rpx;
+  color: var(--text-muted);
+}
+
+.list {
+  padding: 8rpx 0;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 28rpx;
+  border-radius: 16rpx;
+}
+
+.row + .row {
+  border-top: 2rpx solid var(--line);
+}
+
+.row-current {
+  background: var(--brand-soft);
+}
+
+.row-main {
+  flex: 1;
+  padding-right: 20rpx;
+}
+
+.row-title {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.row-desc {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 24rpx;
+  line-height: 1.5;
+  color: var(--text-sub);
+}
+
+.row-tag {
+  font-size: 22rpx;
+  color: var(--brand-dark);
+  background: var(--brand-soft);
+  border-radius: 999rpx;
+  padding: 6rpx 16rpx;
+}
+
+.row-arrow {
+  margin-left: 16rpx;
+  font-size: 32rpx;
+  color: var(--text-muted);
+}
+
+.gateway {
+  margin-top: 28rpx;
+  padding: 28rpx;
+}
+
+.gateway-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.gateway-label {
+  font-size: 28rpx;
+  color: var(--text-sub);
+}
+
+.gateway-value {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.pg-btn {
+  margin-top: 24rpx;
+  padding: 22rpx 0;
+  text-align: center;
+  font-size: 28rpx;
+  color: var(--brand-dark);
+  background: var(--brand-soft);
+  border-radius: 16rpx;
+}
+
+.footer-note {
+  padding: 28rpx 8rpx 0;
+  text-align: center;
+  font-size: 24rpx;
+  color: var(--text-muted);
+}

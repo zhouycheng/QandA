@@ -1,0 +1,57 @@
+<view class="page pg">
+  <view class="hero">
+    <text class="hero-title">Playground</text>
+    <text class="hero-desc">开发工具：切换题库形态、会话进度与提交结果，用于交互回归。默认关闭，不进入生产版本。</text>
+  </view>
+
+  <view class="card switch-card">
+    <view class="switch-main">
+      <text class="switch-title">开启 Playground 题库</text>
+      <text class="switch-desc">{{note}}</text>
+    </view>
+    <switch checked="{{enabled}}" bindchange="handleToggle" color="#2b7ffc" />
+  </view>
+
+  <view class="block-head">
+    <text class="block-title">场景</text>
+    <text class="block-extra">当前：{{currentScenarioLabel}}</text>
+  </view>
+
+  <view class="card list">
+    <view
+      wx:for="{{scenarios}}"
+      wx:key="key"
+      class="row {{item.isCurrent ? 'row-current' : ''}}"
+      hover-class="row-hover"
+      hover-start-time="0"
+      hover-stay-time="240"
+      data-key="{{item.key}}"
+      bindtap="handleScenarioTap"
+    >
+      <view class="row-main">
+        <text class="row-title">{{item.label}}</text>
+        <text class="row-desc">{{item.hint}}</text>
+      </view>
+      <text class="row-tag">{{item.questionCountText}}</text>
+      <text class="row-arrow">›</text>
+    </view>
+  </view>
+
+  <view class="card gateway">
+    <view class="gateway-line">
+      <text class="gateway-label">当前网关</text>
+      <text class="gateway-value">{{gatewayText}}</text>
+    </view>
+    <view
+      class="pg-btn"
+      hover-class="btn-flat-hover"
+      hover-start-time="0"
+      hover-stay-time="240"
+      bindtap="handleResetGateway"
+    >退回 Mock 网关</view>
+  </view>
+
+  <view class="footer-note">
+    <text>入口：设置 → 关于 → 连点版本号 5 次</text>
+  </view>
+</view>

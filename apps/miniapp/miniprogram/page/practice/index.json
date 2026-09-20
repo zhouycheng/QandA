@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "练习",
+  "usingComponents": {
+    "question-overview-sheet": "/components/question-overview-sheet/index",
+    "bottom-sheet": "/components/bottom-sheet/index"
+  }
+}

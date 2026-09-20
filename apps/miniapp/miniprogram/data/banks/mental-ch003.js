@@ -1,0 +1,266 @@
+module.exports = {
+  "status": "released",
+  "subjectId": "subject-mental-health",
+  "subjectName": "大学生心理健康",
+  "bankId": "mental-ch003",
+  "bankName": "遇见完整的自己：从认知到接纳的自我整合之旅",
+  "sourceChapterId": "ch-003",
+  "questionCount": 8,
+  "questions": [
+    {
+      "id": "q-mh-ch003-homework-001",
+      "type": "judge",
+      "stem": "个体在每个发展阶段，都会出现一个特定的有待解决的发展危机。",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "对"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "错"
+        }
+      ],
+      "answerKeys": [
+        "A"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三章-课后作业",
+        "判断题"
+      ],
+      "explanation": "正确答案是对。发展心理学认为，个体在不同年龄阶段会面临不同的发展任务和矛盾冲突。"
+    },
+    {
+      "id": "q-mh-ch003-homework-002",
+      "type": "judge",
+      "stem": "人一出生就有自我意识。",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "对"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "错"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三章-课后作业",
+        "判断题"
+      ],
+      "explanation": "正确答案是错。自我意识不是出生时就完整具备的，而是在成长过程中逐步形成的。"
+    },
+    {
+      "id": "q-mh-ch003-homework-003",
+      "type": "judge",
+      "stem": "学习导致的变化是永久性的。",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "对"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "错"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三章-课后作业",
+        "判断题"
+      ],
+      "explanation": "正确答案是错。学习通常会带来相对持久的行为或心理变化，但不能说这种变化一定是永久性的。"
+    },
+    {
+      "id": "q-mh-ch003-homework-004",
+      "type": "judge",
+      "stem": "婴儿到了一定阶段开始会走路，就是学习。",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "对"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "错"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三章-课后作业",
+        "判断题"
+      ],
+      "explanation": "正确答案是错。婴儿到一定阶段会走路，主要与身体成熟、神经系统发育和动作能力发展有关。"
+    },
+    {
+      "id": "q-mh-ch003-homework-005",
+      "type": "judge",
+      "stem": "“杀一做百”蕴含的学习原理是观察学习。",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "对"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "错"
+        }
+      ],
+      "answerKeys": [
+        "A"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三章-课后作业",
+        "判断题"
+      ],
+      "explanation": "正确答案是对。“杀一做百”是通过惩罚一个人，让其他人看到后产生警戒，从而改变自己的行为。"
+    },
+    {
+      "id": "q-mh-ch003-homework-006",
+      "type": "multiple",
+      "stem": "个体自我认同发展的四种状态包括",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "自我认同延缓"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "自我认同扩散"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "自我认同早闭"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "自我认同获得"
+        }
+      ],
+      "answerKeys": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三章-课后作业",
+        "多选题"
+      ],
+      "explanation": "正确答案是A、B、C、D。自我认同发展的四种状态通常包括认同扩散、认同早闭、认同延缓和认同获得。"
+    },
+    {
+      "id": "q-mh-ch003-homework-007",
+      "type": "multiple",
+      "stem": "婴儿与照料者之间的依恋关系类型包括",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "安全型依恋"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "焦虑—回避型依恋"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "焦虑—抗拒型依恋"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "混乱型依恋"
+        }
+      ],
+      "answerKeys": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三章-课后作业",
+        "多选题"
+      ],
+      "explanation": "正确答案是A、B、C、D。婴儿与照料者之间的依恋关系可以表现为不同类型。"
+    },
+    {
+      "id": "q-mh-ch003-homework-008",
+      "type": "multiple",
+      "stem": "学习的影响因素包括",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "学习态度"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "学习动机"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "智力"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "意志"
+        }
+      ],
+      "answerKeys": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "第三章-课后作业",
+        "多选题"
+      ],
+      "explanation": "正确答案是A、B、C、D。学习效果会受到多方面因素影响。"
+    }
+  ]
+}

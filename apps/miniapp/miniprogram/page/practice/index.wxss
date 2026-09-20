@@ -1,0 +1,656 @@
+.practice-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding-bottom: 0;
+}
+
+.topbar {
+  flex: none;
+  padding: 20rpx 24rpx 12rpx;
+  background: #ffffff;
+}
+
+.progress {
+  height: 8rpx;
+  border-radius: 999rpx;
+  background: #eceff4;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: 999rpx;
+  background: var(--brand);
+  transition: width 0.2s ease;
+}
+
+.topbar-row {
+  margin-top: 16rpx;
+  display: flex;
+  align-items: center;
+}
+
+/* 答题卡入口：胶囊按钮，带网格图标，提示「可点」 */
+.overview-trigger {
+  flex: none;
+  display: flex;
+  align-items: center;
+  padding: 10rpx 22rpx 10rpx 18rpx;
+  border-radius: 999rpx;
+  background: var(--brand-soft);
+}
+
+.overview-trigger:active {
+  opacity: 0.65;
+}
+
+.icon-grid {
+  flex: none;
+  width: 30rpx;
+  height: 30rpx;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMmI3ZmZjIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHJlY3QgeD0iMyIgeT0iMyIgd2lkdGg9IjciIGhlaWdodD0iNyIgcng9IjEuNiIvPjxyZWN0IHg9IjE0IiB5PSIzIiB3aWR0aD0iNyIgaGVpZ2h0PSI3IiByeD0iMS42Ii8+PHJlY3QgeD0iMyIgeT0iMTQiIHdpZHRoPSI3IiBoZWlnaHQ9IjciIHJ4PSIxLjYiLz48cmVjdCB4PSIxNCIgeT0iMTQiIHdpZHRoPSI3IiBoZWlnaHQ9IjciIHJ4PSIxLjYiLz48L3N2Zz4=");
+}
+
+.overview-index {
+  margin-left: 10rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--brand);
+}
+
+/* 题型标签降为中性色，避免与答题卡入口抢注意力 */
+.type-tag {
+  margin-left: 16rpx;
+  padding: 4rpx 14rpx;
+  border-radius: 8rpx;
+  background: #f2f4f7;
+  color: var(--text-sub);
+  font-size: 22rpx;
+}
+
+.topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+
+.timer {
+  margin-right: 20rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--danger);
+}
+
+/* 收藏：顶部常驻星标，避免在底部与翻页按钮争位 */
+.icon-star {
+  flex: none;
+  /* 全局 box-sizing 为 border-box，故 72rpx 里含 14rpx 内边距，图形区 44rpx */
+  width: 72rpx;
+  height: 72rpx;
+  padding: 14rpx;
+  background-origin: content-box;
+  background-clip: content-box;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOWFhNGIyIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBvbHlnb24gcG9pbnRzPSIxMiAyLjYgMTUuMSA4LjYgMjEuOCA5LjYgMTYuOSAxNC4zIDE4LjEgMjEgMTIgMTcuOCA1LjkgMjEgNy4xIDE0LjMgMi4yIDkuNiA4LjkgOC42IDEyIDIuNiIvPjwvc3ZnPg==");
+}
+
+.icon-star.active {
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2Y3OTAwOSIgc3Ryb2tlPSIjZjc5MDA5IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwb2x5Z29uIHBvaW50cz0iMTIgMi42IDE1LjEgOC42IDIxLjggOS42IDE2LjkgMTQuMyAxOC4xIDIxIDEyIDE3LjggNS45IDIxIDcuMSAxNC4zIDIuMiA5LjYgOC45IDguNiAxMiAyLjYiLz48L3N2Zz4=");
+}
+
+.icon-star:active {
+  opacity: 0.65;
+}
+
+.question-area {
+  flex: 1;
+  padding: 24rpx;
+}
+
+.stem {
+  font-size: 32rpx;
+  line-height: 1.7;
+  color: var(--text-main);
+}
+
+.options {
+  margin-top: 32rpx;
+}
+
+.option {
+  display: flex;
+  align-items: flex-start;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  border-radius: 16rpx;
+  background: #ffffff;
+  border: 2rpx solid transparent;
+  /* 答题选项的过渡只保留「合成 / 颜色」属性，**显式排除 transform 与 box-shadow**：
+     - transform：选项宽近满屏，位移会被感知成整页在动；在 scroll-view 里还会被
+       当成内容尺寸变化，滚动位置跟着跳。
+     - box-shadow：基类没有阴影，hover 时从 none 过渡到 inset 是**不可插值**的，
+       webview 只能整块重绘，在滚动容器里就是"整个页面抖一下"。
+     这一行覆盖 app.wxss 的全局兜底，让选项对这两个属性彻底免疫。 */
+  transition: opacity 90ms ease, background-color 180ms ease, border-color 180ms ease;
+}
+
+.option.selected {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+}
+
+.option.correct {
+  border-color: var(--success);
+  background: #e9fbf1;
+}
+
+.option.wrong {
+  border-color: var(--danger);
+  background: #fef3f2;
+}
+
+/* 选项按压：**只降不透明度**，这是唯一零抖动的做法。
+   为什么只剩这一个属性可用：
+   - transform（缩放/位移）：选项宽近满屏，等于半屏内容同时位移 → 整页抖。
+   - box-shadow（inset 描边）：基类无阴影，none → inset 不可插值 → webview 整块重绘 → 整页抖。
+   - background-color：已被 selected / correct / wrong 三个状态占用，两边争抢会闪烁。
+   opacity 是合成层属性，既不重排也不重绘，改它无论如何都不会让画面抖。
+   视觉上也够明显：白卡片变淡后露出浅蓝底，整块像"按下去沉了一点"。 */
+.option-hover {
+  opacity: 0.62;
+}
+
+.option-key {
+  flex: none;
+  width: 48rpx;
+  height: 48rpx;
+  line-height: 48rpx;
+  text-align: center;
+  border-radius: 50%;
+  background: #f2f4f7;
+  font-size: 26rpx;
+  color: var(--text-sub);
+}
+
+.option.selected .option-key {
+  background: var(--brand);
+  color: #ffffff;
+}
+
+.option.correct .option-key {
+  background: var(--success);
+  color: #ffffff;
+}
+
+.option.wrong .option-key {
+  background: var(--danger);
+  color: #ffffff;
+}
+
+.option-text {
+  flex: 1;
+  margin-left: 20rpx;
+  font-size: 28rpx;
+  line-height: 1.6;
+  color: var(--text-main);
+}
+
+.analysis {
+  margin-top: 12rpx;
+  padding: 24rpx;
+  border-radius: 16rpx;
+  background: #ffffff;
+}
+
+.analysis-head {
+  display: flex;
+  align-items: center;
+}
+
+.result-tag {
+  padding: 4rpx 14rpx;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  color: #ffffff;
+}
+
+.result-tag.ok {
+  background: var(--success);
+}
+
+.result-tag.no {
+  background: var(--danger);
+}
+
+.correct-text {
+  margin-left: 16rpx;
+  font-size: 26rpx;
+  color: var(--text-sub);
+}
+
+.explanation {
+  margin-top: 20rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid var(--line);
+}
+
+.explanation-title {
+  font-size: 24rpx;
+  color: var(--text-muted);
+}
+
+.explanation-text {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 26rpx;
+  line-height: 1.7;
+  color: var(--text-sub);
+}
+
+/* 按偏好隐藏解析时的替代说明：比正文更轻，不喧宾夺主 */
+.explanation-muted {
+  margin-top: 20rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid var(--line);
+  font-size: 23rpx;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.footer {
+  flex: none;
+  display: flex;
+  align-items: center;
+  padding: 16rpx 24rpx calc(16rpx + env(safe-area-inset-bottom));
+  background: #ffffff;
+  border-top: 1rpx solid var(--line);
+}
+
+.footer-btn {
+  flex: 1;
+  height: 88rpx;
+  line-height: 88rpx;
+  text-align: center;
+  border-radius: 44rpx;
+  font-size: 28rpx;
+  color: var(--text-sub);
+  background: #f2f4f7;
+}
+
+.footer-btn + .footer-btn {
+  margin-left: 20rpx;
+}
+
+.footer-btn.primary {
+  flex: 1.6;
+  font-weight: 600;
+  color: #ffffff;
+  background: var(--brand);
+}
+
+/* 第一题的「上一题」置灰，明确不可点 */
+.footer-btn.disabled {
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+.modal {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 950;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-mask {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.modal-panel {
+  position: relative;
+  width: 560rpx;
+  padding: 40rpx 32rpx 32rpx;
+  border-radius: 24rpx;
+  background: #ffffff;
+}
+
+.modal-title {
+  display: block;
+  text-align: center;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.modal-desc {
+  display: block;
+  margin-top: 12rpx;
+  text-align: center;
+  font-size: 26rpx;
+  color: var(--text-muted);
+}
+
+.modal-actions {
+  margin-top: 32rpx;
+  display: flex;
+}
+
+.modal-btn {
+  flex: 1;
+  height: 80rpx;
+  line-height: 80rpx;
+  text-align: center;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  color: var(--text-sub);
+  background: #f2f4f7;
+}
+
+.modal-btn.primary {
+  margin-left: 20rpx;
+  color: #ffffff;
+  background: var(--brand);
+}
+
+.result-area {
+  height: 100vh;
+  padding: 24rpx 24rpx 60rpx;
+}
+
+/* 复盘工具条：筛选 + 搜索 */
+.review-toolbar {
+  margin-bottom: 20rpx;
+}
+
+.review-filters {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.filter-chip {
+  padding: 12rpx 24rpx;
+  margin: 0 16rpx 16rpx 0;
+  border-radius: 999rpx;
+  background: #f2f5fa;
+  color: #5f6b7f;
+  font-size: 26rpx;
+}
+
+.filter-chip.active {
+  background: rgba(43, 127, 252, 0.14);
+  color: var(--brand-dark);
+}
+
+/* 选中态已经占用了 background，hover 只能用不与之争抢的方式表达 */
+.filter-chip-hover {
+  opacity: 0.6;
+  transition-duration: 90ms;
+}
+
+.review-search {
+  padding: 18rpx 24rpx;
+  border-radius: 16rpx;
+  background: #f2f5fa;
+  font-size: 28rpx;
+  color: #1f2a37;
+}
+
+.review-search-placeholder {
+  color: #9aa4b5;
+}
+
+.review-empty {
+  padding: 60rpx 0;
+  text-align: center;
+  font-size: 26rpx;
+  color: #8a94a6;
+}
+
+/* 复盘卡片在 scroll-view 内，且背景可能被"答错"状态占用，
+   按压只用 opacity —— 不加 transform，也不加 box-shadow（两者都会让画面动） */
+.review-item-hover {
+  opacity: 0.7;
+  transition-duration: 90ms;
+}
+
+.review-flag.skip {
+  background: rgba(138, 148, 166, 0.16);
+  color: #6b7484;
+}
+
+/* 交卷同步失败提示：结果已经算出来了，只是没同步上去，
+   所以做成一条可重试的提示条，而不是把结果页整个替换掉。
+   在 scroll-view 内，只用背景 + 描边表达，不做位移。 */
+.submit-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 24rpx;
+  margin-bottom: 20rpx;
+  border-radius: 16rpx;
+  background: #fff2f0;
+  border: 2rpx solid #ffccc7;
+}
+
+.submit-error-text {
+  flex: 1;
+  font-size: 26rpx;
+  line-height: 1.5;
+  color: #a32d2d;
+}
+
+.submit-retry-btn {
+  flex-shrink: 0;
+  padding: 12rpx 28rpx;
+  margin-left: 20rpx;
+  border-radius: 999rpx;
+  background: #a32d2d;
+  color: #ffffff;
+  font-size: 26rpx;
+}
+
+.result-card {
+  padding: 48rpx 32rpx;
+  text-align: center;
+}
+
+.result-score {
+  font-size: 96rpx;
+  font-weight: 700;
+  color: var(--brand);
+  line-height: 1;
+}
+
+.result-score-unit {
+  margin-left: 8rpx;
+  font-size: 28rpx;
+  color: var(--text-muted);
+}
+
+.result-meta {
+  margin-top: 24rpx;
+  display: flex;
+  justify-content: center;
+}
+
+.result-meta-item {
+  margin: 0 16rpx;
+  font-size: 26rpx;
+  color: var(--text-sub);
+}
+
+.result-progress {
+  margin-top: 24rpx;
+  height: 12rpx;
+  border-radius: 999rpx;
+  background: #eceff4;
+  overflow: hidden;
+}
+
+.result-progress-bar {
+  height: 100%;
+  background: var(--brand);
+}
+
+.result-actions {
+  margin-top: 24rpx;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.result-btn {
+  flex: 1;
+  height: 84rpx;
+  line-height: 84rpx;
+  text-align: center;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  color: #ffffff;
+  background: var(--brand);
+}
+
+.result-btn + .result-btn {
+  margin-left: 16rpx;
+}
+
+.result-btn.highlight {
+  flex: none;
+  width: 100%;
+  margin: 0 0 16rpx;
+  background: linear-gradient(135deg, #ff8a3d 0%, #f04438 100%);
+}
+
+.result-btn.outline {
+  color: var(--text-sub);
+  background: #f2f4f7;
+}
+
+.review {
+  margin-top: 40rpx;
+}
+
+.review-item {
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+}
+
+.review-item.wrong-item {
+  border-left: 6rpx solid var(--danger);
+}
+
+.review-head {
+  display: flex;
+  align-items: center;
+}
+
+.review-number {
+  width: 44rpx;
+  height: 44rpx;
+  line-height: 44rpx;
+  text-align: center;
+  border-radius: 50%;
+  background: #f2f4f7;
+  font-size: 24rpx;
+  color: var(--text-sub);
+}
+
+.review-type {
+  margin-left: 16rpx;
+  font-size: 22rpx;
+  color: var(--text-muted);
+}
+
+.review-flag {
+  margin-left: auto;
+  font-size: 22rpx;
+}
+
+.review-flag.ok {
+  color: var(--success);
+}
+
+.review-flag.no {
+  color: var(--danger);
+}
+
+.review-stem {
+  display: block;
+  margin-top: 16rpx;
+  font-size: 28rpx;
+  line-height: 1.7;
+  color: var(--text-main);
+}
+
+.review-answer,
+.review-explanation {
+  margin-top: 12rpx;
+}
+
+.review-label {
+  font-size: 22rpx;
+  color: var(--text-muted);
+}
+
+.review-value {
+  display: block;
+  margin-top: 4rpx;
+  font-size: 26rpx;
+  line-height: 1.6;
+  color: var(--text-sub);
+}
+
+.review-value.correct-value {
+  color: var(--success);
+}
+
+/* ==================== 学习偏好：题目字号 ====================
+   收起答题卡入口时补一个纯文本题号，避免顶部只剩题型标签 */
+.plain-counter {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--text-sub);
+}
+
+/* 字号随根节点的 font-* 类名整体缩放，只在三处正文生效 */
+.font-small .stem {
+  font-size: 28rpx;
+}
+
+.font-small .option-text {
+  font-size: 25rpx;
+}
+
+.font-small .explanation-text {
+  font-size: 24rpx;
+}
+
+.font-large .stem {
+  font-size: 37rpx;
+}
+
+.font-large .option-text {
+  font-size: 32rpx;
+}
+
+.font-large .explanation-text {
+  font-size: 30rpx;
+}
+
+.font-large .review-stem {
+  font-size: 32rpx;
+}

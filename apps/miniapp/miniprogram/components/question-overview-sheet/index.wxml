@@ -1,0 +1,35 @@
+<view class="overview" wx:if="{{visible}}">
+  <view class="mask" bindtap="handleMaskTap"></view>
+
+  <view class="panel">
+    <view class="panel-header">
+      <text class="panel-title">答题卡</text>
+      <text class="panel-sub" wx:if="{{showStatus}}">剩余 {{unansweredCount}} 题未作答</text>
+      <text class="panel-sub" wx:else>点击题号快速查看</text>
+    </view>
+
+    <scroll-view class="grid-scroll" scroll-y enhanced bounces show-scrollbar="{{false}}">
+      <view class="grid">
+        <view
+          wx:for="{{items}}"
+          wx:key="index"
+          class="cell {{item.isCurrent ? 'current' : ''}} {{item.answered ? (item.isCorrect ? 'correct' : 'wrong') : ''}}"
+          data-index="{{item.index}}"
+          bindtap="handleItemTap"
+          hover-class="cell-hover"
+          hover-start-time="0"
+          hover-stay-time="240"
+        >
+          <text class="cell-number">{{item.number}}</text>
+          <text class="cell-star" wx:if="{{item.isFavorite}}">★</text>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view class="legend" wx:if="{{showStatus}}">
+      <view class="legend-item"><view class="dot wrong"></view><text>答错</text></view>
+      <view class="legend-item"><view class="dot correct"></view><text>答对</text></view>
+      <view class="legend-item"><view class="dot pending"></view><text>未答</text></view>
+    </view>
+  </view>
+</view>

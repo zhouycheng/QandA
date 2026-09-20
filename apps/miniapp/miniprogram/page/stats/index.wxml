@@ -1,0 +1,170 @@
+<view class="page stats-page stagger">
+  <!-- 总览：环形进度 + 四个关键数值 -->
+  <view class="hero anim-fade-up" wx:if="{{overall}}">
+    <view class="hero-top">
+      <view class="hero-ring" style="background-image: url('{{hero.ringDataUri}}')"></view>
+      <view class="hero-info">
+        <text class="hero-headline">{{hero.headline}}</text>
+        <text class="hero-sub">累计学习 {{studyTimeText}} · 练习 {{studySessionCount}} 次</text>
+        <view class="hero-chips">
+          <text class="hero-chip">近 7 天 {{daily.answered}} 题</text>
+          <text class="hero-chip">近 7 天正确率 {{daily.accuracyText}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="hero-stats">
+      <view class="hero-stat">
+        <text class="hero-stat-value">{{overall.total}}</text>
+        <text class="hero-stat-label">题目总数</text>
+      </view>
+      <view class="hero-stat">
+        <text class="hero-stat-value">{{overall.answered}}</text>
+        <text class="hero-stat-label">已做</text>
+      </view>
+      <view class="hero-stat">
+        <text class="hero-stat-value">{{overall.accuracyText}}</text>
+        <text class="hero-stat-label">正确率</text>
+      </view>
+      <view class="hero-stat">
+        <text class="hero-stat-value">{{daily.activeDays}}</text>
+        <text class="hero-stat-label">活跃天数</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 学习力雷达：六维归一化 -->
+  <view class="section anim-fade-up">
+    <view class="section-head">
+      <text class="section-title">学习力雷达</text>
+      <text class="section-note">六个维度归一化到 100</text>
+    </view>
+
+    <view class="chart-card card">
+      <view class="radar-head">
+        <view class="radar-score">
+          <text class="radar-score-value">{{radar.score}}</text>
+          <text class="radar-score-label">综合分</text>
+        </view>
+        <view class="radar-tags">
+          <view class="radar-tag tag-good" wx:if="{{radar.strongest}}">
+            <text class="radar-tag-key">最强项</text>
+            <text class="radar-tag-value">{{radar.strongest.label}} {{radar.strongest.value}}</text>
+          </view>
+          <view class="radar-tag tag-weak" wx:if="{{radar.weakest}}">
+            <text class="radar-tag-key">待加强</text>
+            <text class="radar-tag-value">{{radar.weakest.label}} {{radar.weakest.value}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view
+        class="radar-chart"
+        wx:if="{{radar.hasData}}"
+        style="background-image: url('{{radar.dataUri}}')"
+      ></view>
+      <view class="chart-empty" wx:else>
+        <text>做几道题后，这里会画出你的六维能力分布</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 近 7 天答题趋势 -->
+  <view class="section anim-fade-up">
+    <view class="section-head">
+      <text class="section-title">近 7 天答题趋势</text>
+      <text class="section-note" wx:if="{{daily.peakDayText}}">峰值 {{daily.peakDayText}}</text>
+    </view>
+
+    <view class="chart-card card">
+      <view
+        class="trend-chart"
+        wx:if="{{trend.dataUri}}"
+        style="background-image: url('{{trend.dataUri}}')"
+      ></view>
+      <view class="chart-empty" wx:else>
+        <text>近 7 天还没有练习记录</text>
+      </view>
+
+      <view class="legend">
+        <view class="legend-item">
+          <view class="legend-dot dot-answered"></view>
+          <text class="legend-text">每日答题数</text>
+        </view>
+        <view class="legend-item">
+          <view class="legend-dot dot-correct"></view>
+          <text class="legend-text">其中答对</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 科目进度 -->
+  <view class="section anim-fade-up">
+    <view class="section-head">
+      <text class="section-title">科目进度</text>
+      <text class="section-note">已做 / 正确率</text>
+    </view>
+
+    <view class="subject-list card" wx:if="{{subjectStats.length}}">
+      <view class="subject-row" wx:for="{{subjectStats}}" wx:key="id">
+        <view class="subject-head">
+          <view class="subject-dot dot-{{item.theme}}"></view>
+          <text class="subject-name">{{item.name}}</text>
+          <text class="subject-meta">{{item.answeredText}}</text>
+          <text class="subject-accuracy acc-{{item.accuracyLevel}}">{{item.accuracyText}}</text>
+        </view>
+        <view class="progress-track">
+          <view class="progress-fill fill-{{item.theme}}" style="width: {{item.progressPercent}}%"></view>
+        </view>
+      </view>
+    </view>
+
+    <view class="chart-empty plain" wx:else>
+      <text>暂无科目数据</text>
+    </view>
+  </view>
+
+  <!-- 错题与收藏 -->
+  <view class="section anim-fade-up">
+    <view class="section-head">
+      <text class="section-title">错题与收藏</text>
+    </view>
+
+    <view class="grid">
+      <view class="grid-item card" data-tab="wrong" bindtap="handleOpenWrongBook" hover-class="row-hover" hover-start-time="0" hover-stay-time="200">
+        <view class="grid-icon grid-icon-wrong"></view>
+        <text class="grid-value value-danger">{{wrongCount}}</text>
+        <text class="grid-label">待复习</text>
+      </view>
+      <view class="grid-item card">
+        <view class="grid-icon grid-icon-done"></view>
+        <text class="grid-value value-success">{{masteredCount}}</text>
+        <text class="grid-label">已攻克</text>
+      </view>
+      <view class="grid-item card" data-tab="favorite" bindtap="handleOpenWrongBook" hover-class="row-hover" hover-start-time="0" hover-stay-time="200">
+        <view class="grid-icon grid-icon-star"></view>
+        <text class="grid-value value-warning">{{favoriteCount}}</text>
+        <text class="grid-label">收藏</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 历史最佳 -->
+  <view class="section anim-fade-up">
+    <view class="section-head">
+      <text class="section-title">历史最佳</text>
+    </view>
+
+    <view class="records card" wx:if="{{records.length}}">
+      <view class="record-row" wx:for="{{records}}" wx:key="key">
+        <text class="record-title">{{item.title}}</text>
+        <text class="record-score score-{{item.level}}">{{item.score}}</text>
+      </view>
+    </view>
+
+    <view class="chart-empty plain" wx:else>
+      <text>还没有练习记录，去题库开始吧</text>
+    </view>
+  </view>
+</view>

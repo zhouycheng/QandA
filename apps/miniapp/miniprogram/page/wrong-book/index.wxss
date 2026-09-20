@@ -1,0 +1,224 @@
+.wrong-book-page {
+  padding: 24rpx 24rpx 180rpx;
+}
+
+.tabs {
+  display: flex;
+  padding: 8rpx;
+}
+
+.tab {
+  flex: 1;
+  padding: 22rpx 0;
+  text-align: center;
+  border-radius: 18rpx;
+  transition: background 0.2s, color 0.2s;
+}
+
+.tab.active {
+  background: var(--brand-soft);
+}
+
+/* 顶部 tab 是整块页面区域的一部分，缩放会让下方列表跟着晃，只改底色 + 描边 */
+.tab-hover {
+  background: rgba(43, 127, 252, 0.16);
+  box-shadow: inset 0 0 0 3rpx rgba(43, 127, 252, 0.34);
+  transition-duration: 100ms;
+}
+
+.tab-text {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--text-sub);
+}
+
+.tab.active .tab-text {
+  color: var(--brand);
+}
+
+.tab-count {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 24rpx;
+  color: var(--text-muted);
+}
+
+.tab.active .tab-count {
+  color: var(--brand);
+}
+
+.filters {
+  display: flex;
+  margin-top: 24rpx;
+}
+
+.chip {
+  margin-right: 16rpx;
+  padding: 12rpx 28rpx;
+  font-size: 26rpx;
+  color: var(--text-sub);
+  background: var(--card);
+  border: 1rpx solid var(--line);
+  border-radius: 999rpx;
+}
+
+.chip.active {
+  color: #ffffff;
+  background: var(--brand);
+  border-color: var(--brand);
+}
+
+.list {
+  margin-top: 24rpx;
+}
+
+.q-card {
+  margin-bottom: 24rpx;
+  padding: 28rpx;
+}
+
+.q-head {
+  display: flex;
+  align-items: center;
+}
+
+.q-number {
+  width: 44rpx;
+  height: 44rpx;
+  line-height: 44rpx;
+  text-align: center;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: var(--brand);
+  background: var(--brand-soft);
+  border-radius: 12rpx;
+}
+
+.q-type {
+  margin-left: 16rpx;
+  font-size: 24rpx;
+  color: var(--text-muted);
+}
+
+.q-flag {
+  margin-left: 12rpx;
+  padding: 4rpx 14rpx;
+  font-size: 22rpx;
+  color: var(--success);
+  background: rgba(23, 178, 106, 0.1);
+  border-radius: 999rpx;
+}
+
+.q-flag.favorite {
+  color: var(--warning);
+  background: rgba(247, 144, 9, 0.12);
+}
+
+.q-stem {
+  display: block;
+  margin-top: 20rpx;
+  font-size: 29rpx;
+  line-height: 1.6;
+  color: var(--text-main);
+}
+
+.q-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 18rpx;
+}
+
+.q-source {
+  flex: 1;
+  min-width: 0;
+  font-size: 24rpx;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.q-stat {
+  flex: none;
+  margin-left: 20rpx;
+  font-size: 24rpx;
+  color: var(--danger);
+}
+
+.q-answer {
+  display: flex;
+  align-items: center;
+  margin-top: 18rpx;
+  padding: 16rpx 20rpx;
+  background: #f7f9fc;
+  border-radius: 14rpx;
+}
+
+.q-answer-label {
+  font-size: 24rpx;
+  color: var(--text-sub);
+}
+
+.q-answer-value {
+  margin-left: 12rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--success);
+}
+
+.q-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 22rpx;
+}
+
+.q-action {
+  margin-left: 16rpx;
+  padding: 12rpx 30rpx;
+  font-size: 26rpx;
+  color: var(--text-sub);
+  border: 1rpx solid var(--line);
+  border-radius: 999rpx;
+}
+
+.q-action.danger {
+  color: var(--danger);
+  border-color: rgba(240, 68, 56, 0.3);
+}
+
+.footer-bar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  padding: 20rpx 24rpx calc(20rpx + env(safe-area-inset-bottom));
+  background: rgba(255, 255, 255, 0.96);
+  border-top: 1rpx solid var(--line);
+}
+
+.footer-btn {
+  flex: 1;
+  height: 88rpx;
+  line-height: 88rpx;
+  text-align: center;
+  font-size: 30rpx;
+  border-radius: 44rpx;
+}
+
+.footer-btn + .footer-btn {
+  margin-left: 20rpx;
+}
+
+.footer-btn.ghost {
+  flex: none;
+  width: 240rpx;
+  color: var(--text-sub);
+  border: 1rpx solid var(--line);
+}
+
+.footer-btn.primary {
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
+}

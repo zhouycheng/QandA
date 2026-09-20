@@ -1,0 +1,14 @@
+<view class="bottom-sheet" wx:if="{{visible}}">
+  <view class="mask" bindtap="handleMaskTap"></view>
+
+  <view class="panel">
+    <view class="panel-header">
+      <text class="panel-title">{{title}}</text>
+      <text class="panel-close" bindtap="handleCloseTap">关闭</text>
+    </view>
+
+    <scroll-view class="panel-body" scroll-y>
+      <slot></slot>
+    </scroll-view>
+  </view>
+</view>

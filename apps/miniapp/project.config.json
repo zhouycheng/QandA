@@ -1,0 +1,65 @@
+{
+  "description": "QandA 小程序端项目配置。appid 为占位值 touristappid 时工具会进入「游客模式」，控制台会刷 webapi_getwxaasyncsecinfo:fail —— 这是缺 AppID 导致的，与本项目代码无关。导入时请改用测试号或你自己的真实 AppID（wx 开头）。",
+  "compileType": "miniprogram",
+  "libVersion": "3.15.2",
+  "appid": "touristappid",
+  "projectname": "QandA-miniapp",
+  "miniprogramRoot": "miniprogram/",
+  "cloudfunctionRoot": "",
+  "packOptions": {
+    "ignore": [
+      {
+        "value": "node_modules",
+        "type": "folder"
+      },
+      {
+        "value": "miniprogram_npm",
+        "type": "folder"
+      },
+      {
+        "value": ".DS_Store",
+        "type": "suffix"
+      }
+    ],
+    "include": []
+  },
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "preloadBackgroundData": false,
+    "minified": true,
+    "coverView": true,
+    "autoAudits": false,
+    "showShadowRootInWxmlPanel": false,
+    "uglifyFileName": false,
+    "checkInvalidKey": true,
+    "checkSiteMap": false,
+    "uploadWithSourceMap": true,
+    "compileHotReLoad": false,
+    "useMultiFrameRuntime": false,
+    "useApiHook": true,
+    "useApiHostProcess": true,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    },
+    "useIsolateContext": false,
+    "packNpmManually": false,
+    "packNpmRelationList": [],
+    "minifyWXSS": true,
+    "disableUseStrict": false,
+    "minifyWXML": true,
+    "useCompilerPlugins": false,
+    "ignoreUploadUnusedFiles": true,
+    "useStaticServer": true,
+    "compileWorklet": false,
+    "localPlugins": false,
+    "condition": false
+  },
+  "condition": {},
+  "simulatorPluginLibVersion": {},
+  "editorSetting": {}
+}
