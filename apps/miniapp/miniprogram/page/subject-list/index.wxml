@@ -1,0 +1,133 @@
+<view class="page home-page stagger">
+  <!-- 欢迎横幅：插画 + 按时段变化的问候语 + 每日一句 -->
+  <view class="banner anim-fade-up">
+    <image class="banner-image" src="/assets/home/banner-study.png" mode="aspectFill"></image>
+    <view class="banner-veil"></view>
+    <view class="banner-body">
+      <view class="banner-head">
+        <text class="banner-greeting">{{home.greeting}}</text>
+        <text class="banner-date">{{home.dateText}}</text>
+      </view>
+      <text class="banner-advice">{{home.advice}}</text>
+
+      <!-- 每日一句：压在插画上，不再单独占一张卡 -->
+      <view class="banner-quote">
+        <view class="quote-mark"></view>
+        <text class="quote-text">{{home.quote}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 学习数据 -->
+  <view class="data-card card anim-fade-up" wx:if="{{overall}}">
+    <view class="data-head" bindtap="handleOpenStats" hover-class="row-hover" hover-start-time="0" hover-stay-time="200">
+      <view class="data-head-badge">
+        <view class="data-head-icon"></view>
+      </view>
+      <view class="data-head-main">
+        <text class="data-head-title">学习数据</text>
+        <text class="data-head-sub">真实练习概览</text>
+      </view>
+      <view class="data-head-more">详情 ›</view>
+    </view>
+
+    <view class="data-hero">
+      <view class="data-hero-top">
+        <view class="data-hero-main">
+          <text class="data-hero-label">题目总数</text>
+          <view class="data-hero-value-row">
+            <text class="data-hero-value">{{overall.total}}</text>
+            <text class="data-hero-unit">题</text>
+          </view>
+        </view>
+        <view class="data-hero-btn" bindtap="handleGoBank" hover-class="btn-hover" hover-start-time="0" hover-stay-time="200">去刷题</view>
+      </view>
+      <view class="data-hero-track">
+        <view class="data-hero-fill" style="width: {{overall.progressPercent}}%"></view>
+      </view>
+      <text class="data-hero-caption">已完成 {{overall.answered}} 题 · 完成度 {{overall.progressPercent}}%</text>
+    </view>
+
+    <!-- 指标格：两行两列，等宽撑满，不留空隙 -->
+    <view class="metric-grid">
+      <view class="metric-row">
+        <view class="metric" data-target="stats" bindtap="handleMetricTap" hover-class="row-hover" hover-start-time="0" hover-stay-time="200">
+          <view class="metric-icon metric-icon-done"></view>
+          <view class="metric-main">
+            <text class="metric-label">已完成</text>
+            <text class="metric-value">{{overall.answered}}</text>
+          </view>
+        </view>
+
+        <view class="metric" data-target="wrong" bindtap="handleMetricTap" hover-class="row-hover" hover-start-time="0" hover-stay-time="200">
+          <view class="metric-icon metric-icon-wrong"></view>
+          <view class="metric-main">
+            <text class="metric-label">待复习错题</text>
+            <text class="metric-value">{{home.wrongCount}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="metric-row">
+        <view class="metric" data-target="stats" bindtap="handleMetricTap" hover-class="row-hover" hover-start-time="0" hover-stay-time="200">
+          <view class="metric-icon metric-icon-accuracy"></view>
+          <view class="metric-main">
+            <text class="metric-label">正确率</text>
+            <text class="metric-value">{{overall.accuracyText}}</text>
+          </view>
+        </view>
+
+        <view class="metric" data-target="stats" bindtap="handleMetricTap" hover-class="row-hover" hover-start-time="0" hover-stay-time="200">
+          <view class="metric-icon metric-icon-time"></view>
+          <view class="metric-main">
+            <text class="metric-label">学习时长</text>
+            <text class="metric-value">{{home.studyTimeText}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 公告条：文案由学习状态推导，点击查看完整说明 -->
+  <view class="tip-bar anim-fade-up" wx:if="{{home.tip}}" bindtap="handleTipOpen" hover-class="row-hover" hover-start-time="0" hover-stay-time="200">
+    <view class="tip-badge">
+      <view class="tip-badge-icon"></view>
+      <text class="tip-badge-text">{{home.tip.tag}}</text>
+    </view>
+    <text class="tip-text">{{home.tip.text}}</text>
+    <view class="tip-arrow">{{home.tip.actionText}} ›</view>
+  </view>
+
+  <!-- 继续上次练习 -->
+  <view class="continue-card card anim-fade-up" wx:if="{{lastPractice}}" bindtap="handleContinueTap" hover-class="row-hover" hover-start-time="0" hover-stay-time="200">
+    <view class="continue-main">
+      <text class="continue-label">继续上次练习</text>
+      <text class="continue-title">{{lastPractice.title}}</text>
+      <text class="continue-meta">{{lastPractice.metaText}}</text>
+    </view>
+    <view class="continue-action">继续</view>
+  </view>
+
+  <view class="home-foot anim-fade-up">
+    <text>题库已移至底部「题库」标签，随时切换科目开始练习</text>
+  </view>
+
+  <!-- 公告详情 -->
+  <bottom-sheet
+    visible="{{tipSheetVisible}}"
+    title="{{home.tip.tag}}"
+    bind:close="handleTipSheetClose"
+  >
+    <view class="tip-detail">
+      <text class="tip-detail-title">{{home.tip.text}}</text>
+      <text class="tip-detail-body">{{home.tip.detail}}</text>
+      <view class="tip-detail-btn" bindtap="handleTipAction" hover-class="chip-hover" hover-start-time="0" hover-stay-time="240">{{home.tip.actionText}}</view>
+    </view>
+  </bottom-sheet>
+
+  <route-loading
+    visible="{{routeLoadingVisible}}"
+    title="{{routeLoadingTitle}}"
+    description="{{routeLoadingDescription}}"
+  />
+</view>

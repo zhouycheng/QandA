@@ -1,0 +1,341 @@
+page {
+  --brand: #2b7ffc;
+  --brand-dark: #1a63d8;
+  --brand-soft: #e8f1ff;
+  --text-main: #1f2a37;
+  --text-sub: #6b7684;
+  --text-muted: #9aa4b2;
+  --line: #eceff4;
+  --card: #ffffff;
+  --page-bg: #f4f7fb;
+  --success: #17b26a;
+  --danger: #f04438;
+  --warning: #f79009;
+
+  background: var(--page-bg);
+  color: var(--text-main);
+  font-size: 28rpx;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+}
+
+view,
+text,
+scroll-view {
+  box-sizing: border-box;
+}
+
+.page {
+  min-height: 100vh;
+  padding-bottom: 40rpx;
+}
+
+.card {
+  background: var(--card);
+  border-radius: 24rpx;
+  box-shadow: 0 6rpx 24rpx rgba(31, 42, 55, 0.06);
+}
+
+.text-sub {
+  color: var(--text-sub);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.section-title {
+  margin: 0 0 20rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.empty-block {
+  padding: 120rpx 0;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* ===== 交互反馈层 =====
+   微信的 hover-class 在 touchstart 加、touchend 撤。如果只在 hover 类上写 transition，
+   按下有动画、松手却是瞬间跳回 —— 正是「生硬」的来源。所以把过渡挂在元素基类（这里用通用选择器兜底），
+   保证按下与回弹都是连续曲线。 */
+view,
+text,
+button,
+image,
+switch {
+  /* 180ms 比 240ms 跟手：按下与回弹都在这条曲线上，慢了会显得迟钝 */
+  transition: transform 180ms cubic-bezier(0.22, 0.61, 0.36, 1), background-color 180ms ease, opacity 180ms ease,
+    box-shadow 180ms ease, color 180ms ease;
+}
+
+/* ===== 按压反馈 =====
+   设计要点（两轮用户反馈磨出来的，别改回去）：
+
+   1. **反馈必须同时改「颜色 + 描边」两个维度**，手机上手指遮挡面积大，
+      只改一个维度察觉不到。
+   2. **在 hover 类上把 transition-duration 压到 90~100ms**。全局基线 180ms，
+      手指快速点一下只有 60~90ms，用 180ms 走不完整个压缩过程，
+      松手时还没压到底就弹回去了 = 看着像没反应。松手走基线 180ms 求顺滑。
+   3. **⚠️ 全宽元素 / scroll-view 内的元素一律不做 transform**。
+      早期版本给全宽卡片也加了 scale(0.96)，结果用户反馈「整个画面在抖动」——
+      一张 350rpx 宽的卡片缩 3.5%，等于半屏内容同时位移，连续答题时抖得厉害；
+      在 scroll-view 里还会被基础库当成内容尺寸变化，滚动位置跟着跳。
+      **大元素的反馈靠背景色 + inset 描边（+ 左侧色条），几何上完全不动。**
+      只有小面积元素（chip 小标签 / ghost 纯图标）才用缩放，因为它们的位移
+      不会被感知成"画面在动"。 */
+.row-hover {
+  background-color: rgba(43, 127, 252, 0.16);
+  box-shadow: inset 0 0 0 3rpx rgba(43, 127, 252, 0.34);
+  transition-duration: 100ms;
+}
+
+.card-hover {
+  background-color: #e2edff;
+  box-shadow: inset 0 0 0 4rpx rgba(43, 127, 252, 0.36);
+  transition-duration: 100ms;
+}
+
+/* 按钮是页面底部独立的圆角块，不在滚动流里，可以保留一点点缩放；
+   但幅度收到 0.96 就够 —— 0.9 时整条底栏看着像被抽动。 */
+.btn-hover {
+  transform: scale(0.96);
+  opacity: 0.9;
+  box-shadow: 0 0 0 5rpx rgba(43, 127, 252, 0.26);
+  transition-duration: 90ms;
+}
+
+.chip-hover {
+  transform: scale(0.93);
+  background-color: var(--brand-soft);
+  color: var(--brand-dark);
+  box-shadow: 0 0 0 4rpx rgba(43, 127, 252, 0.28);
+  transition-duration: 90ms;
+}
+
+/* 纯图标按钮：面积小、没有背景，缩放是唯一能看清的维度 */
+.ghost-hover {
+  transform: scale(0.86);
+  opacity: 0.45;
+  transition-duration: 90ms;
+}
+
+/* ---- 下面三档是上面三档的「无位移版本」，专供滚动区域 / 全宽元素使用 ----
+   区别只有一个：不带 transform，所以按下去时画面不会有任何几何变化。
+   视觉强度没有降低，反而因为整块底色变化更抓眼。 */
+.btn-flat-hover {
+  opacity: 0.78;
+  box-shadow: inset 0 0 0 4rpx rgba(43, 127, 252, 0.42);
+  transition-duration: 90ms;
+}
+
+.chip-flat-hover {
+  background-color: rgba(43, 127, 252, 0.22);
+  color: var(--brand-dark);
+  box-shadow: inset 0 0 0 3rpx rgba(43, 127, 252, 0.45);
+  transition-duration: 90ms;
+}
+
+.ghost-flat-hover {
+  opacity: 0.4;
+  color: var(--brand);
+  transition-duration: 90ms;
+}
+
+/* ===== 入场动画 =====
+   列表类内容整段位移比逐项位移更稳，配合 .stagger 做错峰，避免"整屏内容啪一下出现"。 */
+@keyframes qanda-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(28rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes qanda-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes qanda-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.anim-fade-up {
+  animation: qanda-fade-up 420ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.anim-fade-in {
+  animation: qanda-fade-in 320ms ease both;
+}
+
+.anim-pop-in {
+  animation: qanda-pop-in 320ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+/* 错峰：父容器加 .stagger，子元素每一级延后 45ms，第 10 项起统一 400ms。
+   ⚠️ 这里必须显式写 view / text，不能用通配符 `*`：
+   WXSS 编译器不支持 `*`，会直接以「编译 .wxss 文件错误」整包停编译
+   （wcsc 原始报错：error at token `*`）。 */
+.stagger > view:nth-child(1),
+.stagger > text:nth-child(1) {
+  animation-delay: 0ms;
+}
+.stagger > view:nth-child(2),
+.stagger > text:nth-child(2) {
+  animation-delay: 45ms;
+}
+.stagger > view:nth-child(3),
+.stagger > text:nth-child(3) {
+  animation-delay: 90ms;
+}
+.stagger > view:nth-child(4),
+.stagger > text:nth-child(4) {
+  animation-delay: 135ms;
+}
+.stagger > view:nth-child(5),
+.stagger > text:nth-child(5) {
+  animation-delay: 180ms;
+}
+.stagger > view:nth-child(6),
+.stagger > text:nth-child(6) {
+  animation-delay: 225ms;
+}
+.stagger > view:nth-child(7),
+.stagger > text:nth-child(7) {
+  animation-delay: 270ms;
+}
+.stagger > view:nth-child(8),
+.stagger > text:nth-child(8) {
+  animation-delay: 315ms;
+}
+.stagger > view:nth-child(9),
+.stagger > text:nth-child(9) {
+  animation-delay: 360ms;
+}
+.stagger > view:nth-child(n + 10),
+.stagger > text:nth-child(n + 10) {
+  animation-delay: 400ms;
+}
+
+/* === ICON-BLOCK-START：由 scripts/generate-menu-icons.cjs 生成，勿手工编辑 === */
+/* 图标本体：24×24 描边网格，图形 40rpx，容器 68rpx 作为可点圆角方块 */
+.mi-icon {
+  width: 40rpx;
+  height: 40rpx;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+}
+
+.mi-tile {
+  flex: none;
+  width: 68rpx;
+  height: 68rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20rpx;
+}
+
+/* 学习偏好 */
+.mi-switch {
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMmI3ZmZjIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHJlY3QgeD0iMyIgeT0iNyIgd2lkdGg9IjE4IiBoZWlnaHQ9IjEwIiByeD0iNSIvPjxjaXJjbGUgY3g9IjguNiIgY3k9IjEyIiByPSIyLjYiIGZpbGw9IiMyYjdmZmMiIHN0cm9rZT0ibm9uZSIvPjwvc3ZnPg==");
+}
+
+.mi-tile-switch {
+  background: rgba(43, 127, 252, 0.12);
+}
+
+/* 账户与安全 */
+.mi-shield {
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTdiMjZhIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTEyIDMuMmw3IDIuOXY1LjRjMCA0LjItMi45IDcuNy03IDguNi00LjEtLjktNy00LjQtNy04LjZWNi4xeiIvPjxwYXRoIGQ9Ik05LjEgMTIuMWwyIDIgMy44LTMuOSIvPjwvc3ZnPg==");
+}
+
+.mi-tile-shield {
+  background: rgba(23, 178, 106, 0.12);
+}
+
+/* 版本信息 */
+.mi-info {
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjN2M1Y2ZmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iOC44Ii8+PGxpbmUgeDE9IjEyIiB5MT0iMTEiIHgyPSIxMiIgeTI9IjE2LjQiLz48Y2lyY2xlIGN4PSIxMiIgY3k9IjcuOSIgcj0iMS4yIiBmaWxsPSIjN2M1Y2ZmIiBzdHJva2U9Im5vbmUiLz48L3N2Zz4=");
+}
+
+.mi-tile-info {
+  background: rgba(124, 92, 255, 0.12);
+}
+
+/* 错题本 */
+.mi-wrong {
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZjA0NDM4IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iOC44Ii8+PGxpbmUgeDE9IjkuMiIgeTE9IjkuMiIgeDI9IjE0LjgiIHkyPSIxNC44Ii8+PGxpbmUgeDE9IjE0LjgiIHkxPSI5LjIiIHgyPSI5LjIiIHkyPSIxNC44Ii8+PC9zdmc+");
+}
+
+.mi-tile-wrong {
+  background: rgba(240, 68, 56, 0.12);
+}
+
+/* 我的收藏 */
+.mi-star {
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZjc5MDA5IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBvbHlnb24gcG9pbnRzPSIxMiAzLjIgMTQuOSA5IDIxLjIgOS45IDE2LjYgMTQuNCAxNy43IDIwLjYgMTIgMTcuNyA2LjMgMjAuNiA3LjQgMTQuNCAyLjggOS45IDkuMSA5Ii8+PC9zdmc+");
+}
+
+.mi-tile-star {
+  background: rgba(247, 144, 9, 0.12);
+}
+
+/* 清空学习数据 */
+.mi-trash {
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZjA0NDM4IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTQgN2gxNiIvPjxwYXRoIGQ9Ik05LjIgN1Y1LjJoNS42VjciLz48cGF0aCBkPSJNNi42IDdsMSAxMi4yaDguOEwxNy40IDciLz48bGluZSB4MT0iMTAuNiIgeTE9IjEwLjQiIHgyPSIxMC42IiB5Mj0iMTYuMiIvPjxsaW5lIHgxPSIxMy40IiB5MT0iMTAuNCIgeDI9IjEzLjQiIHkyPSIxNi4yIi8+PC9zdmc+");
+}
+
+.mi-tile-trash {
+  background: rgba(240, 68, 56, 0.12);
+}
+
+/* 修改密码 */
+.mi-lock {
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMmI3ZmZjIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHJlY3QgeD0iNC42IiB5PSIxMCIgd2lkdGg9IjE0LjgiIGhlaWdodD0iOS44IiByeD0iMi42Ii8+PHBhdGggZD0iTTguMyAxMFY4LjFhMy43IDMuNyAwIDAgMSA3LjQgMFYxMCIvPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTQuOSIgcj0iMS40IiBmaWxsPSIjMmI3ZmZjIiBzdHJva2U9Im5vbmUiLz48L3N2Zz4=");
+}
+
+.mi-tile-lock {
+  background: rgba(43, 127, 252, 0.12);
+}
+
+/* 更换邮箱 */
+.mi-mail {
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjN2M1Y2ZmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHJlY3QgeD0iMyIgeT0iNS42IiB3aWR0aD0iMTgiIGhlaWdodD0iMTIuOCIgcng9IjIuNiIvPjxwYXRoIGQ9Ik0zLjggNy40TDEyIDEyLjlsOC4yLTUuNSIvPjwvc3ZnPg==");
+}
+
+.mi-tile-mail {
+  background: rgba(124, 92, 255, 0.12);
+}
+
+/* 退出登录 */
+.mi-logout {
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZjA0NDM4IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTE0LjIgNC42SDcuNkEyLjYgMi42IDAgMCAwIDUgNy4ydjkuNmEyLjYgMi42IDAgMCAwIDIuNiAyLjZoNi42Ii8+PHBhdGggZD0iTTE3LjQgOC42TDIwLjggMTJsLTMuNCAzLjQiLz48bGluZSB4MT0iMTAuNiIgeTE9IjEyIiB4Mj0iMjAuNiIgeTI9IjEyIi8+PC9zdmc+");
+}
+
+.mi-tile-logout {
+  background: rgba(240, 68, 56, 0.12);
+}
+
+/* 用户 */
+.mi-user {
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSI4LjYiIHI9IjMuOSIvPjxwYXRoIGQ9Ik00LjkgMjBjLjctMy42IDMuNi01LjcgNy4xLTUuN3M2LjQgMi4xIDcuMSA1LjciLz48L3N2Zz4=");
+}
+/* === ICON-BLOCK-END === */

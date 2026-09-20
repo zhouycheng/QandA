@@ -1,0 +1,62 @@
+{
+  "pages": [
+    "page/subject-list/index",
+    "page/bank-detail/index",
+    "page/stats/index",
+    "page/practice/index",
+    "page/question-detail/index",
+    "page/my/index",
+    "page/wrong-book/index",
+    "page/settings/index",
+    "page/playground/index"
+  ],
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "QandA",
+    "navigationBarBackgroundColor": "#ffffff",
+    "backgroundColor": "#f4f7fb",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "color": "#8a94a6",
+    "selectedColor": "#2b7ffc",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "page/subject-list/index",
+        "text": "首页",
+        "iconPath": "assets/tabbar/home.png",
+        "selectedIconPath": "assets/tabbar/home-active.png"
+      },
+      {
+        "pagePath": "page/bank-detail/index",
+        "text": "题库",
+        "iconPath": "assets/tabbar/bank.png",
+        "selectedIconPath": "assets/tabbar/bank-active.png"
+      },
+      {
+        "pagePath": "page/stats/index",
+        "text": "统计",
+        "iconPath": "assets/tabbar/stats.png",
+        "selectedIconPath": "assets/tabbar/stats-active.png"
+      },
+      {
+        "pagePath": "page/my/index",
+        "text": "我的",
+        "iconPath": "assets/tabbar/my.png",
+        "selectedIconPath": "assets/tabbar/my-active.png"
+      }
+    ]
+  },
+  "networkTimeout": {
+    "request": 10000,
+    "connectSocket": 10000,
+    "uploadFile": 10000,
+    "downloadFile": 10000
+  },
+  "debug": false,
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

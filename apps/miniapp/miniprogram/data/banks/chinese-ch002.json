@@ -1,0 +1,1022 @@
+{
+  "status": "released",
+  "subjectId": "subject-chinese",
+  "subjectName": "大学语文",
+  "bankId": "chinese-ch002",
+  "bankName": "语言的功能与陷阱",
+  "sourceChapterId": "ch-002",
+  "questionCount": 29,
+  "questions": [
+    {
+      "id": "q-cc-ch002-homework-001",
+      "type": "single",
+      "stem": "《语言的功能和陷阱》里面认为“仁孝忠信”、“礼义廉耻”本来是好词儿，后来变成人们厌恶的词汇，这是一种语言的什么？",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "双刃剑"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "言过其实"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "言不尽意"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "狗屎化效应"
+        }
+      ],
+      "answerKeys": [
+        "D"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "王蒙",
+        "语言陷阱"
+      ],
+      "explanation": "王蒙用“狗屎化效应”说明好词被滥用后会失去原有光彩，甚至让人反感。"
+    },
+    {
+      "id": "q-cc-ch002-homework-002",
+      "type": "single",
+      "stem": "“……中国古代也有类似的故事，但是起码马语没有人语这么发达。如果马语比人语还发达的话，那么今天王蒙这个位置上的可能就是一匹公马了。”这段话语突出体现了此篇演讲稿的什么特色？",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "外松内紧"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "亦庄亦谐"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "极具煽情"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "取譬引喻"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "演讲稿",
+        "语言特色"
+      ],
+      "explanation": "这句话把严肃的语言问题讲得幽默生动，正体现演讲词“亦庄亦谐”的表达特色。"
+    },
+    {
+      "id": "q-cc-ch002-homework-003",
+      "type": "single",
+      "stem": "下列作品中，不属于王蒙创作的是哪一项？",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "《班主任》"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "《踌躇的季节》"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "《组织部来了个年轻人》"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "《活动变人形》"
+        }
+      ],
+      "answerKeys": [
+        "A"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "王蒙",
+        "作品"
+      ],
+      "explanation": "《班主任》是刘心武的代表作；其余几项都属于王蒙作品或与王蒙创作相关。"
+    },
+    {
+      "id": "q-cc-ch002-homework-004",
+      "type": "single",
+      "stem": "王蒙的《语言的功能与陷阱》是什么文体？",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "以上都不是"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "一篇散文"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "一篇演讲词"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "一篇记叙文"
+        }
+      ],
+      "answerKeys": [
+        "C"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "文体",
+        "演讲词"
+      ],
+      "explanation": "《语言的功能与陷阱》来自王蒙的演讲，文本形态和表达方式都属于演讲词。"
+    },
+    {
+      "id": "q-cc-ch002-homework-005",
+      "type": "single",
+      "stem": "王蒙在论证语言既有好的一面又有坏的一面，即“语言是把双刃剑”时，比较《伊索》话剧中“最好的菜和最坏的菜都是口条”，这种论证方法是什么？",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "演绎法"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "类比法"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "递进法"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "归纳法"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "论证方法",
+        "类比"
+      ],
+      "explanation": "用“口条”类比语言既有益也可能有害，是用相似事例说明道理，属于类比法。"
+    },
+    {
+      "id": "q-cc-ch002-homework-006",
+      "type": "single",
+      "stem": "“比如说‘举头望明月，低头思故乡’，这就造成了我们中国人的心理模式，我们一看到明月就会想到家乡……你有没有真实的对于明月的感受。”这段话语体现了王蒙先生所谓的语言的哪种陷阱？",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "文不尽言"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "言过其实"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "扼杀创造"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "落入俗套"
+        }
+      ],
+      "answerKeys": [
+        "C"
+      ],
+      "weight": 1,
+      "difficulty": "medium",
+      "tags": [
+        "语言陷阱",
+        "扼杀创造"
+      ],
+      "explanation": "明月一出现就套用“思乡”模式，会压住个人真实感受，所以是语言扼杀创造。"
+    },
+    {
+      "id": "q-cc-ch002-homework-007",
+      "type": "single",
+      "stem": "巴尔扎克能写很多故事的原因是什么？",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "写作是语言本身推着他走"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "故事发生情节推动着他写"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "他将故事写在草稿纸上然后进行整理"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "他脑中装着故事"
+        }
+      ],
+      "answerKeys": [
+        "A"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "巴尔扎克",
+        "语言功能"
+      ],
+      "explanation": "题干强调故事不是先完整存在，而是语言推动叙述不断展开，所以选“语言本身推着他走”。"
+    },
+    {
+      "id": "q-cc-ch002-homework-008",
+      "type": "single",
+      "stem": "“‘好好学习，天天向上’我觉得这话多好呀……但是现在你如果什么都是‘好好学习，天天向上’呢，它就已经丧失了它原本的力量。”这段话语体现了王蒙先生所谓的语言的哪种陷阱？",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "扼杀创造"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "言过其实"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "落入俗套"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "文不尽言"
+        }
+      ],
+      "answerKeys": [
+        "C"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "语言陷阱",
+        "落入俗套"
+      ],
+      "explanation": "反复套用“好好学习，天天向上”会让表达失去新鲜感和力量，正是落入俗套。"
+    },
+    {
+      "id": "q-cc-ch002-homework-009",
+      "type": "single",
+      "stem": "王蒙发现语言的功能包括什么？",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "产生意义"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "工具"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "排比"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "话语"
+        }
+      ],
+      "answerKeys": [
+        "A"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "语言功能"
+      ],
+      "explanation": "王蒙强调语言不只是工具，它能生成概念和意义，帮助人理解并构建世界。"
+    },
+    {
+      "id": "q-cc-ch002-homework-010",
+      "type": "single",
+      "stem": "“一月日边明”表达了语言独立的审美特点。",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "正确"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "错误"
+        }
+      ],
+      "answerKeys": [
+        "A"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "语言审美",
+        "汉字"
+      ],
+      "explanation": "“一月日边明”借汉字结构产生审美趣味，说明语言文字自身也有独立的审美特点。"
+    },
+    {
+      "id": "q-cc-ch002-homework-011",
+      "type": "single",
+      "stem": "语言最基本的社会功能是什么？",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "认知思维功能"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "文化传播功能"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "传递信息功能"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "人际互动功能"
+        }
+      ],
+      "answerKeys": [
+        "C"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "语言功能",
+        "社会功能"
+      ],
+      "explanation": "语言最基础的社会作用是把信息传给他人，其他功能都建立在交流传递之上。"
+    },
+    {
+      "id": "q-cc-ch002-homework-012",
+      "type": "single",
+      "stem": "王蒙在《语言的功能与陷阱》中以契诃夫小说《苦恼》为论据阐述的论点是什么？",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "语言的创造功能"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "语言的心理功能"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "语言文字的修辞功能"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "语言的信仰功能"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "契诃夫",
+        "苦恼"
+      ],
+      "explanation": "《苦恼》中人物急于倾诉悲伤，说明语言能承载、疏导心理感受。"
+    },
+    {
+      "id": "q-cc-ch002-homework-013",
+      "type": "single",
+      "stem": "一个词总是凝聚着这个词特有的什么，它就会形成特殊的权力？",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "意境"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "社会情感"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "内涵"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "语气"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "社会情感",
+        "语言权力"
+      ],
+      "explanation": "词语会凝聚社会共同情感，这种情感积累会让词语产生特殊影响力。"
+    },
+    {
+      "id": "q-cc-ch002-homework-014",
+      "type": "single",
+      "stem": "王蒙在《语言的功能和陷阱》里面提及了贾宝玉的《芙蓉女儿诔》，论述了什么？",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "语言的审美宣泄功能"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "语言的浪漫功能"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "语言的记忆功能"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "语言的交际功能"
+        }
+      ],
+      "answerKeys": [
+        "A"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "芙蓉女儿诔",
+        "审美宣泄"
+      ],
+      "explanation": "《芙蓉女儿诔》借语言抒发哀痛和审美情感，王蒙用它说明语言的审美宣泄功能。"
+    },
+    {
+      "id": "q-cc-ch002-homework-015",
+      "type": "judge",
+      "stem": "语言形成了感情。",
+      "options": [
+        {
+          "key": "true",
+          "label": "A",
+          "text": "正确"
+        },
+        {
+          "key": "false",
+          "label": "B",
+          "text": "错误"
+        }
+      ],
+      "answerKeys": [
+        "false"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "判断",
+        "语言"
+      ],
+      "explanation": "王蒙说语言会凝聚、推进感情，不等于感情完全由语言“形成”，题干说法过于绝对。"
+    },
+    {
+      "id": "q-cc-ch002-homework-016",
+      "type": "judge",
+      "stem": "语言可以编造世界。",
+      "options": [
+        {
+          "key": "true",
+          "label": "A",
+          "text": "正确"
+        },
+        {
+          "key": "false",
+          "label": "B",
+          "text": "错误"
+        }
+      ],
+      "answerKeys": [
+        "true"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "判断",
+        "语言功能"
+      ],
+      "explanation": "王蒙认为语言能超出眼前经验，生成概念和想象，所以可以“编造世界”。"
+    },
+    {
+      "id": "q-cc-ch002-homework-017",
+      "type": "judge",
+      "stem": "语言只是一种工具。",
+      "options": [
+        {
+          "key": "true",
+          "label": "A",
+          "text": "正确"
+        },
+        {
+          "key": "false",
+          "label": "B",
+          "text": "错误"
+        }
+      ],
+      "answerKeys": [
+        "false"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "判断",
+        "语言工具"
+      ],
+      "explanation": "王蒙强调语言还有心理、审美、创造等功能，不只是传递信息的工具。"
+    },
+    {
+      "id": "q-cc-ch002-homework-018",
+      "type": "judge",
+      "stem": "当语言以及文字脱离了生活、脱离了真实、脱离了真情以后，它就会变成一个反面的东西。",
+      "options": [
+        {
+          "key": "true",
+          "label": "A",
+          "text": "正确"
+        },
+        {
+          "key": "false",
+          "label": "B",
+          "text": "错误"
+        }
+      ],
+      "answerKeys": [
+        "true"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "判断",
+        "语言异化"
+      ],
+      "explanation": "这句话对应王蒙对语言异化的提醒：脱离真实生活和真情后，语言会走向反面。"
+    },
+    {
+      "id": "q-cc-ch002-homework-019",
+      "type": "judge",
+      "stem": "好的、成功的语言表达和文字表达，一定不会面临被异化的命运。",
+      "options": [
+        {
+          "key": "true",
+          "label": "A",
+          "text": "正确"
+        },
+        {
+          "key": "false",
+          "label": "B",
+          "text": "错误"
+        }
+      ],
+      "answerKeys": [
+        "false"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "判断",
+        "语言异化"
+      ],
+      "explanation": "再好的表达也可能被滥用、套用而异化，不能说“一定不会”面临这种命运。"
+    },
+    {
+      "id": "q-cc-ch002-homework-020",
+      "type": "judge",
+      "stem": "语言文字还有一个陷阱，就是语言文字它可以反过来主宰我们，扼杀我们的创造性，扼杀我们活泼的生机。",
+      "options": [
+        {
+          "key": "true",
+          "label": "A",
+          "text": "正确"
+        },
+        {
+          "key": "false",
+          "label": "B",
+          "text": "错误"
+        }
+      ],
+      "answerKeys": [
+        "true"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "判断",
+        "扼杀创造"
+      ],
+      "explanation": "王蒙把“主宰我们、扼杀创造性”列为语言陷阱之一，题干表述与原意一致。"
+    },
+    {
+      "id": "q-cc-ch002-pretest-001",
+      "type": "single",
+      "stem": "每种语言根据其起源、使用地域、构词方法、发音等特点，分为了各个不同的家族，家族内部又进一步细分为多个分支。从大到小分别为什么？",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "语族 → 语支 → 语系 → 语言 → 方言"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "语系 → 语族 → 语支 → 语言 → 方言"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "语族 → 语系 → 语言 → 语支 → 方言"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "语系 → 语族 → 语言 → 语支 → 方言"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "语言",
+        "语系",
+        "语族"
+      ],
+      "explanation": "语言分类通常按“语系-语族-语支-语言-方言”逐级细分，范围从大到小。"
+    },
+    {
+      "id": "q-cc-ch002-pretest-002",
+      "type": "single",
+      "stem": "世界第一大语系是什么？",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "印欧语系"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "阿尔泰诸语"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "亚非语系"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "汉藏语系"
+        }
+      ],
+      "answerKeys": [
+        "A"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "语言",
+        "语系",
+        "印欧语系"
+      ],
+      "explanation": "印欧语系分布广、使用人口多，通常被称为世界第一大语系。"
+    },
+    {
+      "id": "q-cc-ch002-pretest-003",
+      "type": "single",
+      "stem": "关于“语言”的定义，选项中说法不正确的一项是哪一项？",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "语言的客观存在形式首先是有声的口头语言"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "语言是人们说出来的话"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "语言是一个符号系统"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "语言是一种社会现象"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "语言",
+        "定义",
+        "符号系统"
+      ],
+      "explanation": "语言不是某一句“说出来的话”，而是供社会交际使用的符号系统。"
+    },
+    {
+      "id": "q-cc-ch002-literary-001",
+      "type": "single",
+      "stem": "“床前明月光”是李白的千古名句，其中“床”指的是什么？",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "窗户的护栏"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "窗户"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "井上的围栏"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "卧具"
+        }
+      ],
+      "answerKeys": [
+        "C"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "静夜思",
+        "李白",
+        "文学常识"
+      ],
+      "explanation": "《静夜思》中“床”常注为井栏，即井上的围栏，不是现代卧具。"
+    },
+    {
+      "id": "q-cc-ch002-literary-002",
+      "type": "single",
+      "stem": "下列哪一句诗描写的场景最适合采用水墨画来表现？",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "返景入深林，复照青苔上"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "落霞与孤鹜齐飞，秋水共长天一色"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "孤舟蓑笠翁，独钓寒江雪"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "接天莲叶无穷碧，映日荷花别样红"
+        }
+      ],
+      "answerKeys": [
+        "C"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "水墨画",
+        "诗句",
+        "文学常识"
+      ],
+      "explanation": "“孤舟蓑笠翁，独钓寒江雪”画面素净空旷，最接近水墨画的留白意境。"
+    },
+    {
+      "id": "q-cc-ch002-literary-003",
+      "type": "single",
+      "stem": "“月上柳梢头，人约黄昏后”描写的是哪个传统节日？",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "端午节"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "七夕节"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "中秋节"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "元宵节"
+        }
+      ],
+      "answerKeys": [
+        "D"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "元宵节",
+        "欧阳修",
+        "文学常识"
+      ],
+      "explanation": "“月上柳梢头，人约黄昏后”出自《生查子·元夕》，写的是元宵夜约会。"
+    },
+    {
+      "id": "q-cc-ch002-literary-004",
+      "type": "single",
+      "stem": "下列哪个成语典故与项羽有关？",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "暗度陈仓"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "背水一战"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "破釜沉舟"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "隔岸观火"
+        }
+      ],
+      "answerKeys": [
+        "C"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "项羽",
+        "成语典故",
+        "文学常识"
+      ],
+      "explanation": "“破釜沉舟”说的是项羽巨鹿之战前断绝退路、激励士卒的故事。"
+    },
+    {
+      "id": "q-cc-ch002-literary-005",
+      "type": "single",
+      "stem": "我国古代有很多计量单位，比如诗句“黄河远上白云间，一片孤城万仞山”中的“仞”，一仞约相当于什么？",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "半步的距离"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "一个成年人的高度"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "一舍"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "成年人一臂的长度"
+        }
+      ],
+      "answerKeys": [
+        "B"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "仞",
+        "计量单位",
+        "文学常识"
+      ],
+      "explanation": "“仞”是古代长度单位，通常按成年人伸臂或身高附近来理解，本题取“一个成年人的高度”。"
+    },
+    {
+      "id": "q-cc-ch002-literary-006",
+      "type": "single",
+      "stem": "1932年，清华大学招生试题中有一道对子题，上联“孙行者”，下面下联中最合适的是哪一项？",
+      "options": [
+        {
+          "key": "A",
+          "label": "A",
+          "text": "唐三藏"
+        },
+        {
+          "key": "B",
+          "label": "B",
+          "text": "周作人"
+        },
+        {
+          "key": "C",
+          "label": "C",
+          "text": "祖冲之"
+        },
+        {
+          "key": "D",
+          "label": "D",
+          "text": "郁达夫"
+        }
+      ],
+      "answerKeys": [
+        "C"
+      ],
+      "weight": 1,
+      "difficulty": "easy",
+      "tags": [
+        "对子",
+        "清华招生题",
+        "文学常识"
+      ],
+      "explanation": "“孙行者”对“祖冲之”在人名、词性和平仄结构上更工整，是这道对子题的经典答案。"
+    }
+  ]
+}

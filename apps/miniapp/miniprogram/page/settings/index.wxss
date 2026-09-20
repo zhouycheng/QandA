@@ -1,0 +1,220 @@
+.settings-scroll {
+  height: 100vh;
+}
+
+.settings-page {
+  padding: 24rpx 24rpx 60rpx;
+}
+
+.section {
+  margin-top: 12rpx;
+}
+
+.section + .section {
+  margin-top: 40rpx;
+}
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 0 6rpx 18rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.section-note {
+  font-size: 22rpx;
+  color: var(--text-muted);
+}
+
+.section-reset {
+  font-size: 23rpx;
+  color: var(--brand);
+  padding: 6rpx 4rpx;
+}
+
+/* ==================== 菜单通用 ==================== */
+.menu {
+  padding: 0 24rpx;
+}
+
+.menu-row {
+  display: flex;
+  align-items: center;
+  padding: 26rpx 0;
+}
+
+.menu-row + .menu-row {
+  border-top: 1rpx solid var(--line);
+}
+
+.menu-main {
+  flex: 1;
+  min-width: 0;
+  margin-left: 20rpx;
+}
+
+/* 没有图标的那种行（开关行）自己带左边距 */
+.menu-main:first-child {
+  margin-left: 0;
+}
+
+.menu-title {
+  display: block;
+  font-size: 28rpx;
+  color: var(--text-main);
+}
+
+.menu-desc {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 21rpx;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.menu-value {
+  flex: none;
+  margin-left: 16rpx;
+  font-size: 25rpx;
+  color: var(--text-muted);
+}
+
+.menu-arrow {
+  flex: none;
+  margin-left: 8rpx;
+  color: var(--text-muted);
+  font-size: 32rpx;
+}
+
+.menu-tag {
+  flex: none;
+  margin-left: 14rpx;
+  padding: 4rpx 14rpx;
+  border-radius: 999rpx;
+  background: #f2f4f7;
+  font-size: 20rpx;
+  color: var(--text-muted);
+}
+
+.menu-switch {
+  flex: none;
+  margin-left: 20rpx;
+  transform: scale(0.86);
+}
+
+/* ==================== 选择型偏好 ==================== */
+.choice-card {
+  margin-top: 20rpx;
+}
+
+.choice-row {
+  padding: 26rpx 0;
+}
+
+.choice-row + .choice-row {
+  border-top: 1rpx solid var(--line);
+}
+
+.choice-head {
+  display: flex;
+  align-items: center;
+}
+
+.choice-badge {
+  margin-left: 14rpx;
+  padding: 3rpx 12rpx;
+  border-radius: 999rpx;
+  background: #fff5e6;
+  font-size: 19rpx;
+  color: #b25e00;
+}
+
+.choice-options {
+  margin-top: 18rpx;
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: -14rpx;
+}
+
+.choice-chip {
+  margin: 0 14rpx 0 0;
+  padding: 12rpx 28rpx;
+  border-radius: 999rpx;
+  background: #f4f6fa;
+  font-size: 25rpx;
+  color: var(--text-sub);
+  border: 2rpx solid transparent;
+}
+
+.choice-chip.active {
+  color: var(--brand);
+  font-weight: 600;
+  background: var(--brand-soft);
+  border-color: var(--brand);
+}
+
+/* 未开放的选择：视觉上明确降级，点了只给说明 */
+.choice-chip.disabled {
+  color: var(--text-muted);
+  background: #fafbfc;
+}
+
+.choice-chip.disabled.active {
+  color: var(--text-muted);
+  font-weight: 400;
+  background: #f2f4f7;
+  border-color: #dfe4ec;
+}
+
+/* ==================== 账户与安全 ==================== */
+.account-hint {
+  margin-bottom: 18rpx;
+  padding: 20rpx 24rpx;
+  border-radius: 20rpx;
+  background: #f3f8ff;
+  border: 2rpx solid #dbe9ff;
+  font-size: 22rpx;
+  line-height: 1.65;
+  color: #4a6a95;
+}
+
+/* ==================== 关于 ==================== */
+.about-row {
+  display: flex;
+  align-items: center;
+  padding: 26rpx 0;
+}
+
+.about-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22rpx 0;
+  border-top: 1rpx solid var(--line);
+}
+
+.about-label {
+  font-size: 26rpx;
+  color: var(--text-sub);
+}
+
+.about-value {
+  flex: none;
+  margin-left: 20rpx;
+  font-size: 25rpx;
+  color: var(--text-muted);
+}
+
+.footer-note {
+  margin-top: 36rpx;
+  text-align: center;
+  font-size: 22rpx;
+  line-height: 1.6;
+  color: var(--text-muted);
+}

@@ -1,0 +1,300 @@
+.bank-detail-page {
+  height: 100vh;
+  overflow: hidden;
+  background: var(--page-bg);
+}
+
+/* 左侧科目栏 + 右侧内容面板 */
+.workbench {
+  display: flex;
+  height: 100vh;
+}
+
+.rail {
+  flex: none;
+  width: 190rpx;
+  height: 100%;
+  background: #eef2f8;
+}
+
+.rail-inner {
+  padding: 16rpx 0 40rpx;
+}
+
+.rail-item {
+  display: flex;
+  align-items: stretch;
+  padding: 22rpx 16rpx 22rpx 0;
+  min-height: 108rpx;
+}
+
+.rail-bar {
+  flex: none;
+  width: 6rpx;
+  border-radius: 0 999rpx 999rpx 0;
+  background: transparent;
+}
+
+.rail-body {
+  flex: 1;
+  min-width: 0;
+  padding-left: 18rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.rail-name {
+  font-size: 27rpx;
+  line-height: 1.35;
+  color: var(--text-sub);
+}
+
+.rail-meta {
+  margin-top: 8rpx;
+  font-size: 21rpx;
+  color: var(--text-muted);
+}
+
+.rail-item.is-active {
+  background: var(--card);
+}
+
+.rail-item.is-active .rail-bar {
+  background: var(--brand);
+}
+
+.rail-item.is-active .rail-name {
+  font-weight: 600;
+  color: var(--brand);
+}
+
+.rail-item.is-active .rail-meta {
+  color: var(--brand);
+  opacity: 0.72;
+}
+
+/* 科目栏按压：整行轻微回缩 + 淡背景，左侧色条由 .is-active 控制不受影响 */
+/* 左栏科目项在 scroll-view 里：不做 transform，否则会被当成内容尺寸变化、
+   滚动位置跟着跳。改用左侧色条 + 描边，按下时"整条亮起来"同样明显。 */
+.rail-item-hover {
+  background: rgba(43, 127, 252, 0.16);
+  box-shadow: inset 0 0 0 2rpx rgba(43, 127, 252, 0.34), inset 6rpx 0 0 0 var(--brand);
+  transition-duration: 100ms;
+}
+
+.panel {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  background: var(--page-bg);
+}
+
+.panel-inner {
+  padding: 28rpx 24rpx 48rpx 22rpx;
+}
+
+.panel-head {
+  padding: 0 4rpx 22rpx;
+}
+
+.panel-title {
+  font-size: 38rpx;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.panel-desc {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 23rpx;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+/* 科目统计卡 */
+.stat-card {
+  padding: 26rpx 22rpx 22rpx;
+  border-radius: 24rpx;
+  background: var(--card);
+  box-shadow: 0 6rpx 22rpx rgba(31, 42, 55, 0.06);
+}
+
+.stat-row {
+  display: flex;
+  align-items: center;
+}
+
+.stat-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-value {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.1;
+}
+
+.stat-label {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: var(--text-muted);
+}
+
+.stat-progress {
+  margin-top: 22rpx;
+}
+
+.stat-track {
+  height: 10rpx;
+  border-radius: 999rpx;
+  background: #eef2f8;
+  overflow: hidden;
+}
+
+.stat-fill {
+  height: 100%;
+  border-radius: 999rpx;
+  background: linear-gradient(90deg, #53b1fd, #2b7ffc);
+  transition: width 0.3s ease;
+}
+
+.stat-caption {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 21rpx;
+  color: var(--text-muted);
+}
+
+/* 练习方式：分段控件，视觉上是一个整体控件而不是三个按钮 */
+.mode-seg {
+  margin-top: 22rpx;
+  padding: 6rpx;
+  display: flex;
+  border-radius: 18rpx;
+  background: #e8edf5;
+}
+
+.seg-item {
+  flex: 1;
+  height: 64rpx;
+  line-height: 64rpx;
+  text-align: center;
+  border-radius: 14rpx;
+  font-size: 25rpx;
+  color: var(--text-sub);
+}
+
+.seg-item.is-active {
+  font-weight: 600;
+  color: var(--brand);
+  background: #ffffff;
+  box-shadow: 0 2rpx 8rpx rgba(31, 42, 55, 0.08);
+}
+
+/* 模式切换片在 scroll-view 里，同样不做 transform */
+.seg-item-hover {
+  background: rgba(43, 127, 252, 0.18);
+  box-shadow: inset 0 0 0 3rpx rgba(43, 127, 252, 0.4);
+  transition-duration: 90ms;
+}
+
+/* 动作行：主按钮 + 一个次要入口，背题模式下只剩主按钮 */
+.action-row {
+  margin-top: 18rpx;
+  display: flex;
+}
+
+.action-btn {
+  flex: 1;
+  height: 88rpx;
+  line-height: 88rpx;
+  text-align: center;
+  border-radius: 20rpx;
+  font-size: 29rpx;
+}
+
+.action-btn.primary {
+  flex: 1.5;
+  font-weight: 600;
+  color: #ffffff;
+  background: var(--brand);
+  box-shadow: 0 10rpx 24rpx rgba(43, 127, 252, 0.26);
+}
+
+.action-btn.ghost {
+  margin-left: 16rpx;
+  color: var(--brand);
+  background: var(--brand-soft);
+}
+
+/* 列表 */
+.list-head {
+  margin: 36rpx 4rpx 18rpx;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.list-title {
+  font-size: 31rpx;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.list-sub {
+  font-size: 22rpx;
+  color: var(--text-muted);
+}
+
+/* 配置抽屉 */
+.config-block {
+  margin-bottom: 36rpx;
+}
+
+.config-label {
+  font-size: 26rpx;
+  color: var(--text-sub);
+}
+
+.option-row {
+  margin-top: 16rpx;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.option-chip {
+  margin: 0 16rpx 16rpx 0;
+  padding: 14rpx 28rpx;
+  border-radius: 999rpx;
+  background: #f2f4f7;
+  font-size: 26rpx;
+  color: var(--text-sub);
+}
+
+.option-chip.active {
+  color: #ffffff;
+  background: var(--brand);
+}
+
+.config-hint {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.confirm-btn {
+  height: 88rpx;
+  line-height: 88rpx;
+  text-align: center;
+  border-radius: 16rpx;
+  font-size: 30rpx;
+  color: #ffffff;
+  background: var(--brand);
+}

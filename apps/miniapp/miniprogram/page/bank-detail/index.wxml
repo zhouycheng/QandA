@@ -1,0 +1,137 @@
+<view class="bank-detail-page">
+  <view class="workbench" wx:if="{{subject}}">
+    <scroll-view class="rail" scroll-y enhanced bounces show-scrollbar="{{false}}">
+      <view class="rail-inner">
+        <view
+          wx:for="{{subjects}}"
+          wx:key="id"
+          class="rail-item {{item.active ? 'is-active' : ''}}"
+          data-subject-id="{{item.id}}"
+          bindtap="handleSubjectSwitch"
+          hover-class="rail-item-hover"
+          hover-start-time="0" hover-stay-time="200"
+        >
+          <view class="rail-bar"></view>
+          <view class="rail-body">
+            <text class="rail-name">{{item.name}}</text>
+            <text class="rail-meta">{{item.bankCount}} 个单元</text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+
+    <scroll-view class="panel" scroll-y enhanced bounces show-scrollbar="{{false}}">
+      <view class="panel-inner">
+        <view class="panel-head">
+          <text class="panel-title">{{subject.name}}</text>
+          <text class="panel-desc">{{subject.description}}</text>
+        </view>
+
+        <view class="stat-card" wx:if="{{stats}}">
+          <view class="stat-row">
+            <view class="stat-item">
+              <text class="stat-value">{{stats.total}}</text>
+              <text class="stat-label">题目</text>
+            </view>
+            <view class="stat-item">
+              <text class="stat-value">{{stats.answered}}</text>
+              <text class="stat-label">已做</text>
+            </view>
+            <view class="stat-item">
+              <text class="stat-value">{{stats.accuracyText}}</text>
+              <text class="stat-label">正确率</text>
+            </view>
+          </view>
+
+          <view class="stat-progress">
+            <view class="stat-track">
+              <view class="stat-fill" style="width: {{stats.progressPercent}}%"></view>
+            </view>
+            <text class="stat-caption">完成度 {{stats.progressPercent}}%</text>
+          </view>
+        </view>
+
+        <view class="mode-seg">
+          <view
+            wx:for="{{modeOptions}}"
+            wx:key="value"
+            class="seg-item {{mode === item.value ? 'is-active' : ''}}"
+            data-mode="{{item.value}}"
+            bindtap="handleModeSelect"
+            hover-class="seg-item-hover"
+            hover-start-time="0" hover-stay-time="200"
+          >{{item.label}}</view>
+        </view>
+
+        <view class="action-row">
+          <view class="action-btn primary" bindtap="handleStartTap" hover-class="btn-flat-hover" hover-start-time="0" hover-stay-time="240">{{isViewMode ? '开始背题' : '开始练习'}}</view>
+          <view class="action-btn ghost" wx:if="{{!isViewMode}}" bindtap="handleTestTap" hover-class="btn-flat-hover" hover-start-time="0" hover-stay-time="240">模拟测试</view>
+        </view>
+
+        <view class="list-head">
+          <text class="list-title">题库列表</text>
+          <text class="list-sub">{{banks.length}} 个单元</text>
+        </view>
+
+        <block wx:if="{{banks.length}}">
+          <bank-list-item
+            wx:for="{{banks}}"
+            wx:key="id"
+            bank="{{item}}"
+            theme="{{subject.theme}}"
+            bind:open="handleBankOpen"
+          />
+        </block>
+
+        <view class="empty-block" wx:else>
+          <text>暂无题库</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <bottom-sheet
+    visible="{{configSheetVisible}}"
+    title="{{configTitle}}"
+    bind:close="handleSheetClose"
+  >
+    <view class="config-block">
+      <text class="config-label">题目数量</text>
+      <view class="option-row">
+        <view
+          wx:for="{{countOptions}}"
+          wx:key="value"
+          class="option-chip {{selectedCount === item.value ? 'active' : ''}}"
+          data-value="{{item.value}}"
+          bindtap="handleCountSelect"
+          hover-class="chip-hover"
+          hover-start-time="0" hover-stay-time="200"
+        >{{item.label}}</view>
+      </view>
+    </view>
+
+    <view class="config-block">
+      <text class="config-label">时间限制</text>
+      <view class="option-row">
+        <view
+          wx:for="{{durationOptions}}"
+          wx:key="value"
+          class="option-chip {{selectedDuration === item.value ? 'active' : ''}}"
+          data-value="{{item.value}}"
+          bindtap="handleDurationSelect"
+          hover-class="chip-hover"
+          hover-start-time="0" hover-stay-time="200"
+        >{{item.label}}</view>
+      </view>
+      <text class="config-hint">选择「不限时」即按题量抽题练习，不进倒计时。</text>
+    </view>
+
+    <view class="confirm-btn" bindtap="handleConfigConfirm" hover-class="btn-hover" hover-start-time="0" hover-stay-time="200">{{selectedDuration > 0 ? '开始测试' : '开始抽题'}}</view>
+  </bottom-sheet>
+
+  <route-loading
+    visible="{{routeLoadingVisible}}"
+    title="{{routeLoadingTitle}}"
+    description="{{routeLoadingDescription}}"
+  />
+</view>

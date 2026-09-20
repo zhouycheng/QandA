@@ -1,0 +1,204 @@
+<view class="page practice-page font-{{preferences.fontSize}}">
+  <block wx:if="{{!isCompleted}}">
+    <view class="topbar">
+      <view class="progress">
+        <view class="progress-bar" style="width: {{progressPercent}}%"></view>
+      </view>
+      <view class="topbar-row">
+        <view class="overview-trigger" wx:if="{{preferences.showOverviewEntry}}" bindtap="openOverview" hover-class="chip-hover" hover-start-time="0" hover-stay-time="200">
+          <view class="icon-grid"></view>
+          <text class="overview-index">{{currentNumber}} / {{total}}</text>
+        </view>
+        <text class="plain-counter" wx:else>{{currentNumber}} / {{total}}</text>
+        <text class="type-tag">{{currentQuestion.typeText}}</text>
+        <view class="topbar-right">
+          <text class="timer" wx:if="{{isTestMode}}">{{timerText}}</text>
+          <view
+            class="icon-star {{isCurrentQuestionFavorite ? 'active' : ''}}"
+            bindtap="toggleFavorite"
+            hover-class="ghost-hover"
+            hover-start-time="0" hover-stay-time="200"
+          ></view>
+        </view>
+      </view>
+    </view>
+
+    <scroll-view class="question-area" scroll-y enhanced bounces show-scrollbar="{{false}}">
+      <view class="stem">{{currentQuestion.stem}}</view>
+
+      <view class="options">
+        <view
+          wx:for="{{currentQuestion.options}}"
+          wx:key="key"
+          class="option {{item.selected ? 'selected' : ''}} {{item.isCorrectOption ? 'correct' : ''}} {{item.isWrongOption ? 'wrong' : ''}}"
+          data-index="{{index}}"
+          bindtap="selectOption"
+          hover-class="option-hover"
+          hover-start-time="0"
+          hover-stay-time="240"
+        >
+          <text class="option-key">{{item.label}}</text>
+          <text class="option-text">{{item.text}}</text>
+        </view>
+      </view>
+
+      <view class="analysis" wx:if="{{shouldRevealAnswer}}">
+        <view class="analysis-head">
+          <text class="result-tag {{isCurrentAnswerCorrect ? 'ok' : 'no'}}">{{isCurrentAnswerCorrect ? '回答正确' : '回答错误'}}</text>
+          <text class="correct-text">{{currentCorrectAnswerText}}</text>
+        </view>
+        <view class="explanation" wx:if="{{shouldShowExplanation}}">
+          <text class="explanation-title">解析</text>
+          <text class="explanation-text">{{currentExplanation}}</text>
+        </view>
+        <view class="explanation-muted" wx:else>
+          <text>解析已按偏好隐藏，可在「我的 · 学习偏好」中开启自动显示</text>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view class="footer">
+      <view class="footer-btn {{currentIndex === 0 ? 'disabled' : ''}}" bindtap="goPrev" hover-class="btn-hover" hover-start-time="0" hover-stay-time="240">上一题</view>
+      <view class="footer-btn primary" bindtap="goNext" hover-class="btn-hover" hover-start-time="0" hover-stay-time="240">{{primaryActionText}}</view>
+    </view>
+
+    <view class="modal" wx:if="{{showSubmitModal}}">
+      <view class="modal-mask" bindtap="closeSubmitModal"></view>
+      <view class="modal-panel">
+        <text class="modal-title">还有 {{unansweredCount}} 题未作答</text>
+        <text class="modal-desc">未作答的题目将计为错误，确定交卷吗？</text>
+        <view class="modal-actions">
+          <view class="modal-btn" bindtap="closeSubmitModal" hover-class="btn-hover" hover-start-time="0" hover-stay-time="200">继续答题</view>
+          <view class="modal-btn primary" bindtap="forceSubmit" hover-class="btn-hover" hover-start-time="0" hover-stay-time="200">直接交卷</view>
+        </view>
+      </view>
+    </view>
+
+    <question-overview-sheet
+      visible="{{showQuestionOverview}}"
+      items="{{overviewItems}}"
+      unansweredCount="{{unansweredCount}}"
+      showStatus="{{!isViewMode}}"
+      bind:close="closeOverview"
+      bind:jump="jumpToQuestion"
+    />
+  </block>
+
+  <block wx:else>
+    <scroll-view class="result-area" scroll-y enhanced bounces show-scrollbar="{{false}}">
+      <view wx:if="{{submitError}}" class="submit-error">
+        <text class="submit-error-text">{{submitError}}</text>
+        <view
+          class="submit-retry-btn"
+          bindtap="retrySubmit"
+          hover-class="btn-flat-hover"
+          hover-start-time="0"
+          hover-stay-time="240"
+        >重试提交</view>
+      </view>
+
+      <view class="result-card card">
+        <text class="result-score">{{score}}</text>
+        <text class="result-score-unit">分</text>
+        <view class="result-meta">
+          <text class="result-meta-item">答对 {{correctCount}} / {{total}}</text>
+          <text class="result-meta-item">历史最佳 {{bestScore}}</text>
+        </view>
+        <view class="result-progress">
+          <view class="result-progress-bar" style="width: {{score}}%"></view>
+        </view>
+      </view>
+
+      <view class="result-actions stagger">
+        <view class="result-btn highlight anim-fade-up" wx:if="{{hasWrongQuestions}}" bindtap="redoWrongQuestions" hover-class="btn-flat-hover" hover-start-time="0" hover-stay-time="200">重练错题 {{wrongCount}} 题</view>
+        <view class="result-btn anim-fade-up" bindtap="restartPractice" hover-class="btn-flat-hover" hover-start-time="0" hover-stay-time="200">再练一次</view>
+        <view class="result-btn anim-fade-up" bindtap="returnBankDetail" hover-class="btn-flat-hover" hover-start-time="0" hover-stay-time="200">返回题库</view>
+        <view class="result-btn outline anim-fade-up" bindtap="returnHome" hover-class="btn-flat-hover" hover-start-time="0" hover-stay-time="200">回到首页</view>
+      </view>
+
+      <view class="review">
+        <text class="section-title">逐题回顾</text>
+
+        <view class="review-toolbar">
+          <view class="review-filters">
+            <view
+              class="filter-chip {{resultFilter === 'all' ? 'active' : ''}}"
+              data-filter="all"
+              bindtap="handleResultFilter"
+              hover-class="ghost-flat-hover"
+              hover-start-time="0"
+              hover-stay-time="200"
+            >全部 {{resultFilterCounts.all}}</view>
+            <view
+              class="filter-chip {{resultFilter === 'correct' ? 'active' : ''}}"
+              data-filter="correct"
+              bindtap="handleResultFilter"
+              hover-class="ghost-flat-hover"
+              hover-start-time="0"
+              hover-stay-time="200"
+            >正确 {{resultFilterCounts.correct}}</view>
+            <view
+              class="filter-chip {{resultFilter === 'wrong' ? 'active' : ''}}"
+              data-filter="wrong"
+              bindtap="handleResultFilter"
+              hover-class="ghost-flat-hover"
+              hover-start-time="0"
+              hover-stay-time="200"
+            >错误 {{resultFilterCounts.wrong}}</view>
+            <view
+              class="filter-chip {{resultFilter === 'unanswered' ? 'active' : ''}}"
+              data-filter="unanswered"
+              bindtap="handleResultFilter"
+              hover-class="ghost-flat-hover"
+              hover-start-time="0"
+              hover-stay-time="200"
+            >未答 {{resultFilterCounts.unanswered}}</view>
+          </view>
+
+          <input
+            class="review-search"
+            type="text"
+            value="{{resultKeyword}}"
+            placeholder="搜索题干或选项"
+            placeholder-class="review-search-placeholder"
+            bindinput="handleResultSearch"
+          />
+        </view>
+
+        <view wx:if="{{!filteredResultItems.length}}" class="review-empty">
+          <text>{{resultFilterEmptyText}}</text>
+        </view>
+
+        <view
+          wx:for="{{filteredResultItems}}"
+          wx:key="id"
+          class="review-item card {{item.isCorrect ? '' : 'wrong-item'}}"
+          data-id="{{item.id}}"
+          bindtap="handleOpenQuestionDetail"
+          hover-class="review-item-hover"
+          hover-start-time="0"
+          hover-stay-time="200"
+        >
+          <view class="review-head">
+            <text class="review-number">{{item.number}}</text>
+            <text class="review-type">{{item.typeText}}</text>
+            <text class="review-flag {{item.answered ? (item.isCorrect ? 'ok' : 'no') : 'skip'}}">{{item.answered ? (item.isCorrect ? '正确' : '错误') : '未答'}}</text>
+          </view>
+          <text class="review-stem">{{item.stem}}</text>
+          <view class="review-answer">
+            <text class="review-label">你的答案</text>
+            <text class="review-value">{{item.selectedText}}</text>
+          </view>
+          <view class="review-answer">
+            <text class="review-label">正确答案</text>
+            <text class="review-value correct-value">{{item.correctText}}</text>
+          </view>
+          <view class="review-explanation">
+            <text class="review-label">解析</text>
+            <text class="review-value">{{item.explanation}}</text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </block>
+</view>
