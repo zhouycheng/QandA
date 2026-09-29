@@ -5,7 +5,9 @@ import { AdminLayout } from './layouts/admin-layout'
 import { ProtectedRoute } from './components/protected-route'
 
 const DashboardPage = lazy(() => import('./pages/dashboard/dashboard-page').then((module) => ({ default: module.DashboardPage })))
+const CollegesPage = lazy(() => import('./pages/colleges/colleges-page').then((module) => ({ default: module.CollegesPage })))
 const LoginPage = lazy(() => import('./pages/login/login-page').then((module) => ({ default: module.LoginPage })))
+const MajorsPage = lazy(() => import('./pages/majors/majors-page').then((module) => ({ default: module.MajorsPage })))
 const QuestionBanksPage = lazy(() => import('./pages/question-banks/question-banks-page').then((module) => ({ default: module.QuestionBanksPage })))
 const QuestionsPage = lazy(() => import('./pages/questions/questions-page').then((module) => ({ default: module.QuestionsPage })))
 const SubjectsPage = lazy(() => import('./pages/subjects/subjects-page').then((module) => ({ default: module.SubjectsPage })))
@@ -23,6 +25,8 @@ export default function App() {
           }
         >
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/colleges" element={<CollegesPage />} />
+          <Route path="/majors" element={<MajorsPage />} />
           <Route path="/subjects" element={<SubjectsPage />} />
           <Route path="/question-banks" element={<QuestionBanksPage />} />
           <Route path="/questions" element={<QuestionsPage />} />

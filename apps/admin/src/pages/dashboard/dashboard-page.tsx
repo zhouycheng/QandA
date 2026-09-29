@@ -22,11 +22,12 @@ export function DashboardPage() {
       ) : (
         <Row gutter={20}>
           {[
+            { label: '学院', value: summary.data?.collegeCount, icon: <IconApps />, color: 'orange' },
             { label: '科目', value: summary.data?.subjectCount, icon: <IconApps />, color: 'blue' },
             { label: '题库', value: summary.data?.questionBankCount, icon: <IconBook />, color: 'purple' },
             { label: '题目', value: summary.data?.questionCount, icon: <IconFile />, color: 'green' },
           ].map((item) => (
-            <Col xs={24} md={8} key={item.label}>
+            <Col xs={24} md={6} key={item.label}>
               <Card className="stat-card" bordered={false}>
                 {summary.isLoading ? (
                   <Skeleton text={{ rows: 2 }} animation />
@@ -44,7 +45,7 @@ export function DashboardPage() {
       <Card className="dashboard-tip" bordered={false}>
         <Typography.Title heading={5}>管理建议</Typography.Title>
         <Typography.Paragraph type="secondary">
-          先创建科目，再建立归属该科目的题库，最后添加单选、多选或判断题。切换右上角 Playground 场景可以验证空数据、失败、延迟和千题性能。
+          先维护当前大学下的学院和专业，再创建科目和题库，最后添加单选、多选或判断题。切换右上角 Playground 场景可以验证空数据、失败、延迟和千题性能。
         </Typography.Paragraph>
       </Card>
     </>

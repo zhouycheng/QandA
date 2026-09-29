@@ -1,11 +1,17 @@
 import type { AdminContentGateway } from '../../src/gateways/admin-content-gateway'
 import type {
+  CollegeQuery,
+  CreateCollegeInput,
+  CreateMajorInput,
   CreateQuestionBankInput,
   CreateQuestionInput,
   CreateSubjectInput,
+  MajorQuery,
   QuestionBankQuery,
   QuestionQuery,
   SubjectQuery,
+  UpdateCollegeInput,
+  UpdateMajorInput,
   UpdateQuestionBankInput,
   UpdateQuestionInput,
   UpdateSubjectInput,
@@ -34,27 +40,141 @@ function normalize(value?: string) {
 export class MockAdminContentGateway implements AdminContentGateway {
   async getDashboardSummary() {
     await simulateRequest()
-    const { subjects, questionBanks, questions } = getMockAdminState()
+    const { colleges, subjects, questionBanks, questions } = getMockAdminState()
     return {
+      collegeCount: colleges.length,
       subjectCount: subjects.length,
       questionBankCount: questionBanks.length,
       questionCount: questions.length,
     }
   }
 
+  async listColleges(query?: CollegeQuery) {
+    await simulateRequest()
+    const keyword = normalize(query?.keyword)
+    return getMockAdminState().colleges.filter((college) =>
+      normalize(`${college.name} ${college.code}`).includes(keyword),
+    )
+  }
+
+  async createCollege(input: CreateCollegeInput) {
+    await simulateRequest('write')
+    const state = getMockAdminState()
+    const name = input.name.trim()
+    const code = input.code.trim().toUpperCase()
+    if (state.colleges.some((college) => normalize(college.name) === normalize(name))) {
+      throw new Error('学院名称已存在。')
+    }
+    if (state.colleges.some((college) => normalize(college.code) === normalize(code))) {
+      throw new Error('学院代码已存在。')
+    }
+    const now = new Date().toISOString()
+    const college = { ...input, name, code, id: createId('college'), createdAt: now, updatedAt: now }
+    state.setColleges([college, ...state.colleges])
+    return college
+  }
+
+  async updateCollege(id: string, input: UpdateCollegeInput) {
+    await simulateRequest('write')
+    const state = getMockAdminState()
+    const current = state.colleges.find((college) => college.id === id)
+    if (!current) throw new Error('学院不存在。')
+    const name = input.name.trim()
+    const code = input.code.trim().toUpperCase()
+    if (state.colleges.some((college) => college.id !== id && normalize(college.name) === normalize(name))) {
+      throw new Error('学院名称已存在。')
+    }
+    if (state.colleges.some((college) => college.id !== id && normalize(college.code) === normalize(code))) {
+      throw new Error('学院代码已存在。')
+    }
+    const college = { ...current, ...input, name, code, updatedAt: new Date().toISOString() }
+    state.setColleges(state.colleges.map((item) => (item.id === id ? college : item)))
+    return college
+  }
+
+  async deleteCollege(id: string) {
+    await simulateRequest('write')
+    const state = getMockAdminState()
+    if (state.majors.some((major) => major.collegeId === id)) {
+      throw new Error('学院下仍有专业，请先删除或迁移专业。')
+    }
+    state.setColleges(state.colleges.filter((college) => college.id !== id))
+  }
+
+  async listMajors(query?: MajorQuery) {
+    await simulateRequest()
+    const keyword = normalize(query?.keyword)
+    return getMockAdminState().majors
+      .filter((major) => !query?.collegeId || major.collegeId === query.collegeId)
+      .filter((major) => normalize(`${major.name} ${major.code}`).includes(keyword))
+  }
+
+  async createMajor(input: CreateMajorInput) {
+    await simulateRequest('write')
+    const state = getMockAdminState()
+    if (!state.colleges.some((college) => college.id === input.collegeId)) {
+      throw new Error('所属学院不存在。')
+    }
+    const name = input.name.trim()
+    const code = input.code.trim().toUpperCase()
+    if (state.majors.some((major) => major.collegeId === input.collegeId && normalize(major.name) === normalize(name))) {
+      throw new Error('该学院下已存在同名专业。')
+    }
+    if (state.majors.some((major) => major.collegeId === input.collegeId && normalize(major.code) === normalize(code))) {
+      throw new Error('该学院下已存在相同专业代码。')
+    }
+    const now = new Date().toISOString()
+    const major = { ...input, name, code, id: createId('major'), createdAt: now, updatedAt: now }
+    state.setMajors([major, ...state.majors])
+    return major
+  }
+
+  async updateMajor(id: string, input: UpdateMajorInput) {
+    await simulateRequest('write')
+    const state = getMockAdminState()
+    const current = state.majors.find((major) => major.id === id)
+    if (!current) throw new Error('专业不存在。')
+    if (!state.colleges.some((college) => college.id === input.collegeId)) {
+      throw new Error('所属学院不存在。')
+    }
+    const name = input.name.trim()
+    const code = input.code.trim().toUpperCase()
+    if (state.majors.some((major) => major.id !== id && major.collegeId === input.collegeId && normalize(major.name) === normalize(name))) {
+      throw new Error('该学院下已存在同名专业。')
+    }
+    if (state.majors.some((major) => major.id !== id && major.collegeId === input.collegeId && normalize(major.code) === normalize(code))) {
+      throw new Error('该学院下已存在相同专业代码。')
+    }
+    const major = { ...current, ...input, name, code, updatedAt: new Date().toISOString() }
+    state.setMajors(state.majors.map((item) => (item.id === id ? major : item)))
+    return major
+  }
+
+  async deleteMajor(id: string) {
+    await simulateRequest('write')
+    const state = getMockAdminState()
+    if (state.subjects.some((subject) => subject.majorId === id)) {
+      throw new Error('专业下仍有科目，请先删除或迁移科目。')
+    }
+    state.setMajors(state.majors.filter((major) => major.id !== id))
+  }
+
   async listSubjects(query?: SubjectQuery) {
     await simulateRequest()
     const keyword = normalize(query?.keyword)
-    return getMockAdminState().subjects.filter((subject) =>
-      normalize(subject.name).includes(keyword),
-    )
+    return getMockAdminState().subjects
+      .filter((subject) => !query?.majorId || subject.majorId === query.majorId)
+      .filter((subject) => normalize(subject.name).includes(keyword))
   }
 
   async createSubject(input: CreateSubjectInput) {
     await simulateRequest('write')
     const state = getMockAdminState()
-    if (state.subjects.some((subject) => subject.name === input.name.trim())) {
-      throw new Error('科目名称已存在。')
+    if (!state.majors.some((major) => major.id === input.majorId)) {
+      throw new Error('所属专业不存在。')
+    }
+    if (state.subjects.some((subject) => subject.majorId === input.majorId && normalize(subject.name) === normalize(input.name))) {
+      throw new Error('该专业下已存在同名科目。')
     }
     const now = new Date().toISOString()
     const subject = { ...input, name: input.name.trim(), id: createId('subject'), createdAt: now, updatedAt: now }
@@ -67,12 +187,24 @@ export class MockAdminContentGateway implements AdminContentGateway {
     const state = getMockAdminState()
     const current = state.subjects.find((subject) => subject.id === id)
     if (!current) throw new Error('科目不存在。')
-    if (state.subjects.some((subject) => subject.id !== id && subject.name === input.name.trim())) {
-      throw new Error('科目名称已存在。')
+    if (!state.majors.some((major) => major.id === input.majorId)) {
+      throw new Error('所属专业不存在。')
+    }
+    if (state.subjects.some((subject) => subject.id !== id && subject.majorId === input.majorId && normalize(subject.name) === normalize(input.name))) {
+      throw new Error('该专业下已存在同名科目。')
     }
     const subject = { ...current, ...input, name: input.name.trim(), updatedAt: new Date().toISOString() }
     state.setSubjects(state.subjects.map((item) => (item.id === id ? subject : item)))
     return subject
+  }
+
+  async deleteSubject(id: string) {
+    await simulateRequest('write')
+    const state = getMockAdminState()
+    if (state.questionBanks.some((bank) => bank.subjectId === id)) {
+      throw new Error('科目下仍有题库，请先删除或迁移题库。')
+    }
+    state.setSubjects(state.subjects.filter((subject) => subject.id !== id))
   }
 
   async listQuestionBanks(query?: QuestionBankQuery) {

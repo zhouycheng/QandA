@@ -30,6 +30,8 @@ const { Header, Sider, Content } = Layout
 
 const pageNames: Record<string, string> = {
   '/dashboard': '数据概览',
+  '/colleges': '学院管理',
+  '/majors': '专业管理',
   '/subjects': '科目管理',
   '/question-banks': '题库管理',
   '/questions': '题目管理',
@@ -63,6 +65,8 @@ export function AdminLayout() {
         </div>
         <Menu selectedKeys={[location.pathname]} onClickMenuItem={(key) => navigate(key)}>
           <Menu.Item key="/dashboard"><IconDashboard />数据概览</Menu.Item>
+          <Menu.Item key="/colleges"><IconApps />学院管理</Menu.Item>
+          <Menu.Item key="/majors"><IconApps />专业管理</Menu.Item>
           <Menu.Item key="/subjects"><IconApps />科目管理</Menu.Item>
           <Menu.Item key="/question-banks"><IconBook />题库管理</Menu.Item>
           <Menu.Item key="/questions"><IconFile />题目管理</Menu.Item>

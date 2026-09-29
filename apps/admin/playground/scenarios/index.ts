@@ -1,4 +1,6 @@
 import type { Question } from '../../src/types/admin'
+import { collegeFixtures } from '../fixtures/colleges'
+import { majorFixtures } from '../fixtures/majors'
 import { questionBankFixtures } from '../fixtures/question-banks'
 import { questionFixtures } from '../fixtures/questions'
 import { subjectFixtures } from '../fixtures/subjects'
@@ -43,10 +45,12 @@ function createLargeQuestion(index: number): Question {
 
 export function getScenarioData(scenario: PlaygroundScenario) {
   if (scenario === 'empty') {
-    return { subjects: [], questionBanks: [], questions: [] }
+    return { colleges: [], majors: [], subjects: [], questionBanks: [], questions: [] }
   }
 
   return {
+    colleges: structuredClone(collegeFixtures),
+    majors: structuredClone(majorFixtures),
     subjects: structuredClone(subjectFixtures),
     questionBanks: structuredClone(questionBankFixtures),
     questions:

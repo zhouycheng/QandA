@@ -1,8 +1,28 @@
 export type ContentStatus = 'ACTIVE' | 'INACTIVE'
 export type QuestionType = 'SINGLE_CHOICE' | 'MULTIPLE_CHOICE' | 'TRUE_FALSE'
 
+export interface College {
+  id: string
+  name: string
+  code: string
+  status: ContentStatus
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Major {
+  id: string
+  collegeId: string
+  name: string
+  code: string
+  status: ContentStatus
+  createdAt: string
+  updatedAt: string
+}
+
 export interface Subject {
   id: string
+  majorId: string
   name: string
   status: ContentStatus
   createdAt: string
@@ -38,8 +58,12 @@ export interface Question {
   updatedAt: string
 }
 
-export type CreateSubjectInput = Pick<Subject, 'name' | 'status'>
+export type CreateSubjectInput = Pick<Subject, 'majorId' | 'name' | 'status'>
 export type UpdateSubjectInput = CreateSubjectInput
+export type CreateCollegeInput = Pick<College, 'name' | 'code' | 'status'>
+export type UpdateCollegeInput = CreateCollegeInput
+export type CreateMajorInput = Pick<Major, 'collegeId' | 'name' | 'code' | 'status'>
+export type UpdateMajorInput = CreateMajorInput
 
 export type CreateQuestionBankInput = Pick<
   QuestionBank,
@@ -61,6 +85,16 @@ export type UpdateQuestionInput = CreateQuestionInput
 
 export interface SubjectQuery {
   keyword?: string
+  majorId?: string
+}
+
+export interface CollegeQuery {
+  keyword?: string
+}
+
+export interface MajorQuery {
+  keyword?: string
+  collegeId?: string
 }
 
 export interface QuestionBankQuery {
@@ -76,6 +110,7 @@ export interface QuestionQuery {
 }
 
 export interface DashboardSummary {
+  collegeCount: number
   subjectCount: number
   questionBankCount: number
   questionCount: number

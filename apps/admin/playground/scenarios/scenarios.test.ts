@@ -4,6 +4,8 @@ import { getScenarioData } from './index'
 describe('Playground 场景数据', () => {
   it('空数据场景不包含任何内容', () => {
     const data = getScenarioData('empty')
+    expect(data.colleges).toHaveLength(0)
+    expect(data.majors).toHaveLength(0)
     expect(data.subjects).toHaveLength(0)
     expect(data.questionBanks).toHaveLength(0)
     expect(data.questions).toHaveLength(0)
@@ -20,5 +22,17 @@ describe('Playground 场景数据', () => {
     first.subjects[0].name = '已修改'
     const second = getScenarioData('normal')
     expect(second.subjects[0].name).toBe('高等数学')
+  })
+
+  it('正常场景提供学院数据', () => {
+    expect(getScenarioData('normal').colleges).toHaveLength(2)
+  })
+
+  it('专业和科目都指向存在的父级', () => {
+    const data = getScenarioData('normal')
+    const collegeIds = new Set(data.colleges.map((college) => college.id))
+    const majorIds = new Set(data.majors.map((major) => major.id))
+    expect(data.majors.every((major) => collegeIds.has(major.collegeId))).toBe(true)
+    expect(data.subjects.every((subject) => majorIds.has(subject.majorId))).toBe(true)
   })
 })
