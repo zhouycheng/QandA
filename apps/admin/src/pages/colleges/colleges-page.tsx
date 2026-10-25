@@ -11,6 +11,7 @@ import {
   Radio,
   Space,
   Table,
+  Tooltip,
   Typography,
 } from '@arco-design/web-react'
 import { IconDelete, IconEdit, IconPlus, IconSearch } from '@arco-design/web-react/icon'
@@ -42,6 +43,7 @@ export function CollegesPage() {
     queryKey: ['colleges', keyword],
     queryFn: () => gateway.listColleges({ keyword }),
   })
+  const majors = useQuery({ queryKey: ['majors', 'all'], queryFn: () => gateway.listMajors() })
 
   const saveCollege = useMutation({
     mutationFn: (values: CollegeFormValues) =>
@@ -91,6 +93,8 @@ export function CollegesPage() {
     setDrawerVisible(true)
   }
 
+  const getMajorCount = (collegeId: string) => majors.data?.filter((major) => major.collegeId === collegeId).length ?? 0
+
   return (
     <>
       <PageTitle
@@ -115,21 +119,29 @@ export function CollegesPage() {
         ) : (
           <Table
             rowKey="id"
-            loading={colleges.isLoading}
+            loading={colleges.isLoading || majors.isLoading}
             data={colleges.data ?? []}
             noDataElement={<Empty description="还没有学院，先新增一个吧" />}
             pagination={{ pageSize: 10, showTotal: true }}
             columns={[
               { title: '学院名称', dataIndex: 'name' },
               { title: '学院代码', dataIndex: 'code', width: 160 },
+              {
+                title: '专业数量',
+                width: 130,
+                render: (_, record) => (
+                  <Button type="text" onClick={() => navigate(`/majors?collegeId=${record.id}`)}>
+                    {getMajorCount(record.id)} 个专业
+                  </Button>
+                ),
+              },
               { title: '状态', dataIndex: 'status', width: 120, render: (_, record) => <StatusTag status={record.status} /> },
               { title: '更新时间', dataIndex: 'updatedAt', width: 190, render: (value) => new Date(value).toLocaleString('zh-CN') },
               {
                 title: '操作',
-                width: 340,
+                width: 280,
                 render: (_, record) => (
                   <Space>
-                    <Button type="text" onClick={() => navigate(`/majors?collegeId=${record.id}`)}>专业</Button>
                     <Button type="text" icon={<IconEdit />} onClick={() => openEdit(record)}>编辑</Button>
                     <Popconfirm
                       title={`确认${record.status === 'ACTIVE' ? '停用' : '启用'}该学院？`}
@@ -139,9 +151,15 @@ export function CollegesPage() {
                         {record.status === 'ACTIVE' ? '停用' : '启用'}
                       </Button>
                     </Popconfirm>
-                    <Popconfirm title="删除后不可恢复，确认删除？" onOk={() => deleteCollege.mutate(record.id)}>
-                      <Button type="text" status="danger" icon={<IconDelete />}>删除</Button>
-                    </Popconfirm>
+                    {getMajorCount(record.id) > 0 ? (
+                      <Tooltip content={`包含 ${getMajorCount(record.id)} 个专业，请先处理专业`}>
+                        <span><Button type="text" status="danger" icon={<IconDelete />} disabled>删除</Button></span>
+                      </Tooltip>
+                    ) : (
+                      <Popconfirm title="删除后不可恢复，确认删除？" onOk={() => deleteCollege.mutate(record.id)}>
+                        <Button type="text" status="danger" icon={<IconDelete />}>删除</Button>
+                      </Popconfirm>
+                    )}
                   </Space>
                 ),
               },

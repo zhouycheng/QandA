@@ -12,6 +12,8 @@ import {
   Select,
   Space,
   Table,
+  Tag,
+  Tooltip,
   Typography,
 } from '@arco-design/web-react'
 import { IconDelete, IconEdit, IconPlus, IconSearch } from '@arco-design/web-react/icon'
@@ -35,7 +37,7 @@ export function MajorsPage() {
   const gateway = useAdminGateway()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [keyword, setKeyword] = useState('')
   const [collegeId, setCollegeId] = useState<string | undefined>(searchParams.get('collegeId') ?? undefined)
   const [drawerVisible, setDrawerVisible] = useState(false)
@@ -51,6 +53,7 @@ export function MajorsPage() {
     queryKey: ['majors', keyword, collegeId],
     queryFn: () => gateway.listMajors({ keyword, collegeId }),
   })
+  const subjects = useQuery({ queryKey: ['subjects', 'all'], queryFn: () => gateway.listSubjects() })
 
   const saveMajor = useMutation({
     mutationFn: (values: MajorFormValues) =>
@@ -89,7 +92,7 @@ export function MajorsPage() {
   const openCreate = () => {
     setEditing(null)
     form.resetFields()
-    form.setFieldsValue({ collegeId: collegeId ?? colleges.data?.[0]?.id, status: 'ACTIVE' })
+    form.setFieldsValue({ collegeId, status: 'ACTIVE' })
     setDrawerVisible(true)
   }
 
@@ -100,12 +103,23 @@ export function MajorsPage() {
   }
 
   const getCollegeName = (id: string) => colleges.data?.find((college) => college.id === id)?.name ?? '未知学院'
+  const isCollegeInactive = (id: string) => colleges.data?.find((college) => college.id === id)?.status === 'INACTIVE'
+  const getSubjectCount = (id: string) => subjects.data?.filter((subject) => subject.majorIds.includes(id)).length ?? 0
+  const selectedCollege = colleges.data?.find((college) => college.id === collegeId)
+
+  const changeCollege = (value?: string) => {
+    setCollegeId(value)
+    const next = new URLSearchParams(searchParams)
+    if (value) next.set('collegeId', value)
+    else next.delete('collegeId')
+    setSearchParams(next, { replace: true })
+  }
 
   return (
     <>
       <PageTitle
-        title="专业管理"
-        description="维护各学院下的专业及其可用状态。"
+        title={selectedCollege ? `${selectedCollege.name} · 专业管理` : '专业管理'}
+        description={selectedCollege ? '当前仅显示该学院下的专业。' : '维护各学院下的专业及其可用状态。'}
         action={<Button type="primary" icon={<IconPlus />} onClick={openCreate} disabled={!colleges.data?.length}>新增专业</Button>}
       />
       <Card bordered={false}>
@@ -119,7 +133,7 @@ export function MajorsPage() {
               searchButton
               onSearch={setKeyword}
             />
-            <Select allowClear placeholder="按学院筛选" style={{ width: 200 }} value={collegeId} onChange={setCollegeId}>
+            <Select allowClear placeholder="按学院筛选" style={{ width: 200 }} value={collegeId} onChange={changeCollege}>
               {colleges.data?.map((college) => <Select.Option key={college.id} value={college.id}>{college.name}</Select.Option>)}
             </Select>
           </Space>
@@ -130,7 +144,7 @@ export function MajorsPage() {
         ) : (
           <Table
             rowKey="id"
-            loading={majors.isLoading || colleges.isLoading}
+            loading={majors.isLoading || colleges.isLoading || subjects.isLoading}
             data={majors.data ?? []}
             noDataElement={<Empty description={colleges.data?.length ? '没有符合条件的专业' : '请先新增学院'} />}
             pagination={{ pageSize: 10, showTotal: true }}
@@ -138,22 +152,46 @@ export function MajorsPage() {
               { title: '专业名称', dataIndex: 'name' },
               { title: '专业代码', dataIndex: 'code', width: 140 },
               { title: '所属学院', dataIndex: 'collegeId', width: 180, render: (value) => getCollegeName(value) },
-              { title: '状态', dataIndex: 'status', width: 110, render: (_, record) => <StatusTag status={record.status} /> },
+              {
+                title: '关联科目',
+                width: 130,
+                render: (_, record) => (
+                  <Button type="text" onClick={() => navigate(`/subjects?majorId=${record.id}`)}>
+                    {getSubjectCount(record.id)} 个科目
+                  </Button>
+                ),
+              },
+              {
+                title: '状态',
+                dataIndex: 'status',
+                width: 120,
+                render: (_, record) => (
+                  <Space direction="vertical" size="mini">
+                    <StatusTag status={record.status} />
+                    {record.status === 'ACTIVE' && isCollegeInactive(record.collegeId) && <Tag color="orange">学院已停用</Tag>}
+                  </Space>
+                ),
+              },
               {
                 title: '操作',
-                width: 340,
+                width: 280,
                 render: (_, record) => (
                   <Space>
-                    <Button type="text" onClick={() => navigate(`/subjects?majorId=${record.id}`)}>科目</Button>
                     <Button type="text" icon={<IconEdit />} onClick={() => openEdit(record)}>编辑</Button>
                     <Popconfirm title={`确认${record.status === 'ACTIVE' ? '停用' : '启用'}该专业？`} onOk={() => toggleStatus.mutate(record)}>
                       <Button type="text" status={record.status === 'ACTIVE' ? 'warning' : 'success'}>
                         {record.status === 'ACTIVE' ? '停用' : '启用'}
                       </Button>
                     </Popconfirm>
-                    <Popconfirm title="删除后不可恢复，确认删除？" onOk={() => deleteMajor.mutate(record.id)}>
-                      <Button type="text" status="danger" icon={<IconDelete />}>删除</Button>
-                    </Popconfirm>
+                    {getSubjectCount(record.id) > 0 ? (
+                      <Tooltip content={`仍关联 ${getSubjectCount(record.id)} 个科目，请先解除关联`}>
+                        <span><Button type="text" status="danger" icon={<IconDelete />} disabled>删除</Button></span>
+                      </Tooltip>
+                    ) : (
+                      <Popconfirm title="删除后不可恢复，确认删除？" onOk={() => deleteMajor.mutate(record.id)}>
+                        <Button type="text" status="danger" icon={<IconDelete />}>删除</Button>
+                      </Popconfirm>
+                    )}
                   </Space>
                 ),
               },

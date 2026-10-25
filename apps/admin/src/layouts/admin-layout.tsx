@@ -63,11 +63,13 @@ export function AdminLayout() {
           <span className="brand-mark">Q</span>
           {!collapsed && <span>QandA Admin</span>}
         </div>
-        <Menu selectedKeys={[location.pathname]} onClickMenuItem={(key) => navigate(key)}>
+        <Menu selectedKeys={[location.pathname]} defaultOpenKeys={['academic']} onClickMenuItem={(key) => navigate(key)}>
           <Menu.Item key="/dashboard"><IconDashboard />数据概览</Menu.Item>
-          <Menu.Item key="/colleges"><IconApps />学院管理</Menu.Item>
-          <Menu.Item key="/majors"><IconApps />专业管理</Menu.Item>
-          <Menu.Item key="/subjects"><IconApps />科目管理</Menu.Item>
+          <Menu.SubMenu key="academic" title={<><IconApps />院系课程</>}>
+            <Menu.Item key="/colleges">学院管理</Menu.Item>
+            <Menu.Item key="/majors">专业管理</Menu.Item>
+            <Menu.Item key="/subjects">科目管理</Menu.Item>
+          </Menu.SubMenu>
           <Menu.Item key="/question-banks"><IconBook />题库管理</Menu.Item>
           <Menu.Item key="/questions"><IconFile />题目管理</Menu.Item>
         </Menu>

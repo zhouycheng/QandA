@@ -22,7 +22,7 @@ export interface Major {
 
 export interface Subject {
   id: string
-  majorId: string
+  majorIds: string[]
   name: string
   status: ContentStatus
   createdAt: string
@@ -58,7 +58,7 @@ export interface Question {
   updatedAt: string
 }
 
-export type CreateSubjectInput = Pick<Subject, 'majorId' | 'name' | 'status'>
+export type CreateSubjectInput = Pick<Subject, 'majorIds' | 'name' | 'status'>
 export type UpdateSubjectInput = CreateSubjectInput
 export type CreateCollegeInput = Pick<College, 'name' | 'code' | 'status'>
 export type UpdateCollegeInput = CreateCollegeInput

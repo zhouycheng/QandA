@@ -19,7 +19,7 @@
 → 新增当前大学下的学院
 → 学院列表立即显示
 → 创建学院下的专业
-→ 创建专业下的科目
+→ 创建科目并关联一个或多个专业
 → 列表立即显示
 → 创建题库
 → 题库归属科目
@@ -109,7 +109,7 @@ admin / mock
 - 按专业名称或代码搜索；
 - 空状态。
 
-专业下仍有科目时禁止删除。
+专业仍关联科目时禁止删除，需先解除关联。
 
 ### 4.4 科目管理
 
@@ -122,9 +122,12 @@ admin / mock
 - 启用 / 停用；
 - 搜索；
 - 按专业筛选；
+- 一个科目可以关联多个专业；
 - 空状态。
 
 科目下仍有题库时禁止删除。
+
+数据层使用 `major_subject` 关联表表达专业与科目的多对多关系；前端创建和编辑 DTO 使用 `majorIds` 提交关联专业 ID 列表。停用学院或专业不批量改写下级状态，页面根据上级状态展示实际可用性。
 
 ### 4.5 题库管理
 
@@ -179,7 +182,7 @@ status
 flowchart TD
     A[进入 Mock Admin] --> P[新增 College]
     P --> B[创建 Major]
-    B --> C[创建 Subject]
+    B --> C[创建 Subject 并关联 Major]
     C --> D[列表立即出现]
     D --> E[创建 QuestionBank]
     E --> F[绑定 Subject]
@@ -494,8 +497,9 @@ status 必填
 至少：
 
 ```text
-majorId 必填
+majorIds 至少包含一个专业
 name 必填
+name 在当前大学的科目库内唯一
 status 必填
 ```
 
@@ -568,7 +572,7 @@ status 必填
 进入 Admin
 → 新增 College
 → 创建 Major 并绑定 College
-→ 创建 Subject
+→ 创建 Subject 并关联一个或多个 Major
 → 创建 QuestionBank
 → 创建三种题型
 → 搜索

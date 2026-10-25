@@ -28,11 +28,13 @@ describe('Playground 场景数据', () => {
     expect(getScenarioData('normal').colleges).toHaveLength(2)
   })
 
-  it('专业和科目都指向存在的父级', () => {
+  it('专业和科目的关联都指向存在的数据', () => {
     const data = getScenarioData('normal')
     const collegeIds = new Set(data.colleges.map((college) => college.id))
     const majorIds = new Set(data.majors.map((major) => major.id))
     expect(data.majors.every((major) => collegeIds.has(major.collegeId))).toBe(true)
-    expect(data.subjects.every((subject) => majorIds.has(subject.majorId))).toBe(true)
+    expect(data.subjects.every((subject) => subject.majorIds.length > 0)).toBe(true)
+    expect(data.subjects.every((subject) => subject.majorIds.every((majorId) => majorIds.has(majorId)))).toBe(true)
+    expect(data.subjects.some((subject) => subject.majorIds.length > 1)).toBe(true)
   })
 })

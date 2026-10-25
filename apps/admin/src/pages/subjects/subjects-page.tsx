@@ -12,6 +12,7 @@ import {
   Select,
   Space,
   Table,
+  Tag,
   Typography,
 } from '@arco-design/web-react'
 import { IconDelete, IconEdit, IconPlus, IconSearch } from '@arco-design/web-react/icon'
@@ -25,7 +26,7 @@ import { getErrorMessage } from '../../lib/errors'
 import type { ContentStatus, Subject } from '../../types/admin'
 
 interface SubjectFormValues {
-  majorId: string
+  majorIds: string[]
   name: string
   status: ContentStatus
 }
@@ -33,7 +34,7 @@ interface SubjectFormValues {
 export function SubjectsPage() {
   const gateway = useAdminGateway()
   const queryClient = useQueryClient()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [keyword, setKeyword] = useState('')
   const [majorId, setMajorId] = useState<string | undefined>(searchParams.get('majorId') ?? undefined)
   const [drawerVisible, setDrawerVisible] = useState(false)
@@ -45,6 +46,7 @@ export function SubjectsPage() {
   }, [searchParams])
 
   const majors = useQuery({ queryKey: ['majors', 'all'], queryFn: () => gateway.listMajors() })
+  const colleges = useQuery({ queryKey: ['colleges', 'all'], queryFn: () => gateway.listColleges() })
   const subjects = useQuery({
     queryKey: ['subjects', keyword, majorId],
     queryFn: () => gateway.listSubjects({ keyword, majorId }),
@@ -65,7 +67,7 @@ export function SubjectsPage() {
   const toggleStatus = useMutation({
     mutationFn: (subject: Subject) =>
       gateway.updateSubject(subject.id, {
-        majorId: subject.majorId,
+        majorIds: subject.majorIds,
         name: subject.name,
         status: subject.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE',
       }),
@@ -89,23 +91,41 @@ export function SubjectsPage() {
   const openCreate = () => {
     setEditing(null)
     form.resetFields()
-    form.setFieldsValue({ majorId: majorId ?? majors.data?.[0]?.id, status: 'ACTIVE' })
+    form.setFieldsValue({ majorIds: majorId ? [majorId] : [], status: 'ACTIVE' })
     setDrawerVisible(true)
   }
 
   const openEdit = (subject: Subject) => {
     setEditing(subject)
-    form.setFieldsValue({ majorId: subject.majorId, name: subject.name, status: subject.status })
+    form.setFieldsValue({ majorIds: subject.majorIds, name: subject.name, status: subject.status })
     setDrawerVisible(true)
   }
 
-  const getMajorName = (id: string) => majors.data?.find((major) => major.id === id)?.name ?? '未知专业'
+  const getMajorLabel = (id: string) => {
+    const major = majors.data?.find((item) => item.id === id)
+    const college = colleges.data?.find((item) => item.id === major?.collegeId)
+    return major ? `${major.name}${college ? `（${college.name}）` : ''}` : '未知专业'
+  }
+  const selectedMajor = majors.data?.find((major) => major.id === majorId)
+  const isMajorAvailable = (id: string) => {
+    const major = majors.data?.find((item) => item.id === id)
+    const college = colleges.data?.find((item) => item.id === major?.collegeId)
+    return major?.status === 'ACTIVE' && college?.status === 'ACTIVE'
+  }
+
+  const changeMajor = (value?: string) => {
+    setMajorId(value)
+    const next = new URLSearchParams(searchParams)
+    if (value) next.set('majorId', value)
+    else next.delete('majorId')
+    setSearchParams(next, { replace: true })
+  }
 
   return (
     <>
       <PageTitle
-        title="科目管理"
-        description="维护各专业下的科目及其可用状态。"
+        title={selectedMajor ? `${selectedMajor.name} · 科目管理` : '科目管理'}
+        description={selectedMajor ? '当前显示该专业关联的科目，共用科目仍只维护一份。' : '维护科目库及其适用专业，一个科目可以被多个专业共用。'}
         action={<Button type="primary" icon={<IconPlus />} onClick={openCreate} disabled={!majors.data?.length}>新增科目</Button>}
       />
       <Card bordered={false}>
@@ -119,8 +139,8 @@ export function SubjectsPage() {
               searchButton
               onSearch={setKeyword}
             />
-            <Select allowClear placeholder="按专业筛选" style={{ width: 200 }} value={majorId} onChange={setMajorId}>
-              {majors.data?.map((major) => <Select.Option key={major.id} value={major.id}>{major.name}</Select.Option>)}
+            <Select allowClear placeholder="按专业筛选" style={{ width: 260 }} value={majorId} onChange={changeMajor}>
+              {majors.data?.map((major) => <Select.Option key={major.id} value={major.id}>{getMajorLabel(major.id)}</Select.Option>)}
             </Select>
           </Space>
           <Typography.Text type="secondary">共 {subjects.data?.length ?? 0} 个科目</Typography.Text>
@@ -130,14 +150,31 @@ export function SubjectsPage() {
         ) : (
           <Table
             rowKey="id"
-            loading={subjects.isLoading || majors.isLoading}
+            loading={subjects.isLoading || majors.isLoading || colleges.isLoading}
             data={subjects.data ?? []}
             noDataElement={<Empty description={majors.data?.length ? '没有符合条件的科目' : '请先新增专业'} />}
             pagination={{ pageSize: 10, showTotal: true }}
             columns={[
               { title: '科目名称', dataIndex: 'name' },
-              { title: '所属专业', dataIndex: 'majorId', width: 180, render: (value) => getMajorName(value) },
-              { title: '状态', dataIndex: 'status', width: 120, render: (_, record) => <StatusTag status={record.status} /> },
+              {
+                title: '适用专业',
+                dataIndex: 'majorIds',
+                width: 360,
+                render: (values: string[]) => (
+                  <Space wrap>{values.map((id) => <Tag key={id} color="arcoblue">{getMajorLabel(id)}</Tag>)}</Space>
+                ),
+              },
+              {
+                title: '状态',
+                dataIndex: 'status',
+                width: 130,
+                render: (_, record) => (
+                  <Space direction="vertical" size="mini">
+                    <StatusTag status={record.status} />
+                    {record.status === 'ACTIVE' && !record.majorIds.some(isMajorAvailable) && <Tag color="orange">上级已停用</Tag>}
+                  </Space>
+                ),
+              },
               { title: '更新时间', dataIndex: 'updatedAt', width: 190, render: (value) => new Date(value).toLocaleString('zh-CN') },
               {
                 title: '操作',
@@ -164,7 +201,7 @@ export function SubjectsPage() {
         )}
       </Card>
       <Drawer
-        width={460}
+        width={540}
         title={editing ? '编辑科目' : '新建科目'}
         visible={drawerVisible}
         onCancel={() => setDrawerVisible(false)}
@@ -176,9 +213,9 @@ export function SubjectsPage() {
         }
       >
         <Form form={form} layout="vertical" onSubmit={(values) => saveSubject.mutate(values)}>
-          <Form.Item field="majorId" label="所属专业" rules={[{ required: true, message: '请选择所属专业' }]}>
-            <Select placeholder="选择专业">
-              {majors.data?.map((major) => <Select.Option key={major.id} value={major.id}>{major.name}</Select.Option>)}
+          <Form.Item field="majorIds" label="适用专业" rules={[{ required: true, message: '请至少选择一个适用专业' }]}>
+            <Select mode="multiple" allowClear placeholder="可选择多个专业">
+              {majors.data?.map((major) => <Select.Option key={major.id} value={major.id}>{getMajorLabel(major.id)}</Select.Option>)}
             </Select>
           </Form.Item>
           <Form.Item field="name" label="科目名称" rules={[{ required: true, message: '请输入科目名称' }, { maxLength: 50, message: '名称不能超过 50 个字符' }]}>

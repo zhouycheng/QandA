@@ -32,7 +32,7 @@ export const useMockAdminStore = create<MockAdminState>()(
       setQuestionBanks: (questionBanks) => set({ questionBanks }),
       setQuestions: (questions) => set({ questions }),
     }),
-    { name: 'qanda-admin-playground-v2' },
+    { name: 'qanda-admin-playground-v3' },
   ),
 )
 

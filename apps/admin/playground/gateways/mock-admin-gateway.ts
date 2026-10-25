@@ -153,8 +153,8 @@ export class MockAdminContentGateway implements AdminContentGateway {
   async deleteMajor(id: string) {
     await simulateRequest('write')
     const state = getMockAdminState()
-    if (state.subjects.some((subject) => subject.majorId === id)) {
-      throw new Error('专业下仍有科目，请先删除或迁移科目。')
+    if (state.subjects.some((subject) => subject.majorIds.includes(id))) {
+      throw new Error('专业仍关联科目，请先解除关联。')
     }
     state.setMajors(state.majors.filter((major) => major.id !== id))
   }
@@ -163,21 +163,25 @@ export class MockAdminContentGateway implements AdminContentGateway {
     await simulateRequest()
     const keyword = normalize(query?.keyword)
     return getMockAdminState().subjects
-      .filter((subject) => !query?.majorId || subject.majorId === query.majorId)
+      .filter((subject) => !query?.majorId || subject.majorIds.includes(query.majorId))
       .filter((subject) => normalize(subject.name).includes(keyword))
   }
 
   async createSubject(input: CreateSubjectInput) {
     await simulateRequest('write')
     const state = getMockAdminState()
-    if (!state.majors.some((major) => major.id === input.majorId)) {
-      throw new Error('所属专业不存在。')
+    const majorIds = [...new Set(input.majorIds)]
+    if (majorIds.length === 0) {
+      throw new Error('请至少选择一个适用专业。')
     }
-    if (state.subjects.some((subject) => subject.majorId === input.majorId && normalize(subject.name) === normalize(input.name))) {
-      throw new Error('该专业下已存在同名科目。')
+    if (majorIds.some((majorId) => !state.majors.some((major) => major.id === majorId))) {
+      throw new Error('选择的专业不存在。')
+    }
+    if (state.subjects.some((subject) => normalize(subject.name) === normalize(input.name))) {
+      throw new Error('科目名称已存在，可编辑已有科目并关联专业。')
     }
     const now = new Date().toISOString()
-    const subject = { ...input, name: input.name.trim(), id: createId('subject'), createdAt: now, updatedAt: now }
+    const subject = { ...input, majorIds, name: input.name.trim(), id: createId('subject'), createdAt: now, updatedAt: now }
     state.setSubjects([subject, ...state.subjects])
     return subject
   }
@@ -187,13 +191,17 @@ export class MockAdminContentGateway implements AdminContentGateway {
     const state = getMockAdminState()
     const current = state.subjects.find((subject) => subject.id === id)
     if (!current) throw new Error('科目不存在。')
-    if (!state.majors.some((major) => major.id === input.majorId)) {
-      throw new Error('所属专业不存在。')
+    const majorIds = [...new Set(input.majorIds)]
+    if (majorIds.length === 0) {
+      throw new Error('请至少选择一个适用专业。')
     }
-    if (state.subjects.some((subject) => subject.id !== id && subject.majorId === input.majorId && normalize(subject.name) === normalize(input.name))) {
-      throw new Error('该专业下已存在同名科目。')
+    if (majorIds.some((majorId) => !state.majors.some((major) => major.id === majorId))) {
+      throw new Error('选择的专业不存在。')
     }
-    const subject = { ...current, ...input, name: input.name.trim(), updatedAt: new Date().toISOString() }
+    if (state.subjects.some((subject) => subject.id !== id && normalize(subject.name) === normalize(input.name))) {
+      throw new Error('科目名称已存在。')
+    }
+    const subject = { ...current, ...input, majorIds, name: input.name.trim(), updatedAt: new Date().toISOString() }
     state.setSubjects(state.subjects.map((item) => (item.id === id ? subject : item)))
     return subject
   }
