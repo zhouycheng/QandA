@@ -1,0 +1,424 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "QandA learning API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8083"
+    }
+  ],
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "paths": {
+    "/me/practice-history": {
+      "get": {
+        "operationId": "learningListPracticeHistory",
+        "summary": "learningListPracticeHistory",
+        "tags": [
+          "learning"
+        ],
+        "responses": {
+          "200": {
+            "description": "Draft response; details remain unresolved"
+          },
+          "default": {
+            "description": "Draft response; details remain unresolved"
+          }
+        },
+        "x-implementation-status": "NOT_IMPLEMENTED",
+        "parameters": [
+          {
+            "name": "recordKind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "subjectId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "sessionId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "archiveId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "description": "未实现草案。响应结构和业务细节待定。"
+      }
+    },
+    "/me/practice-history/{sessionId}": {
+      "get": {
+        "operationId": "learningReadPracticeRecord",
+        "summary": "learningReadPracticeRecord",
+        "tags": [
+          "learning"
+        ],
+        "responses": {
+          "200": {
+            "description": "Draft response; details remain unresolved"
+          },
+          "default": {
+            "description": "Draft response; details remain unresolved"
+          }
+        },
+        "x-implementation-status": "NOT_IMPLEMENTED",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "archiveId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "description": "未实现草案。响应结构和业务细节待定。"
+      }
+    },
+    "/me/recent-learning": {
+      "get": {
+        "operationId": "learningListRecentLearning",
+        "summary": "learningListRecentLearning",
+        "tags": [
+          "learning"
+        ],
+        "responses": {
+          "200": {
+            "description": "Draft response; details remain unresolved"
+          },
+          "default": {
+            "description": "Draft response; details remain unresolved"
+          }
+        },
+        "x-implementation-status": "NOT_IMPLEMENTED",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "description": "未实现草案。响应结构和业务细节待定。"
+      }
+    },
+    "/me/wrong-questions": {
+      "get": {
+        "operationId": "learningListWrongQuestions",
+        "summary": "learningListWrongQuestions",
+        "tags": [
+          "learning"
+        ],
+        "responses": {
+          "200": {
+            "description": "Draft response; details remain unresolved"
+          },
+          "default": {
+            "description": "Draft response; details remain unresolved"
+          }
+        },
+        "x-implementation-status": "NOT_IMPLEMENTED",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "subjectId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "chapterId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "description": "未实现草案。响应结构和业务细节待定。"
+      }
+    },
+    "/me/wrong-questions/review-preview": {
+      "get": {
+        "operationId": "learningPreviewWrongReview",
+        "summary": "learningPreviewWrongReview",
+        "tags": [
+          "learning"
+        ],
+        "responses": {
+          "200": {
+            "description": "Draft response; details remain unresolved"
+          },
+          "default": {
+            "description": "Draft response; details remain unresolved"
+          }
+        },
+        "x-implementation-status": "NOT_IMPLEMENTED",
+        "parameters": [
+          {
+            "name": "subjectId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "chapterId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "description": "未实现草案。响应结构和业务细节待定。"
+      }
+    },
+    "/me/wrong-questions/{questionId}/history": {
+      "get": {
+        "operationId": "learningReadWrongQuestionHistory",
+        "summary": "learningReadWrongQuestionHistory",
+        "tags": [
+          "learning"
+        ],
+        "responses": {
+          "200": {
+            "description": "Draft response; details remain unresolved"
+          },
+          "default": {
+            "description": "Draft response; details remain unresolved"
+          }
+        },
+        "x-implementation-status": "NOT_IMPLEMENTED",
+        "parameters": [
+          {
+            "name": "questionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "description": "未实现草案。响应结构和业务细节待定。"
+      }
+    },
+    "/admin/students/{accountId}/practice-history": {
+      "get": {
+        "operationId": "learningListStudentPracticeRecords",
+        "summary": "learningListStudentPracticeRecords",
+        "tags": [
+          "learning"
+        ],
+        "responses": {
+          "200": {
+            "description": "Draft response; details remain unresolved"
+          },
+          "default": {
+            "description": "Draft response; details remain unresolved"
+          }
+        },
+        "x-implementation-status": "NOT_IMPLEMENTED",
+        "parameters": [
+          {
+            "name": "accountId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "recordKind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "subjectId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "sessionId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "archiveId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "description": "未实现草案。响应结构和业务细节待定。"
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {}
+  }
+}

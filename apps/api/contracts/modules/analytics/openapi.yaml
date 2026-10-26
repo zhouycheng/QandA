@@ -1,0 +1,355 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "QandA analytics API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8083"
+    }
+  ],
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "paths": {
+    "/me/statistics": {
+      "get": {
+        "operationId": "analyticsGetMySummary",
+        "summary": "analyticsGetMySummary",
+        "tags": [
+          "analytics"
+        ],
+        "responses": {
+          "200": {
+            "description": "Draft response; details remain unresolved"
+          },
+          "default": {
+            "description": "Draft response; details remain unresolved"
+          }
+        },
+        "x-implementation-status": "NOT_IMPLEMENTED",
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "periodDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "description": "未实现草案。响应结构和业务细节待定。"
+      }
+    },
+    "/me/statistics/days": {
+      "get": {
+        "operationId": "analyticsGetMyDays",
+        "summary": "analyticsGetMyDays",
+        "tags": [
+          "analytics"
+        ],
+        "responses": {
+          "200": {
+            "description": "Draft response; details remain unresolved"
+          },
+          "default": {
+            "description": "Draft response; details remain unresolved"
+          }
+        },
+        "x-implementation-status": "NOT_IMPLEMENTED",
+        "parameters": [
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "endDateExclusive",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "description": "未实现草案。响应结构和业务细节待定。"
+      }
+    },
+    "/admin/statistics/summary": {
+      "get": {
+        "operationId": "analyticsGetAdminSummary",
+        "summary": "analyticsGetAdminSummary",
+        "tags": [
+          "analytics"
+        ],
+        "responses": {
+          "200": {
+            "description": "Draft response; details remain unresolved"
+          },
+          "default": {
+            "description": "Draft response; details remain unresolved"
+          }
+        },
+        "x-implementation-status": "NOT_IMPLEMENTED",
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "periodDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "collegeId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "majorId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "description": "未实现草案。响应结构和业务细节待定。"
+      }
+    },
+    "/admin/students/{accountId}/statistics": {
+      "get": {
+        "operationId": "analyticsGetStudentSummary",
+        "summary": "analyticsGetStudentSummary",
+        "tags": [
+          "analytics"
+        ],
+        "responses": {
+          "200": {
+            "description": "Draft response; details remain unresolved"
+          },
+          "default": {
+            "description": "Draft response; details remain unresolved"
+          }
+        },
+        "x-implementation-status": "NOT_IMPLEMENTED",
+        "parameters": [
+          {
+            "name": "accountId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "period",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "periodDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "description": "未实现草案。响应结构和业务细节待定。"
+      }
+    },
+    "/admin/statistics/organizations": {
+      "get": {
+        "operationId": "analyticsGetOrganizationSummaries",
+        "summary": "analyticsGetOrganizationSummaries",
+        "tags": [
+          "analytics"
+        ],
+        "responses": {
+          "200": {
+            "description": "Draft response; details remain unresolved"
+          },
+          "default": {
+            "description": "Draft response; details remain unresolved"
+          }
+        },
+        "x-implementation-status": "NOT_IMPLEMENTED",
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "periodDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "collegeId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "majorId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "description": "未实现草案。响应结构和业务细节待定。"
+      }
+    },
+    "/admin/statistics/rankings": {
+      "get": {
+        "operationId": "analyticsGetSchoolRanking",
+        "summary": "analyticsGetSchoolRanking",
+        "tags": [
+          "analytics"
+        ],
+        "responses": {
+          "200": {
+            "description": "Draft response; details remain unresolved"
+          },
+          "default": {
+            "description": "Draft response; details remain unresolved"
+          }
+        },
+        "x-implementation-status": "NOT_IMPLEMENTED",
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "periodDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "collegeId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "majorId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "未实现草案。响应结构和业务细节待定。"
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {}
+  }
+}

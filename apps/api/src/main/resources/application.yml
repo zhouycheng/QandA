@@ -1,0 +1,52 @@
+server:
+  address: ${BACKEND_BIND_ADDRESS:127.0.0.1}
+  port: ${BACKEND_API_PORT:8083}
+  forward-headers-strategy: none
+  max-http-request-header-size: 16KB
+  error:
+    include-message: never
+    include-stacktrace: never
+spring:
+  application:
+    name: qanda-backend
+  datasource:
+    url: ${BACKEND_DB_URL:jdbc:postgresql://127.0.0.1:56432/qanda_backend}
+    username: ${BACKEND_DB_USER:qanda_backend}
+    password: ${BACKEND_DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 8
+      connection-timeout: 5000
+      transaction-isolation: TRANSACTION_READ_COMMITTED
+      connection-init-sql: SET TIME ZONE 'UTC'
+  flyway:
+    locations: classpath:db/migration
+    fail-on-missing-locations: true
+    validate-on-migrate: true
+    clean-disabled: true
+    out-of-order: false
+  jackson:
+    time-zone: UTC
+    serialization:
+      write-dates-as-timestamps: false
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 8MB
+qanda:
+  backend:
+    mode: ${BACKEND_MODE:production}
+    request-limits:
+      window-seconds: ${BACKEND_REQUEST_LIMIT_WINDOW_SECONDS:60}
+      read-per-account: ${BACKEND_REQUEST_LIMIT_READ_PER_ACCOUNT:600}
+      write-per-account: ${BACKEND_REQUEST_LIMIT_WRITE_PER_ACCOUNT:120}
+      anonymous-per-peer: ${BACKEND_REQUEST_LIMIT_ANONYMOUS_PER_PEER:60000}
+      max-keys: ${BACKEND_REQUEST_LIMIT_MAX_KEYS:100000}
+    mail:
+      enabled: ${BACKEND_MAIL_ENABLED:false}
+      transport: ${BACKEND_MAIL_TRANSPORT:unconfigured}
+      host: ${BACKEND_CAPTURE_SMTP_HOST:127.0.0.1}
+      port: ${BACKEND_CAPTURE_SMTP_PORT:51025}
+      dispatch-enabled: ${BACKEND_MAIL_DISPATCH_ENABLED:true}
+    files:
+      enabled: ${BACKEND_FILES_ENABLED:false}
+      root: ${BACKEND_FILE_ROOT:${user.home}/.local/share/qanda-backend/assets}

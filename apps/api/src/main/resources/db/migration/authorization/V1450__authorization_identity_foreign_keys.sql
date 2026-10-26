@@ -1,0 +1,9 @@
+ALTER TABLE authz_membership ADD CONSTRAINT authz_membership_account_fk FOREIGN KEY(account_id) REFERENCES identity_account(id) ON DELETE RESTRICT;
+ALTER TABLE authz_membership_change ADD CONSTRAINT authz_membership_actor_fk FOREIGN KEY(actor_account_id) REFERENCES identity_account(id) ON DELETE RESTRICT;
+ALTER TABLE authz_college_grant ADD CONSTRAINT authz_college_grant_actor_fk FOREIGN KEY(granted_by_account_id) REFERENCES identity_account(id) ON DELETE RESTRICT;
+ALTER TABLE authz_major_grant ADD CONSTRAINT authz_major_grant_actor_fk FOREIGN KEY(granted_by_account_id) REFERENCES identity_account(id) ON DELETE RESTRICT;
+ALTER TABLE authz_account_rule ADD CONSTRAINT authz_account_rule_account_fk FOREIGN KEY(account_id) REFERENCES identity_account(id) ON DELETE RESTRICT;
+ALTER TABLE authz_account_rule ADD CONSTRAINT authz_account_rule_actor_fk FOREIGN KEY(updated_by_account_id) REFERENCES identity_account(id) ON DELETE RESTRICT;
+ALTER TABLE authz_user_share ADD CONSTRAINT authz_user_share_recipient_fk FOREIGN KEY(recipient_account_id) REFERENCES identity_account(id) ON DELETE RESTRICT;
+ALTER TABLE authz_user_share ADD CONSTRAINT authz_user_share_actor_fk FOREIGN KEY(granted_by_account_id) REFERENCES identity_account(id) ON DELETE RESTRICT;
+ALTER TABLE authz_command_receipt ADD CONSTRAINT authz_command_actor_fk FOREIGN KEY(actor_account_id) REFERENCES identity_account(id) ON DELETE RESTRICT;
