@@ -1,466 +1,568 @@
+/* 首页（原型 552:1410）
+   蓝头 + 白底圆角内容区。整页背景交给头部渐变，页面本身不留 padding，
+   否则蓝色到不了屏幕边缘。 */
 .home-page {
-  padding: 28rpx 24rpx 48rpx;
+  padding: 0;
+  background: #ffffff;
 }
 
-/* 按压反馈 .row-hover / .btn-hover 定义在 app.wxss，全站共用 */
+/* ==================== 蓝色头部 ==================== */
 
-/* ==================== 欢迎横幅 ==================== */
-.banner {
+/**
+ * 顶部导航栏已改成 #4A7BFB（见 index.json），这里必须用**垂直**渐变，
+ * 且第一站就是同一个 #4A7BFB，否则导航栏和头部的交界处会露出一道色差。
+ * 原来用的 160deg 是斜的，右上角已经过渡到偏深，接缝一眼能看出来。
+ */
+.hero {
+  padding: 40rpx 36rpx 56rpx;
+  background: linear-gradient(180deg, #4a7bfb 0%, #3566f0 62%, #2a58e6 100%);
+}
+
+.hero-brand {
+  font-size: 46rpx;
+  font-weight: 700;
+  letter-spacing: 1rpx;
+  color: #ffffff;
+}
+
+.hero-search {
+  margin-top: 32rpx;
+  display: flex;
+  align-items: center;
+}
+
+/* 白色搜索条：只有输入区可点，点空白处也算点输入框 */
+.search-box {
+  flex: 1;
+  min-width: 0;
+  height: 84rpx;
+  display: flex;
+  align-items: center;
+  padding: 0 26rpx;
+  border-radius: 999rpx;
+  background: #ffffff;
+}
+
+.search-box-hover {
+  opacity: 0.82;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 0;
+  height: 84rpx;
+  font-size: 27rpx;
+  color: var(--text-main);
+}
+
+/* 微信 input 的 placeholder 不吃 color，必须用类 */
+.search-placeholder {
+  color: #b3bccb;
+}
+
+.search-icon {
+  flex: none;
+  width: 36rpx;
+  height: 36rpx;
+  margin-left: 12rpx;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWYyYTM3IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS13aWR0aD0iMi4yIj48Y2lyY2xlIGN4PSIxMC42IiBjeT0iMTAuNiIgcj0iNi42Ii8+PGxpbmUgeDE9IjE1LjYiIHkxPSIxNS42IiB4Mj0iMjAuNSIgeTI9IjIwLjUiLz48L3N2Zz4=");
+}
+
+/* 右上角圆钮：公告（小喇叭）。每日一句已移到倒计时卡里。 */
+.hero-notice-btn {
+  flex: none;
+  width: 84rpx;
+  height: 84rpx;
+  margin-left: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+.hero-notice-hover {
+  opacity: 0.82;
+}
+
+/* 大喇叭：比常规图标大一号（52rpx），一进页面就晃，用来吸引注意。
+   晃动的是图标本身而不是整个白圆 —— 白圆是正圆，转起来看不出动静。 */
+.hero-notice-icon {
+  width: 52rpx;
+  height: 52rpx;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTMuNCA5LjZINi40TDE1LjQgNC42QTEuNCAxLjQgMCAwIDEgMTcuNCA1Ljg2VjE4LjE0QTEuNCAxLjQgMCAwIDEgMTUuNCAxOS40TDYuNCAxNC40SDMuNEExLjQgMS40IDAgMCAxIDIgMTNWMTFBMS40IDEuNCAwIDAgMSAzLjQgOS42WiIgZmlsbD0iIzJiN2ZmYyIvPjxwYXRoIGQ9Ik0xNy44IDguOGE0LjYgNC42IDAgMCAxIDAgNi40IiBmaWxsPSJub25lIiBzdHJva2U9IiMyYjdmZmMiIHN0cm9rZS13aWR0aD0iMS45IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMjAuNCA2LjZhNy42IDguMiAwIDAgMSAwIDEwLjgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzJiN2ZmYyIgc3Ryb2tlLXdpZHRoPSIxLjkiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjwvc3ZnPg==");
+  animation: notice-shake 5s ease-in-out infinite;
+}
+
+/**
+ * 晃动节奏：前 1.8s 里左右摆三次并轻微放大，剩下 3.2s 完全静止。
+ * 不做「一直匀速抖」——那种会让人烦，而且整页都在动会干扰读搜索框。
+ */
+@keyframes notice-shake {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  6% {
+    transform: rotate(-14deg) scale(1.06);
+  }
+
+  12% {
+    transform: rotate(12deg) scale(1.08);
+  }
+
+  18% {
+    transform: rotate(-9deg) scale(1.04);
+  }
+
+  24% {
+    transform: rotate(6deg);
+  }
+
+  30% {
+    transform: rotate(-3deg);
+  }
+
+  36% {
+    transform: rotate(0deg);
+  }
+}
+
+/* ==================== 白色内容区 ==================== */
+
+/* 负 margin 让白圆角压住蓝底，形成原型里那道弧。
+   底部 272rpx = tabbar 232 + 40 呼吸位，再叠加安全区。 */
+.sheet {
+  margin-top: -28rpx;
+  padding: 36rpx 32rpx 272rpx;
+  padding-bottom: calc(272rpx + env(safe-area-inset-bottom));
+  border-radius: 40rpx 40rpx 0 0;
+  background: #ffffff;
+}
+
+/* ==================== 考试倒计时 ==================== */
+
+/**
+ * ⚠️ 高度写死，不用 min-height。
+ *
+ * 封面图是按 686:320 裁的，两者比例必须完全一致，否则 aspectFill 会裁掉边：
+ * 之前高度随内容浮动，卡片比图「矮」时左右各被切掉一截，右边缘的时钟被切掉半个。
+ * 改这里的 height，必须同步改 assets/home/exam-cover.jpg 的裁剪比例
+ * （scripts/prepare-exam-cover.py 的 CARD_RATIO），tests/home-prototype.check.js 会比对。
+ */
+.exam-card {
   position: relative;
-  height: 400rpx;
-  border-radius: 28rpx;
   overflow: hidden;
-  box-shadow: 0 16rpx 36rpx rgba(120, 72, 20, 0.22);
+  height: 320rpx;
+  padding: 30rpx 32rpx 28rpx;
+  border-radius: 28rpx;
+  /* 图片加载前的兜底底色，取封面图自身的深蓝，避免闪一下亮蓝 */
+  background: linear-gradient(150deg, #4667c5 0%, #3f5eaf 55%, #1e3978 100%);
+  box-shadow: 0 16rpx 36rpx rgba(31, 58, 140, 0.32);
 }
 
-.banner-image {
+/* 封面图铺满整卡（插画只占右侧，左侧本身就是纯色，靠压暗层统一） */
+.exam-cover {
+  position: absolute;
+  left: 0;
+  top: 0;
   width: 100%;
   height: 100%;
 }
 
-/* 左侧压暗 + 底部渐隐：白色文字压在任何插画上都读得清 */
-.banner-veil {
+/**
+ * 左侧压暗 + 右侧让出插画。
+ * 这是插图卡片能放白字的唯一原因：不压暗时白字压在书本/时钟上会糊。
+ *
+ * 中段（40%~70%）压得比单纯「线性到 0」更重：插画里的书本正好落在这个区间，
+ * 倒计时的大号天数会压上去，只靠右侧渐隐是不够的。
+ * 84% 之后才完全透明，最后一段留给时钟，让它保持原色。
+ */
+.exam-veil {
   position: absolute;
   left: 0;
   top: 0;
   right: 0;
   bottom: 0;
   background:
-    linear-gradient(90deg, rgba(38, 20, 6, 0.72) 0%, rgba(38, 20, 6, 0.34) 48%, rgba(38, 20, 6, 0.04) 80%),
-    linear-gradient(0deg, rgba(26, 14, 4, 0.66) 0%, rgba(30, 16, 4, 0.12) 52%, rgba(30, 16, 4, 0) 78%);
+    linear-gradient(90deg, rgba(20, 36, 92, 0.78) 0%, rgba(20, 36, 92, 0.66) 34%, rgba(20, 36, 92, 0.42) 58%, rgba(20, 36, 92, 0.12) 82%, rgba(20, 36, 92, 0) 100%),
+    linear-gradient(0deg, rgba(14, 26, 70, 0.38) 0%, rgba(14, 26, 70, 0) 58%);
 }
 
-.banner-body {
-  position: absolute;
-  left: 34rpx;
-  right: 34rpx;
-  bottom: 28rpx;
+/* 内容层压在封面图与压暗层之上。
+   纵向三等分撑满：问候语贴顶、倒计时居中、金句贴底，高度固定时上下不会留一块空。 */
+.exam-body {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-.banner-head {
+/* 卡片本身是大色块，按压只改不透明度：
+   改背景会盖掉插画，加 transform 会让整块卡位移 */
+.exam-card-hover {
+  opacity: 0.9;
+}
+
+.exam-head {
   display: flex;
   align-items: baseline;
 }
 
-.banner-greeting {
-  font-size: 44rpx;
+.exam-greeting {
+  font-size: 36rpx;
   font-weight: 700;
   color: #ffffff;
-  letter-spacing: 1rpx;
-  text-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.35);
 }
 
-.banner-date {
-  margin-left: 16rpx;
-  font-size: 22rpx;
+.exam-date {
+  margin-left: 14rpx;
+  font-size: 23rpx;
   color: rgba(255, 255, 255, 0.78);
 }
 
-.banner-advice {
-  display: block;
-  margin-top: 10rpx;
-  max-width: 78%;
-  font-size: 24rpx;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.9);
-  text-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.32);
-}
-
-/* 每日一句：压在插画底部，用一道细线跟问候语分组 */
-.banner-quote {
-  margin-top: 20rpx;
-  padding-top: 16rpx;
-  display: flex;
-  align-items: flex-start;
-  border-top: 1rpx solid rgba(255, 255, 255, 0.24);
-}
-
-.quote-mark {
-  flex: none;
-  width: 30rpx;
-  height: 30rpx;
-  margin: 4rpx 12rpx 0 0;
-  opacity: 0.88;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 100% 100%;
-  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmZDQ4MCIgc3Ryb2tlPSJub25lIj48cGF0aCBkPSJNOS40IDUuNkM2LjQgNyA0LjYgOS42IDQuNiAxMi44YzAgMyAxLjggNSA0LjIgNSAxLjkgMCAzLjMtMS40IDMuMy0zLjMgMC0xLjgtMS4zLTMuMS0zLjEtMy4xLS4zIDAtLjYgMC0uOS4xLjMtMS43IDEuNC0zLjIgMi45LTQuMkw5LjQgNS42eiIvPjxwYXRoIGQ9Ik0xOSA1LjZjLTMgMS40LTQuOCA0LTQuOCA3LjIgMCAzIDEuOCA1IDQuMiA1IDEuOSAwIDMuMy0xLjQgMy4zLTMuMyAwLTEuOC0xLjMtMy4xLTMuMS0zLjEtLjMgMC0uNiAwLS45LjEuMy0xLjcgMS40LTMuMiAyLjktNC4yTDE5IDUuNnoiLz48L3N2Zz4=");
-}
-
-.quote-text {
-  flex: 1;
-  min-width: 0;
-  font-size: 24rpx;
-  line-height: 1.55;
-  color: rgba(255, 255, 255, 0.92);
-  text-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.3);
-}
-
-/* ==================== 学习数据 ==================== */
-.data-card {
-  margin-top: 24rpx;
-  padding: 26rpx 24rpx 24rpx;
-}
-
-.data-head {
-  display: flex;
-  align-items: center;
-  margin: -6rpx -6rpx 0;
-  padding: 6rpx 6rpx 14rpx;
-  border-radius: 16rpx;
-}
-
-.data-head-badge {
-  flex: none;
-  width: 64rpx;
-  height: 64rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 20rpx;
-  background: linear-gradient(135deg, #ffb340, #f79009);
-  box-shadow: 0 8rpx 18rpx rgba(247, 144, 9, 0.3);
-}
-
-.data-head-icon {
-  width: 36rpx;
-  height: 36rpx;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 100% 100%;
-  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMi40Ij48cmVjdCB4PSIzLjQiIHk9IjMuNCIgd2lkdGg9IjciIGhlaWdodD0iNyIgcng9IjIuMiIvPjxyZWN0IHg9IjEzLjYiIHk9IjMuNCIgd2lkdGg9IjciIGhlaWdodD0iNyIgcng9IjIuMiIvPjxyZWN0IHg9IjMuNCIgeT0iMTMuNiIgd2lkdGg9IjciIGhlaWdodD0iNyIgcng9IjIuMiIvPjxyZWN0IHg9IjEzLjYiIHk9IjEzLjYiIHdpZHRoPSI3IiBoZWlnaHQ9IjciIHJ4PSIyLjIiLz48L3N2Zz4=");
-}
-
-.data-head-main {
-  flex: 1;
-  min-width: 0;
-  margin-left: 18rpx;
-}
-
-.data-head-title {
-  display: block;
-  font-size: 32rpx;
-  font-weight: 700;
-  color: var(--text-main);
-}
-
-.data-head-sub {
-  display: block;
-  margin-top: 4rpx;
-  font-size: 22rpx;
-  color: var(--text-muted);
-}
-
-/* 详情：整行都是热区，这里只承担「可以点」的视觉提示 */
-.data-head-more {
-  flex: none;
-  padding: 12rpx 22rpx;
-  border-radius: 999rpx;
-  background: var(--brand-soft);
-  color: var(--brand);
-  font-size: 23rpx;
-  font-weight: 500;
-}
-
-/* 题目总数 + 去刷题 + 完成度 */
-.data-hero {
-  padding: 24rpx 26rpx 22rpx;
-  border-radius: 24rpx;
-  background: linear-gradient(135deg, #fff6de, #ffecc0);
-  border: 2rpx solid #ffe3ae;
-}
-
-.data-hero-top {
-  display: flex;
-  align-items: center;
-}
-
-.data-hero-main {
-  flex: 1;
-  min-width: 0;
-}
-
-.data-hero-label {
-  display: block;
-  font-size: 23rpx;
-  color: #9a6a12;
-}
-
-.data-hero-value-row {
+/* 左对齐（不再居中）：插画占右侧约三分之一，居中的倒计时会压到书本和时钟上。
+   纵向间距由 .exam-body 的 space-between 负责，这里不再写 margin-top。 */
+.exam-main {
   display: flex;
   align-items: baseline;
-  margin-top: 4rpx;
+  justify-content: flex-start;
 }
 
-.data-hero-value {
-  font-size: 72rpx;
+.exam-main-empty {
+  /* 未设置时只有一行字，靠 space-between 会被拉到正中，这里让它回到偏上的位置 */
+  margin-top: -40rpx;
+}
+
+/* 「就在今天」是四个字，不能套用天数那套 56rpx 大号 */
+.exam-days-today {
+  margin-left: 14rpx;
+  font-size: 40rpx;
+}
+
+.exam-text {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.exam-days {
+  margin: 0 10rpx;
+  font-size: 52rpx;
   font-weight: 700;
-  line-height: 1.05;
-  color: #d97706;
+  line-height: 1.1;
+  color: #ffffff;
   letter-spacing: -1rpx;
 }
 
-.data-hero-unit {
-  margin-left: 8rpx;
-  font-size: 24rpx;
-  color: #a97724;
+.exam-foot {
+  display: flex;
+  align-items: flex-end;
 }
 
-.data-hero-btn {
-  flex: none;
-  padding: 18rpx 32rpx;
-  border-radius: 999rpx;
-  background: linear-gradient(135deg, #ffab30, #f79009);
-  color: #ffffff;
-  font-size: 26rpx;
-  font-weight: 600;
-  box-shadow: 0 10rpx 22rpx rgba(247, 144, 9, 0.32);
-  transition: transform 0.12s ease;
-}
-
-.data-hero-track {
-  margin-top: 20rpx;
-  height: 10rpx;
-  border-radius: 999rpx;
-  background: rgba(217, 119, 6, 0.16);
+/* 每日一句：压两行截断，避免长句把卡片撑高、把插画挤到看不见 */
+.exam-quote {
+  flex: 1;
+  min-width: 0;
+  font-size: 23rpx;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.86);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.data-hero-fill {
-  height: 100%;
-  border-radius: 999rpx;
-  background: linear-gradient(90deg, #ffc46b, #f79009);
-}
-
-.data-hero-caption {
-  display: block;
-  margin-top: 12rpx;
-  font-size: 22rpx;
-  color: #a97724;
-}
-
-/* 指标格：两行两列，用两个 flex 行 + flex:1 等分，
-   不用 flex-wrap + calc(50%)：那种写法在部分机型上会因小数像素被挤成一行一个 */
-.metric-grid {
-  margin-top: 20rpx;
-}
-
-.metric-row {
-  display: flex;
-}
-
-.metric-row + .metric-row {
-  margin-top: 16rpx;
-}
-
-.metric {
-  flex: 1;
-  min-width: 0;
-  padding: 20rpx;
-  display: flex;
-  align-items: center;
-  border-radius: 20rpx;
-  background: #fbfcfe;
-  border: 2rpx solid var(--line);
-}
-
-.metric + .metric {
-  margin-left: 16rpx;
-}
-
-.metric-icon {
+.exam-action {
   flex: none;
-  width: 48rpx;
-  height: 48rpx;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 100% 100%;
+  margin-left: 16rpx;
+  padding: 8rpx 20rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.5);
+  font-size: 21rpx;
+  color: #ffffff;
 }
 
-.metric-icon-done {
-  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2U9IiMxN2IyNmEiIHN0cm9rZS13aWR0aD0iMiI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iOSIvPjxwb2x5bGluZSBwb2ludHM9IjcuOCAxMi4zIDEwLjcgMTUuMiAxNi4yIDkuNCIvPjwvc3ZnPg==");
+/* ==================== 我的学习空间 ==================== */
+
+.section-head {
+  margin-top: 40rpx;
 }
 
-.metric-icon-wrong {
-  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2U9IiNmMDQ0MzgiIHN0cm9rZS13aWR0aD0iMiI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iOSIvPjxsaW5lIHgxPSI5LjIiIHkxPSI5LjIiIHgyPSIxNC44IiB5Mj0iMTQuOCIvPjxsaW5lIHgxPSIxNC44IiB5MT0iOS4yIiB4Mj0iOS4yIiB5Mj0iMTQuOCIvPjwvc3ZnPg==");
-}
-
-.metric-icon-accuracy {
-  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2U9IiNmNzkwMDkiIHN0cm9rZS13aWR0aD0iMiI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iOSIvPjxsaW5lIHgxPSI5IiB5MT0iMTUiIHgyPSIxNSIgeTI9IjkiLz48Y2lyY2xlIGN4PSI5LjYiIGN5PSI5LjYiIHI9IjEuNiIgZmlsbD0iI2Y3OTAwOSIgc3Ryb2tlPSJub25lIi8+PGNpcmNsZSBjeD0iMTQuNCIgY3k9IjE0LjQiIHI9IjEuNiIgZmlsbD0iI2Y3OTAwOSIgc3Ryb2tlPSJub25lIi8+PC9zdmc+");
-}
-
-.metric-icon-time {
-  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2U9IiMyYjdmZmMiIHN0cm9rZS13aWR0aD0iMiI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iOSIvPjxwb2x5bGluZSBwb2ludHM9IjEyIDYuOCAxMiAxMi40IDE2IDE0LjYiLz48L3N2Zz4=");
-}
-
-.metric-main {
-  flex: 1;
-  min-width: 0;
-  margin-left: 12rpx;
-}
-
-.metric-label {
-  display: block;
-  font-size: 22rpx;
-  color: var(--text-muted);
-}
-
-.metric-value {
-  display: block;
-  margin-top: 2rpx;
-  font-size: 30rpx;
+.section-title {
+  font-size: 34rpx;
   font-weight: 700;
   color: var(--text-main);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-/* ==================== 公告条 ==================== */
-.tip-bar {
-  margin-top: 24rpx;
-  padding: 20rpx 24rpx;
+/* 四宫格：一个 flex 行 + flex:1 等分（不用 flex-wrap + calc，避免小数像素塌成一行一个） */
+.entry-grid {
+  margin-top: 22rpx;
+  padding: 30rpx 10rpx 26rpx;
   display: flex;
+  border-radius: 28rpx;
+  background: #f7f9fc;
+}
+
+.entry {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
   align-items: center;
+  border-radius: 20rpx;
+}
+
+.entry-hover {
+  opacity: 0.62;
+}
+
+/* ===== 四宫格图标 =====
+   四个入口各一种颜色（橙 / 绿 / 红 / 蓝），之前全是橙色、只靠形状区分，
+   用户反馈「配色风格太统一了，不容易识别」。
+   整块（圆角方块 + 渐变 + 白色字形）都由一张 SVG 画好，这里只管尺寸和投影，
+   免得再用 ::after 叠一层、两套颜色还要手动对齐。 */
+.entry-icon {
+  position: relative;
+  width: 88rpx;
+  height: 88rpx;
   border-radius: 24rpx;
-  background: linear-gradient(135deg, #fff8e4, #fff2cf);
-  border: 2rpx solid #ffe1a6;
-  box-shadow: 0 8rpx 22rpx rgba(183, 121, 12, 0.1);
-}
-
-.tip-badge {
-  flex: none;
-  display: flex;
-  align-items: center;
-  padding: 6rpx 16rpx 6rpx 10rpx;
-  border-radius: 999rpx;
-  background: #ffedd0;
-}
-
-.tip-badge-icon {
-  width: 30rpx;
-  height: 30rpx;
-  margin-right: 6rpx;
   background-repeat: no-repeat;
   background-position: center;
   background-size: 100% 100%;
-  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2U9IiNkOTc3MDYiIHN0cm9rZS13aWR0aD0iMiI+PHBhdGggZD0iTTMuNSA5LjhoMy4yTDEyIDYuMnYxMS42TDYuNyAxNC4ySDMuNXoiLz48cGF0aCBkPSJNMTUuNiA5LjRhNCA0IDAgMCAxIDAgNS4yIi8+PHBhdGggZD0iTTE4LjIgN2E3LjYgNy42IDAgMCAxIDAgMTAiLz48L3N2Zz4=");
 }
 
-.tip-badge-text {
-  font-size: 21rpx;
-  font-weight: 600;
-  color: #b26a00;
+/* 投影取各自的主色，压在同色背景上也看得出层次 */
+.entry-icon-recent {
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5NiA5NiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnMSIgeDE9IjAuMTUiIHkxPSIwIiB4Mj0iMC44NSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iI0ZBQzQ4RSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0VBOEU0MiIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgcng9IjI2IiBmaWxsPSJ1cmwoI2cxKSIvPjxyZWN0IHg9IjI2IiB5PSIzMyIgd2lkdGg9IjQ0IiBoZWlnaHQ9IjM1IiByeD0iOSIgZmlsbD0iI0ZGRkZGRiIgb3BhY2l0eT0iMC45NiIvPjxyZWN0IHg9IjI2IiB5PSIzMyIgd2lkdGg9IjQ0IiBoZWlnaHQ9IjExIiByeD0iOSIgZmlsbD0iI0Y5RDVBRiIvPjxyZWN0IHg9IjI2IiB5PSI0MCIgd2lkdGg9IjQ0IiBoZWlnaHQ9IjQiIGZpbGw9IiNGOUQ1QUYiLz48cmVjdCB4PSIzNSIgeT0iMjciIHdpZHRoPSI1IiBoZWlnaHQ9IjExIiByeD0iMi41IiBmaWxsPSIjRkZGRkZGIi8+PHJlY3QgeD0iNTYiIHk9IjI3IiB3aWR0aD0iNSIgaGVpZ2h0PSIxMSIgcng9IjIuNSIgZmlsbD0iI0ZGRkZGRiIvPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDYwIDYyKSByb3RhdGUoLTQ1KSI+PHBhdGggZD0iTS0yMC41IDAgTC0xNCAtNC4yIEgxMSBhMi4xIDIuMSAwIDAgMSAwIDguNCBILTE0IFoiIGZpbGw9IiNGRkZGRkYiIHN0cm9rZT0iI0UxODAyRiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PHJlY3QgeD0iNiIgeT0iLTQuMiIgd2lkdGg9IjUuNSIgaGVpZ2h0PSI4LjQiIHJ4PSIxLjYiIGZpbGw9IiNGM0EzNUYiLz48L2c+PC9zdmc+");
+  box-shadow: 0 8rpx 18rpx rgba(234, 142, 66, 0.3);
 }
 
-.tip-text {
-  flex: 1;
-  min-width: 0;
-  margin: 0 16rpx;
-  font-size: 24rpx;
-  color: #8a5a05;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.entry-icon-mock {
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5NiA5NiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnMiIgeDE9IjAuMTUiIHkxPSIwIiB4Mj0iMC44NSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzhGRTJDNiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzU0QzY5RSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgcng9IjI2IiBmaWxsPSJ1cmwoI2cyKSIvPjxyZWN0IHg9IjQyIiB5PSIyMyIgd2lkdGg9IjE0IiBoZWlnaHQ9IjkiIHJ4PSI0LjUiIGZpbGw9IiNGRkZGRkYiIG9wYWNpdHk9IjAuNzUiLz48cmVjdCB4PSIyOSIgeT0iMzAiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MyIgcng9IjEwIiBmaWxsPSIjRkZGRkZGIiBvcGFjaXR5PSIwLjk2Ii8+PHBhdGggZD0iTTQwIDUxLjUgTDQ2LjUgNTggTDU4IDQ1LjUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzU0QzY5RSIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48L3N2Zz4=");
+  box-shadow: 0 8rpx 18rpx rgba(84, 198, 158, 0.3);
 }
 
-.tip-arrow {
-  flex: none;
-  font-size: 22rpx;
-  font-weight: 600;
-  color: #d97706;
+.entry-icon-wrong {
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5NiA5NiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnMyIgeDE9IjAuMTUiIHkxPSIwIiB4Mj0iMC44NSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iI0Y1OTM4RCIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0U5NkE2NSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgcng9IjI2IiBmaWxsPSJ1cmwoI2czKSIvPjxyZWN0IHg9IjI4IiB5PSIzMCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQzIiByeD0iOSIgZmlsbD0iI0ZGRkZGRiIgb3BhY2l0eT0iMC45NiIvPjxyZWN0IHg9IjI0IiB5PSIzNyIgd2lkdGg9IjkiIGhlaWdodD0iNiIgcng9IjMiIGZpbGw9IiNGRkZGRkYiLz48cmVjdCB4PSIyNCIgeT0iNDkiIHdpZHRoPSI5IiBoZWlnaHQ9IjYiIHJ4PSIzIiBmaWxsPSIjRkZGRkZGIi8+PHJlY3QgeD0iMjQiIHk9IjYxIiB3aWR0aD0iOSIgaGVpZ2h0PSI2IiByeD0iMyIgZmlsbD0iI0ZGRkZGRiIvPjxwYXRoIGQ9Ik00MSA0NiBMNTUgNjAgTTU1IDQ2IEw0MSA2MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjRTk2ODYzIiBzdHJva2Utd2lkdGg9IjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxyZWN0IHg9IjQxIiB5PSI2NiIgd2lkdGg9IjE2IiBoZWlnaHQ9IjMiIHJ4PSIxLjUiIGZpbGw9IiNGN0JCQjciLz48L3N2Zz4=");
+  box-shadow: 0 8rpx 18rpx rgba(233, 106, 101, 0.3);
 }
 
-/* ==================== 继续上次练习 ==================== */
-.continue-card {
-  margin-top: 24rpx;
-  padding: 26rpx 28rpx;
+.entry-icon-favorite {
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5NiA5NiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnNCIgeDE9IjAuMTUiIHkxPSIwIiB4Mj0iMC44NSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzhDQkNGOSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzVBOTNFRSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgcng9IjI2IiBmaWxsPSJ1cmwoI2c0KSIvPjxwYXRoIGQ9Ik0yNyAzMyBoMTMuNSBsNS41IDcgSDY5IGE3IDcgMCAwIDEgNyA3IHYxOSBhNyA3IDAgMCAxIC03IDcgSDI3IGE3IDcgMCAwIDEgLTcgLTcgVjQwIGE3IDcgMCAwIDEgNyAtNyB6IiBmaWxsPSIjRkZGRkZGIiBvcGFjaXR5PSIwLjk2Ii8+PHBhdGggZD0iTTQ4IDQ2IEw1MC41IDUyLjYgTDU3LjUgNTIuOSBMNTIgNTcuMyBMNTMuOSA2NC4xIEw0OCA2MC4yIEw0Mi4xIDY0LjEgTDQ0IDU3LjMgTDM4LjUgNTIuOSBMNDUuNSA1Mi42IFoiIGZpbGw9IiM1QTkzRUUiLz48L3N2Zz4=");
+  box-shadow: 0 8rpx 18rpx rgba(90, 147, 238, 0.3);
+}
+
+/* 计数徽标压在图标右上角 */
+.entry-badge {
+  position: absolute;
+  top: -10rpx;
+  right: -14rpx;
+  min-width: 34rpx;
+  height: 34rpx;
+  padding: 0 9rpx;
   display: flex;
   align-items: center;
-  border-radius: 24rpx;
-  background: var(--card);
-  box-shadow: 0 6rpx 24rpx rgba(31, 42, 55, 0.06);
-}
-
-.continue-main {
-  flex: 1;
-  min-width: 0;
-}
-
-.continue-label {
-  font-size: 22rpx;
-  color: var(--brand);
-  font-weight: 600;
-}
-
-.continue-title {
-  display: block;
-  margin-top: 8rpx;
-  font-size: 30rpx;
-  font-weight: 600;
-  color: var(--text-main);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.continue-meta {
-  display: block;
-  margin-top: 8rpx;
-  font-size: 23rpx;
-  color: var(--text-muted);
-}
-
-.continue-action {
-  flex: none;
-  margin-left: 20rpx;
-  padding: 14rpx 30rpx;
+  justify-content: center;
   border-radius: 999rpx;
-  background: var(--brand);
+  background: #f04438;
+  border: 3rpx solid #ffffff;
+  font-size: 19rpx;
+  font-weight: 600;
   color: #ffffff;
-  font-size: 26rpx;
-  font-weight: 500;
 }
 
-/* ==================== 页脚说明 ==================== */
+.entry-label {
+  margin-top: 16rpx;
+  font-size: 24rpx;
+  color: var(--text-main);
+}
+
 .home-foot {
   margin-top: 40rpx;
   text-align: center;
+}
+
+.home-foot-text {
   font-size: 22rpx;
   color: var(--text-muted);
 }
 
-/* ==================== 公告详情弹层 ==================== */
-.tip-detail {
-  padding: 0 4rpx 8rpx;
+/* ==================== 搜索结果面板 ==================== */
+
+.search-panel {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
 }
 
-.tip-detail-title {
-  display: block;
-  font-size: 30rpx;
+.search-mask {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 36, 0.35);
+}
+
+/* 面板从顶部弹出：搜索框在头部，结果贴着它出现比从底部滑上来更自然 */
+.search-panel-body {
+  position: absolute;
+  left: 24rpx;
+  right: 24rpx;
+  top: 300rpx;
+  max-height: 62vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 28rpx;
+  background: #ffffff;
+  box-shadow: 0 20rpx 50rpx rgba(15, 23, 36, 0.2);
+  overflow: hidden;
+}
+
+.search-panel-head {
+  flex: none;
+  padding: 26rpx 28rpx 18rpx;
+  display: flex;
+  align-items: center;
+  border-bottom: 1rpx solid var(--line);
+}
+
+.search-panel-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 28rpx;
   font-weight: 600;
-  line-height: 1.5;
   color: var(--text-main);
 }
 
-.tip-detail-body {
-  display: block;
-  margin-top: 18rpx;
+.search-panel-close {
+  flex: none;
+  padding: 8rpx 4rpx 8rpx 20rpx;
   font-size: 25rpx;
-  line-height: 1.75;
+  color: var(--brand);
+}
+
+.search-list {
+  flex: 1;
+  min-height: 200rpx;
+  max-height: 52vh;
+}
+
+.search-item {
+  padding: 24rpx 28rpx;
+  border-bottom: 1rpx solid var(--line);
+}
+
+.search-item-hover {
+  opacity: 0.62;
+}
+
+.search-item-stem {
+  display: block;
+  font-size: 27rpx;
+  line-height: 1.55;
+  color: var(--text-main);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.search-item-meta {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 21rpx;
+  color: var(--text-muted);
+}
+
+.search-empty {
+  padding: 80rpx 40rpx;
+  text-align: center;
+}
+
+.search-empty-title {
+  display: block;
+  font-size: 26rpx;
+  color: var(--text-sub);
+}
+
+.search-empty-tip {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 22rpx;
+  color: var(--text-muted);
+}
+
+/* ==================== 公告弹层 ==================== */
+
+.notice-sheet {
+  padding: 0 4rpx 8rpx;
+}
+
+/* 弹窗顶部的喇叭徽标：与入口同一个图形，让「点的是它、弹出来的是它」对得上 */
+.notice-badge {
+  width: 96rpx;
+  height: 96rpx;
+  margin: 8rpx auto 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #eaf2ff;
+}
+
+.notice-badge-icon {
+  width: 52rpx;
+  height: 52rpx;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTMuNCA5LjZINi40TDE1LjQgNC42QTEuNCAxLjQgMCAwIDEgMTcuNCA1Ljg2VjE4LjE0QTEuNCAxLjQgMCAwIDEgMTUuNCAxOS40TDYuNCAxNC40SDMuNEExLjQgMS40IDAgMCAxIDIgMTNWMTFBMS40IDEuNCAwIDAgMSAzLjQgOS42WiIgZmlsbD0iIzJiN2ZmYyIvPjxwYXRoIGQ9Ik0xNy44IDguOGE0LjYgNC42IDAgMCAxIDAgNi40IiBmaWxsPSJub25lIiBzdHJva2U9IiMyYjdmZmMiIHN0cm9rZS13aWR0aD0iMS45IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMjAuNCA2LjZhNy42IDguMiAwIDAgMSAwIDEwLjgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzJiN2ZmYyIgc3Ryb2tlLXdpZHRoPSIxLjkiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjwvc3ZnPg==");
+}
+
+.notice-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  line-height: 1.55;
+  text-align: center;
+  color: var(--text-main);
+}
+
+.notice-body {
+  display: block;
+  margin-top: 20rpx;
+  font-size: 25rpx;
+  line-height: 1.8;
   color: var(--text-sub);
   white-space: pre-wrap;
 }
 
-.tip-detail-btn {
-  margin-top: 32rpx;
-  height: 84rpx;
-  line-height: 84rpx;
+.notice-btn {
+  margin-top: 36rpx;
+  height: 88rpx;
+  line-height: 88rpx;
   text-align: center;
   border-radius: 999rpx;
-  background: linear-gradient(135deg, #ffab30, #f79009);
+  background: linear-gradient(135deg, #4f7dfb, #2b7ffc);
   color: #ffffff;
   font-size: 28rpx;
   font-weight: 600;
-  box-shadow: 0 12rpx 24rpx rgba(247, 144, 9, 0.28);
+  box-shadow: 0 12rpx 24rpx rgba(43, 127, 252, 0.28);
+}
+
+.notice-btn-hover {
+  opacity: 0.86;
 }

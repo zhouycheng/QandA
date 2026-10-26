@@ -4,6 +4,7 @@ const { wrapTaps } = require('../../utils/tap-trace.js')
 
 const SECTION_IDS = {
   practice: 'section-practice',
+  exam: 'section-exam',
   account: 'section-account',
   about: 'section-about'
 }
@@ -17,7 +18,9 @@ Page(wrapTaps({
     // 版本号由页面从全局配置读取，ViewModel 不参与，避免被初始值覆盖
     version: '',
     // 从「我的」页带着 focus 进来时，直接滚到对应分组
-    scrollTarget: ''
+    scrollTarget: '',
+    // 日期选择器不允许选过去
+    todayDateKey: ''
   }),
 
   onLoad(options) {
@@ -31,10 +34,21 @@ Page(wrapTaps({
 
     this.setData({
       version,
-      scrollTarget: SECTION_IDS[focus] || ''
+      scrollTarget: SECTION_IDS[focus] || '',
+      todayDateKey: this.viewModel.getTodayDateKey()
     })
 
     this.applyViewModelResult(this.viewModel.load())
+  },
+
+  /**
+   * 从登录页返回时要刷新登录态。
+   * 设置页没有这一条的话，登录完回到这里，状态标签还停在「未登录」。
+   */
+  onShow() {
+    if (this.viewModel) {
+      this.applyViewModelResult(this.viewModel.load())
+    }
   },
 
   handleSwitchChange(e) {
@@ -61,6 +75,27 @@ Page(wrapTaps({
 
   handleAccountTap(e) {
     this.applyViewModelResult(this.viewModel.openAccountAction(e.currentTarget.dataset.key))
+  },
+
+  /** 考试名称放 bindblur：放 bindinput 会每敲一个字写一次 storage */
+  handleExamNameBlur(e) {
+    this.applyViewModelResult(this.viewModel.setExamName(e.detail.value))
+  },
+
+  handleExamDateChange(e) {
+    this.applyViewModelResult(this.viewModel.setExamDate(e.detail.value))
+  },
+
+  handleClearExam() {
+    wx.showModal({
+      title: '清除考试倒计时',
+      content: '首页将不再显示倒计时，可以随时重新设置。',
+      success: (res) => {
+        if (res.confirm) {
+          this.applyViewModelResult(this.viewModel.clearExam())
+        }
+      }
+    })
   },
 
   /** 连点版本号：够 5 次就解锁 Playground。间隔超过 1.5s 重新计数，防误触 */

@@ -1,5 +1,9 @@
+/* 底部留 272rpx：自定义 tabBar 是页面内 fixed 组件，不占文档流，
+   留少了最后一张图表会被胶囊盖住。数值对应 tabbar 232rpx + 40rpx 呼吸位，
+   再叠加安全区（iPhone 的 Home 指示条）。 */
 .stats-page {
-  padding: 24rpx 24rpx 60rpx;
+  padding: 24rpx 24rpx 272rpx;
+  padding-bottom: calc(272rpx + env(safe-area-inset-bottom));
 }
 
 /* ==================== 总览（环形进度） ==================== */

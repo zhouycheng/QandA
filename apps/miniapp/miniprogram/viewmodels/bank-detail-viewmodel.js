@@ -3,6 +3,8 @@ const {
   summarizeBankProgress,
   summarizeSubjectProgress
 } = require('../utils/practice-progress.js')
+const { getPendingIds } = require('../utils/wrong-book.js')
+const { countFavorites } = require('../utils/favorites.js')
 
 const COUNT_STEPS = [10, 20, 30]
 const DEFAULT_DRAW_COUNT = 10
@@ -35,6 +37,9 @@ function getInitialBankDetailViewData() {
     mode: DEFAULT_PRACTICE_MODE,
     isViewMode: false,
     modeOptions: PRACTICE_MODE_OPTIONS,
+    // 错题本与收藏已从「我的」页移到题库页左栏，计数跟着一起搬
+    wrongCount: 0,
+    favoriteCount: 0,
     configSheetVisible: false,
     configTitle: '模拟测试',
     countOptions: [],
@@ -130,6 +135,7 @@ class BankDetailViewModel {
     const banks = (detail.banks || []).map((bank) => Object.assign({}, bank, {
       stats: summarizeBankProgress(progress, bank)
     }))
+    const tools = this.readToolCounts()
 
     return {
       subjectId: detail.id,
@@ -139,6 +145,8 @@ class BankDetailViewModel {
       mode: this.mode,
       isViewMode: this.mode === 'view',
       modeOptions: PRACTICE_MODE_OPTIONS,
+      wrongCount: tools.wrongCount,
+      favoriteCount: tools.favoriteCount,
       subjects: subjects.map((subject) => ({
         id: subject.id,
         name: subject.name,
@@ -151,6 +159,33 @@ class BankDetailViewModel {
       countOptions: buildCountOptions(detail.questionCount),
       selectedCount: Math.min(DEFAULT_DRAW_COUNT, detail.questionCount || DEFAULT_DRAW_COUNT),
       durationOptions: DURATION_OPTIONS
+    }
+  }
+
+  /**
+   * 左栏「错题本 / 我的收藏」入口的计数。
+   *
+   * 题库页是 tabBar 主页面，一旦这里抛错整个工作台就白屏；
+   * 而错题本与收藏只是入口上的数字，读失败退化成 0 也不影响刷题，
+   * 因此这里吞异常而不是让脏数据把页面带崩。
+   */
+  readToolCounts() {
+    const fallback = { wrongCount: 0, favoriteCount: 0 }
+
+    try {
+      const wrongBook = typeof this.repository.getWrongBook === 'function'
+        ? this.repository.getWrongBook(this.storage)
+        : null
+      const favorites = typeof this.repository.getFavorites === 'function'
+        ? this.repository.getFavorites(this.storage)
+        : null
+
+      return {
+        wrongCount: getPendingIds(wrongBook).length,
+        favoriteCount: countFavorites(favorites)
+      }
+    } catch (error) {
+      return fallback
     }
   }
 

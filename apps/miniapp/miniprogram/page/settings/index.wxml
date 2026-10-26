@@ -51,6 +51,58 @@
               hover-start-time="0" hover-stay-time="200"
             >{{option.label}}</view>
           </view>
+
+          <!-- 字号改完当场就能看到变化，否则用户会以为「点了没反应」 -->
+          <view class="font-preview font-{{fontSize}}" wx:if="{{item.key === 'fontSize'}}">
+            <text class="font-preview-text">{{fontPreviewText}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 考试倒计时 -->
+    <view id="section-exam" class="section anim-fade-up">
+      <view class="section-head">
+        <text class="section-title">考试倒计时</text>
+        <text class="section-reset" wx:if="{{exam.configured}}" bindtap="handleClearExam" hover-class="ghost-flat-hover" hover-start-time="0" hover-stay-time="200">清除</text>
+      </view>
+
+      <view class="menu card">
+        <view class="exam-row">
+          <text class="exam-label">考试名称</text>
+          <input
+            class="exam-input"
+            type="text"
+            value="{{examDraftName}}"
+            placeholder="如：期末考试 / 考研"
+            placeholder-class="exam-placeholder"
+            maxlength="20"
+            bindblur="handleExamNameBlur"
+          />
+        </view>
+
+        <picker
+          mode="date"
+          class="exam-row exam-row-picker"
+          value="{{exam.examDate}}"
+          start="{{todayDateKey}}"
+          bindchange="handleExamDateChange"
+        >
+          <text class="exam-label">考试日期</text>
+          <view class="exam-value-wrap">
+            <text class="exam-value {{exam.examDate ? '' : 'exam-value-empty'}}">{{exam.examDate || '请选择日期'}}</text>
+            <text class="menu-arrow">›</text>
+          </view>
+        </picker>
+
+        <view class="exam-status" wx:if="{{exam.configured}}">
+          <text class="exam-status-text">距离「{{exam.examName}}」还有</text>
+          <text class="exam-status-days">{{exam.dayText}}</text>
+          <text class="exam-status-unit">{{exam.statusText}}</text>
+        </view>
+
+        <view class="exam-status exam-status-idle" wx:else>
+          <text class="exam-status-text">设置后首页会显示倒计时，每天自动更新天数</text>
         </view>
       </view>
     </view>
@@ -59,11 +111,22 @@
     <view id="section-account" class="section anim-fade-up">
       <view class="section-head">
         <text class="section-title">账户与安全</text>
-        <text class="section-note">本地模式</text>
+        <text class="section-note">{{auth.accountTag}}</text>
+      </view>
+
+      <view class="account-identity" wx:if="{{auth.loggedIn}}">
+        <image class="account-avatar" src="{{auth.avatarUrl}}" mode="aspectFill" wx:if="{{auth.avatarUrl}}"></image>
+        <view class="account-avatar account-avatar-fallback" wx:else>
+          <view class="mi-icon mi-user"></view>
+        </view>
+        <view class="account-identity-main">
+          <text class="account-name">{{auth.displayName}}</text>
+          <text class="account-provider">{{auth.providerLabel}}</text>
+        </view>
       </view>
 
       <view class="account-hint">
-        <text>当前为本地题库模式：答题进度、错题与收藏只保存在本机，不上传服务端。接入账号体系后，以下能力会直接可用。</text>
+        <text>{{auth.hint}}</text>
       </view>
 
       <view class="menu card">
@@ -83,7 +146,7 @@
             <text class="menu-title">{{item.title}}</text>
             <text class="menu-desc">{{item.description}}</text>
           </view>
-          <text class="menu-tag">待接入</text>
+          <text class="menu-tag" wx:if="{{item.tag}}">{{item.tag}}</text>
           <text class="menu-arrow">›</text>
         </view>
       </view>

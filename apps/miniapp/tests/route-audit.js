@@ -19,7 +19,8 @@ function scanFile(file) {
   while ((match = RE.exec(src)) !== null) {
     const api = match[1]
     const rawUrl = match[2]
-    const url = rawUrl.split('?')[0]
+    // 跳转 url 习惯带前导斜杠，app.json 里的 pagePath 不带，比较前要对齐
+    const url = rawUrl.split('?')[0].replace(/^\//, '')
     const rel = path.relative(MINIPROGRAM, file).replace(/\\/g, '/')
     found.push(`${api} -> ${rawUrl}`)
 

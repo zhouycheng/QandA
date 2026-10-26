@@ -1,4 +1,4 @@
-<view class="page detail-page">
+<view class="page detail-page font-{{fontSize}}">
   <view wx:if="{{!ready}}" class="detail-loading">
     <text>加载中…</text>
   </view>

@@ -41,8 +41,9 @@ apps/miniapp/
 │   └── optimize-banner.cjs         PNG 裁剪 / 降采样 / 重编码
 └── miniprogram/
     ├── app.js / app.json / app.wxss / sitemap.json
+    ├── custom-tab-bar/       自定义 tabBar（毛玻璃胶囊 + 中央「继续答题」）；改尺寸要同步 4 个 tab 页的底部留白
     ├── page/                 页面
-    │   ├── subject-list/     首页：欢迎横幅 + 公告 + 学习数据（tabBar）
+    │   ├── subject-list/     首页：蓝色头部（搜索 + 公告）+ 考试倒计时卡 + 学习空间四宫格（tabBar）
     │   ├── bank-detail/      题库：科目工作台，科目切换、练习方式、题库进度（tabBar）
     │   ├── stats/            统计：环形总览 + 六维雷达 + 近 7 天趋势 + 科目进度（tabBar）
     │   ├── practice/         答题、看题、模拟测试、成绩回顾
@@ -51,7 +52,7 @@ apps/miniapp/
     │   └── wrong-book/       错题本与我的收藏（双 tab）
     ├── components/           自定义组件
     │   ├── bank-list-item/           题库列表项
-    │   ├── bottom-sheet/             通用底部弹层
+    │   ├── bottom-sheet/             通用弹层（`placement="bottom"` 底部升起 / `"center"` 居中弹窗）
     │   ├── question-overview-sheet/   答题卡弹层
     │   └── route-loading/            跳转加载层
     ├── viewmodels/           页面 ViewModel（每页一个）
@@ -87,7 +88,7 @@ apps/miniapp/
     │   └── banks/            各题库题目，`.js` 运行 + `.json` 审阅
     └── assets/
         ├── tabbar/           tabBar 图标（8 个 PNG，由构建期脚本生成）
-        └── home/             首页插图（1 张 PNG，由构建期脚本压缩）
+        └── home/             首页封面图（`exam-cover.jpg`，比例须等于卡片 686:320）
 ```
 
 ### 关于 tabBar 图标
@@ -102,22 +103,26 @@ NODE_PATH="$HOME/.workbuddy/binaries/node/workspace/node_modules" \
 脚本用 `@resvg/resvg-js` 把 24×24 的描边 SVG 渲染成 81×81 PNG，与页面内联图标共用同一套网格，视觉语言一致。
 改图标只改脚本里的 `ICONS` 再重跑，不要手工编辑 PNG。**运行时依旧零 npm 依赖**——脚本只在生成图标时用到外部库。
 
-### 关于首页插图
+### 关于首页封面图
 
-首页顶部的书桌插画同样是构建期的产物，用脚本处理而不是手工编辑：
+考试倒计时卡的配图是构建期产物，用脚本处理而不是手工编辑：
 
 ```sh
-node apps/miniapp/scripts/optimize-banner.cjs <源图.png> \
-  miniprogram/assets/home/banner-study.png --crop-bottom=56 --width=702 --quantize=2
+python apps/miniapp/scripts/prepare-exam-cover.py
 ```
 
-环境里没有 sharp / jimp 这类图像库，脚本用 Node 内置的 `zlib` 直接实现 PNG 编解码，做三件事：
+脚本做三件事：
 
-1. **裁剪** —— 去掉出图工具打在右下角的水印（`--crop-bottom=56`）；
-2. **盒式降采样** —— 1024px 宽降到 702px，正好对应 2 倍屏下 702rpx 的展示宽度；
-3. **色阶量化 + 逐行最优滤波** —— 每通道丢弃低 2 位，配合按行择优选滤波，885KB → 301KB。
+1. **按卡片比例裁剪** —— `CARD_RATIO = 686 / 320`，与 `.exam-card` 的宽高严格一致。
+   比例不一致时 `aspectFill` 会左右各切一截（曾经把右边缘的时钟切掉半个）；
+2. **调色** —— 生成图偏深偏灰，提亮 + 提饱和往品牌蓝靠；
+3. **转 JPEG** —— 1280×598，约 27KB（原 PNG 近 1MB，主包放不下）。
 
-横幅上的白色文字靠 `.banner-veil` 的渐变蒙层保证可读性，换任何插画都不需要调文字颜色。
+**改卡片高度必须同时改 `CARD_RATIO` 并重跑脚本。**
+`tests/home-prototype.check.js` 会解析 JPEG 头部比对比例，不一致直接报错。
+
+卡上的白色文字靠 `.exam-veil` 的渐变蒙层保证可读性；蒙层要在文字实际占据的横向区间
+保持足够不透明度，只在右侧把插画让出来。
 
 页面里的线性图标（公告喇叭、数据网格、四个指标、每日一句引号）则由 `generate-home-icons.cjs`
 生成并直接注入 wxss 的 `background-image`，脚本按 class 名定位、可重复执行。
@@ -140,7 +145,8 @@ node apps/miniapp/scripts/optimize-banner.cjs <源图.png> \
 ## 运行
 
 1. 微信开发者工具 → 导入项目，目录选 **`apps/miniapp`**。
-2. AppID 选择测试号，或使用自己的 AppID（`project.config.json` 中 `appid` 当前为占位值 `touristappid`）。
+2. AppID：`project.config.json` 中已填真实 AppID `wxc2451db6a3905203`（`wx.login` 需要它才拿得到 code）。
+   若要换成你自己的，写到 `project.private.config.json` —— 私有配置优先级更高，且已被 `.gitignore` 忽略，不会推给团队。
 3. 点「编译」（`Ctrl + B`）。
 
 **不需要安装依赖，不需要「构建 npm」。** 项目根与 `miniprogram/` 下都没有 `package.json`。
@@ -192,6 +198,9 @@ node apps/miniapp/scripts/optimize-banner.cjs <源图.png> \
 **团队协作时的建议**：`project.config.json` 是进 Git 的，把个人 AppID 写进去会带给所有人。
 更好的做法是留在 `project.private.config.json`（已在 `.gitignore` 中，工具会自动生成，
 且私有配置的优先级高于 `project.config.json`），`project.config.json` 里继续保留 `touristappid` 占位值。
+
+**当前状态**：`project.config.json` 里已填真实 AppID `wxc2451db6a3905203`（真微信登录需要它），
+本节只在 AppID 又被改回占位值时才适用。
 
 ### 编译报错「编译 .wxss 文件错误」：怎么拿到真实错误信息
 

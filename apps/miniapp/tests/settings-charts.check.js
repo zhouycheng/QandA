@@ -315,8 +315,13 @@ function checkSettingsViewModel() {
   assert('设置 - 初始开关非空', initial.data.switches.length === 5)
   assert('设置 - 初始目录统计带题量', initial.data.catalog.questionCount > 0,
     `实际 ${initial.data.catalog.questionCount}`)
-  assert('设置 - 账户项均为待接入',
-    ACCOUNT_ACTIONS.length === 3 && ACCOUNT_ACTIONS.every((item) => item.available === false))
+  // 微信登录落地后：登录 / 登出已开放，改密码与换邮箱仍等后端账号接口
+  assert('设置 - 登录与登出已开放，改密码与换邮箱仍待接入',
+    ACCOUNT_ACTIONS
+      .filter((item) => item.available)
+      .map((item) => item.key)
+      .join(',') === 'wechat,logout',
+    JSON.stringify(ACCOUNT_ACTIONS.map((item) => `${item.key}:${item.available}`)))
 
   vm.toggleSwitch('autoShowExplanation', false)
 

@@ -1,0 +1,158 @@
+/**
+ * 自定义 tabBar 尺寸（2026-10-25 真机反馈后放大并抬高）：
+ *   胶囊高 120rpx，中央圆钮 118rpx，整体占位 232rpx。
+ *
+ *   真机反馈两件事：
+ *     1. 「不太醒目」→ 胶囊 108→120，图标 44→50，标签 19→21；
+ *     2. 「位置太低了」→ 胶囊离底 20→40rpx，并且整条底栏要躲开 iPhone 的
+ *        Home 指示条（截图里那条黑杠），靠 env(safe-area-inset-bottom) 上移。
+ *
+ *   ⚠️ 四页的底部留白都按 272rpx 预留，改这里的尺寸要同步改
+ *      page/{stats,my}/index.wxss、page/bank-detail/index.wxss、首页 .sheet。
+ *      tests/custom-tabbar.check.js 会比对。
+ */
+
+/* 整条底栏浮在安全区之上：下方写 0 兜底，不支持 env() 的机型退回贴底 */
+.tabbar-wrap {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  bottom: env(safe-area-inset-bottom);
+  height: 232rpx;
+  pointer-events: none;
+}
+
+/* 弹层打开时整条底栏让位。用 display:none 而不是 opacity:0 ——
+   后者虽然看不见但仍在最上层，会把弹层下方的按钮点击全吃掉。 */
+.tabbar-hidden {
+  display: none;
+}
+
+.tabbar {
+  position: absolute;
+  left: 32rpx;
+  right: 32rpx;
+  bottom: 40rpx;
+  height: 120rpx;
+  display: flex;
+  align-items: center;
+  border-radius: 60rpx;
+  /* 毛玻璃：半透明白 + 背景模糊。
+     不支持的机型会退化成「半透明白条」，仍然比纯白实心透气，
+     所以底色保留透明度而不是写死 #fff。 */
+  /* saturate 是关键：只加模糊会让底下的内容整体发灰，
+     提高饱和度才像 iOS 那种「透亮」的玻璃。
+     白色底的 0.76 是折中值：再透一点（0.7）时深色卡片滚到底栏下面，
+     #8a94a6 的未选中文字会糊在背景里认不出。 */
+  background: rgba(252, 253, 255, 0.76);
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  border: 1rpx solid rgba(255, 255, 255, 0.72);
+  box-shadow: 0 8rpx 28rpx rgba(31, 42, 55, 0.08), inset 0 1rpx 0 rgba(255, 255, 255, 0.9);
+  pointer-events: auto;
+}
+
+/* 四个 tab 均分「胶囊宽度 - 中间让位」，左右各两个 */
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 120rpx;
+  transition: opacity 100ms ease;
+}
+
+/**
+ * 中央按钮的让位边距加在**第 2 个 tab 之后**，不是第 3 个之后。
+ *
+ * 加在第 3 个之后（margin-right）时，前 3 个 tab 平分左半侧，
+ * 第 3 个（统计）刚好被推到屏幕正中，整个压在圆钮底下 —— 用户看到的就是
+ * 「统计隐藏在继续答题的下方」。
+ * 加在第 2 个之后，才是「首页/题库 | 空档 | 统计/我的」左右各二。
+ *
+ * 数值：胶囊宽 = 750 - 32×2 = 686rpx；圆钮直径 118rpx 居中于 343rpx，
+ * 占 [284, 402]。让位 140rpx 时每格 136.5rpx，第 2 格止于 273、第 3 格起于 413，
+ * 两侧各留 11rpx 不压边。
+ */
+.tab-item:nth-child(2) {
+  margin-right: 140rpx;
+}
+
+.tab-item-hover {
+  opacity: 0.5;
+}
+
+.tab-icon {
+  width: 50rpx;
+  height: 50rpx;
+}
+
+.tab-text {
+  margin-top: 4rpx;
+  font-size: 21rpx;
+  color: #8a94a6;
+}
+
+.tab-item.active .tab-text {
+  color: #2b7ffc;
+  font-weight: 600;
+}
+
+.continue-btn {
+  position: absolute;
+  left: 50%;
+  bottom: 102rpx;
+  width: 118rpx;
+  height: 118rpx;
+  margin-left: -59rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4f7dfb 0%, #2b7ffc 100%);
+  box-shadow: 0 10rpx 26rpx rgba(43, 127, 252, 0.4);
+  pointer-events: auto;
+  transition: transform 100ms ease, opacity 100ms ease;
+}
+
+/* 圆钮不在滚动区内，可以用轻微缩放；幅度收到 0.94，避免整块底栏看着被抽动 */
+.continue-hover {
+  transform: scale(0.94);
+  opacity: 0.92;
+}
+
+.continue-icon {
+  width: 0;
+  height: 0;
+  margin-left: 8rpx;
+  border-style: solid;
+  border-width: 20rpx 0 20rpx 32rpx;
+  border-color: transparent transparent transparent #ffffff;
+}
+
+/**
+ * 「继续答题」四个字：留在白色胶囊里，与左右四个 tab 的标签同一条基线。
+ *
+ * 基线怎么对齐的：tab-item 高 120rpx，内容 = 图标 50 + 间距 4 + 文字 29 ≈ 83rpx，
+ * 垂直居中后文字占据 58.5 ~ 87.5rpx（从胶囊底往上量）。
+ * 这里 bottom: 58rpx 正好落在同一区间。
+ */
+.continue-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 58rpx;
+  height: 30rpx;
+  line-height: 30rpx;
+  text-align: center;
+  font-size: 21rpx;
+  font-weight: 600;
+  color: #2b7ffc;
+  pointer-events: auto;
+}
+
+.continue-label-hover {
+  opacity: 0.5;
+}

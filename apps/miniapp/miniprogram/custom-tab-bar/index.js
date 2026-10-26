@@ -1,0 +1,172 @@
+const practiceRepository = require('../repositories/practice-repository.js')
+const { createWxStorageAdapter } = require('../utils/wx-storage.js')
+
+/**
+ * tab 索引 → 页面路径。
+ * 顺序必须与 app.json 的 tabBar.list 一致，自检 tests/custom-tabbar.check.js 会比对。
+ */
+const TAB_ROUTES = [
+  { pagePath: '/page/subject-list/index', key: 'home' },
+  { pagePath: '/page/bank-detail/index', key: 'bank' },
+  { pagePath: '/page/stats/index', key: 'stats' },
+  { pagePath: '/page/my/index', key: 'my' }
+]
+
+function findTabIndexByRoute(route) {
+  const path = typeof route === 'string' ? route.split('?')[0] : ''
+
+  if (!path) {
+    return -1
+  }
+
+  const normalized = path.charAt(0) === '/' ? path : `/${path}`
+
+  return TAB_ROUTES.findIndex((tab) => tab.pagePath === normalized)
+}
+
+/**
+ * 中央「继续答题」的去向。
+ *
+ * 有未完成会话 → 直接恢复它（接着原来的题序和答案往下做）；
+ * 没有 → 去题库选一个科目开始。这条规则与首页「继续上次练习」同源，
+ * 避免首页说有半场练习、点底部按钮却进了题库。
+ */
+function resolveContinueTarget(storage) {
+  let session = null
+
+  try {
+    if (typeof practiceRepository.getResumableSession === 'function') {
+      session = practiceRepository.getResumableSession(storage)
+    }
+  } catch (error) {
+    session = null
+  }
+
+  if (session && session.sessionId) {
+    return {
+      type: 'practice',
+      url: `/page/practice/index?sessionId=${encodeURIComponent(session.sessionId)}`
+    }
+  }
+
+  return {
+    type: 'bank',
+    url: '/page/bank-detail/index'
+  }
+}
+
+Component({
+  options: {
+    styleIsolation: 'apply-shared'
+  },
+
+  data: {
+    selected: 0,
+    // 页面打开弹层时置 true，整条底栏让位
+    hidden: false,
+    tabs: [
+      { key: 'home', text: '首页', icon: '/assets/tabbar/home.png', activeIcon: '/assets/tabbar/home-active.png' },
+      { key: 'bank', text: '题库', icon: '/assets/tabbar/bank.png', activeIcon: '/assets/tabbar/bank-active.png' },
+      { key: 'stats', text: '统计', icon: '/assets/tabbar/stats.png', activeIcon: '/assets/tabbar/stats-active.png' },
+      { key: 'my', text: '我的', icon: '/assets/tabbar/my.png', activeIcon: '/assets/tabbar/my-active.png' }
+    ]
+  },
+
+  lifetimes: {
+    attached() {
+      // 组件实例可能早于页面 onShow 创建，先按当前页面栈定位一次
+      this.syncFromRoute()
+    }
+  },
+
+  methods: {
+    syncFromRoute() {
+      const pages = typeof getCurrentPages === 'function' ? getCurrentPages() : []
+      const current = pages.length ? pages[pages.length - 1] : null
+      const route = current && current.route ? current.route : ''
+      const index = findTabIndexByRoute(route)
+
+      if (index >= 0 && index !== this.data.selected) {
+        this.setData({ selected: index })
+      }
+
+      return index
+    },
+
+    /** 页面 onShow 里调用：自定义 tabBar 不会自动跟随页面切换，必须手动同步 */
+    setSelected(route) {
+      const index = findTabIndexByRoute(route)
+
+      if (index >= 0 && index !== this.data.selected) {
+        this.setData({ selected: index })
+      }
+    },
+
+    /**
+     * 页面打开弹层时收起底栏，避免弹层被它压住。
+     *
+     * 自定义 tabBar 由基础库单独渲染在页面之上，z-index 拉多高都没用；
+     * 页面里的 fixed 弹层（bottom-sheet）一定在它下面。
+     * 传 false 恢复。页面 onShow 里建议无脑调一次 setHidden(false)，
+     * 防止「弹层没关就跳走」把底栏永久藏掉。
+     */
+    setHidden(hidden) {
+      const next = !!hidden
+
+      if (next !== this.data.hidden) {
+        this.setData({ hidden: next })
+      }
+    },
+
+    handleTabTap(e) {
+      const index = Number(e.currentTarget.dataset.index)
+      const tab = TAB_ROUTES[index]
+
+      if (!tab) {
+        return
+      }
+
+      if (index === this.data.selected) {
+        // 已在当前 tab：重新点一次不重复 switchTab（会闪一下），直接忽略
+        return
+      }
+
+      wx.switchTab({
+        url: tab.pagePath,
+        fail: () => {
+          wx.showToast({
+            title: '页面暂不可用',
+            icon: 'none'
+          })
+        }
+      })
+    },
+
+    handleContinueTap() {
+      const target = resolveContinueTarget(createWxStorageAdapter())
+
+      if (target.type === 'practice') {
+        wx.navigateTo({
+          url: target.url,
+          fail: () => {
+            wx.showToast({
+              title: '练习记录已失效',
+              icon: 'none'
+            })
+          }
+        })
+        return
+      }
+
+      wx.switchTab({
+        url: target.url,
+        fail: () => {
+          wx.showToast({
+            title: '页面暂不可用',
+            icon: 'none'
+          })
+        }
+      })
+    }
+  }
+})

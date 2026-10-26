@@ -5,6 +5,36 @@ const {
 } = require('../utils/practice-progress.js')
 const { TIP_ACTIONS, buildHomeContent } = require('../utils/home-content.js')
 const { formatStudyDuration } = require('../utils/study-time.js')
+const { buildExamCountdown } = require('../utils/exam-countdown.js')
+const questionSearch = require('../utils/question-search.js')
+
+/**
+ * 「我的学习空间」四宫格。
+ * 顺序固定为 最近练习 / 模拟考试 / 我的错题 / 我的收藏，与原型一致；
+ * `key` 是点击分发的唯一依据，页面不写死中文。
+ */
+const STUDY_ENTRIES = [
+  {
+    key: 'recent',
+    label: '最近练习',
+    description: '接着上次的题库继续'
+  },
+  {
+    key: 'mock',
+    label: '模拟考试',
+    description: '按题量与时长抽一套'
+  },
+  {
+    key: 'wrong',
+    label: '我的错题',
+    description: '答错与跳过的题'
+  },
+  {
+    key: 'favorite',
+    label: '我的收藏',
+    description: '手动标记的题目'
+  }
+]
 
 function getInitialSubjectListViewData() {
   return {
@@ -20,6 +50,21 @@ function getInitialSubjectListViewData() {
       studyTimeText: '尚未开始',
       tip: null
     },
+    // 倒计时卡：未设置考试时 configured=false，卡片变成「去设置」引导
+    exam: buildExamCountdown(null),
+    // 四宫格上显示的计数 / 状态徽标
+    entries: STUDY_ENTRIES.map((item) => Object.assign({}, item, { badge: '', disabled: false })),
+    // 公告弹层（内容取 home.tip，按学习状态推导，不是写死的一篇）
+    announcementSheetVisible: false,
+    // 题目搜索（完全本地，不依赖后端）
+    searchVisible: false,
+    searchKeyword: '',
+    searchResults: [],
+    searchLoading: false,
+    searchSearched: false,
+    searchResultCount: 0,
+    // 搜索面板空态文案：题库总数用于「在全部 N 道题里查」
+    searchTotalText: '',
     routeLoadingVisible: false,
     routeLoadingTitle: '正在打开',
     routeLoadingDescription: ''
@@ -43,6 +88,7 @@ class SubjectListViewModel {
     const overallStats = summarizeOverallProgress(progress, subjects)
     const wrongSummary = this.getWrongBookSummary()
     const studyTime = this.getStudyTime()
+    const preferences = this.getPreferences()
 
     // 首页文案与统计口径共用同一份 summary，
     // 避免出现「横幅说还有 3 道错题、卡片写 5 道」这类前后不一致
@@ -57,6 +103,8 @@ class SubjectListViewModel {
       studySessionCount: studyTime.sessionCount
     }
 
+    const lastPractice = this.buildLastPractice(progress)
+
     return {
       data: Object.assign(getInitialSubjectListViewData(), {
         overall: Object.assign({}, overallStats, {
@@ -67,8 +115,59 @@ class SubjectListViewModel {
           wrongCount: wrongSummary.pending,
           studyTimeText: formatStudyDuration(studyTime.totalSeconds)
         }),
-        lastPractice: this.buildLastPractice(progress)
+        exam: buildExamCountdown({ examName: preferences.examName, examDate: preferences.examDate }),
+        entries: this.buildEntries(lastPractice),
+        searchTotalText: overallStats.total > 0 ? `在全部 ${overallStats.total} 道题里查题干与选项` : '题库还是空的，先去导入或切换题库',
+        lastPractice
       })
+    }
+  }
+
+  /** 读偏好失败时退回默认值：首页是 tabBar 主页面，不能因为一个字段崩掉 */
+  getPreferences() {
+    try {
+      return this.repository.getPreferences(this.storage) || {}
+    } catch (error) {
+      return {}
+    }
+  }
+
+  /**
+   * 四宫格徽标。
+   * 有数字的显示数字（错题 / 收藏 / 最近练习的已答题数），
+   * 没有的留空——空徽标比写「0」更克制，不会让四项看起来都"空"。
+   */
+  buildEntries(lastPractice) {
+    const wrongCount = this.getWrongBookSummary().pending
+    const favoriteCount = this.getFavoriteCount()
+    const recentAnswered = lastPractice && lastPractice.stats ? lastPractice.stats.answered : 0
+
+    return STUDY_ENTRIES.map((item) => {
+      if (item.key === 'wrong') {
+        return Object.assign({}, item, { badge: wrongCount > 0 ? String(wrongCount) : '' })
+      }
+
+      if (item.key === 'favorite') {
+        return Object.assign({}, item, { badge: favoriteCount > 0 ? String(favoriteCount) : '' })
+      }
+
+      if (item.key === 'recent') {
+        return Object.assign({}, item, { badge: recentAnswered > 0 ? String(recentAnswered) : '' })
+      }
+
+      return Object.assign({}, item, { badge: '' })
+    })
+  }
+
+  getFavoriteCount() {
+    if (typeof this.repository.getFavoriteIds !== 'function' || typeof this.repository.getFavorites !== 'function') {
+      return 0
+    }
+
+    try {
+      return this.repository.getFavoriteIds(this.repository.getFavorites(this.storage)).length
+    } catch (error) {
+      return 0
     }
   }
 
@@ -246,6 +345,194 @@ class SubjectListViewModel {
     }
   }
 
+  // ---------- 四宫格 ----------
+
+  /** 四宫格分发：只在 ViewModel 里决定去向，页面只按 key 调一次 */
+  openEntry(key) {
+    if (key === 'wrong') {
+      return this.openWrongBook()
+    }
+
+    if (key === 'favorite') {
+      return {
+        command: {
+          type: 'openRouteWithLoading',
+          payload: {
+            url: '/page/wrong-book/index?tab=favorite',
+            title: '正在打开收藏',
+            description: '读取已收藏题目'
+          }
+        }
+      }
+    }
+
+    if (key === 'recent') {
+      return this.openRecent()
+    }
+
+    if (key === 'mock') {
+      return this.openMock()
+    }
+
+    return null
+  }
+
+  /**
+   * 最近练习：有半场会话就直接续做；只有历史进度时提示去题库，
+   * 不硬造一个「重新开始」——用户点「最近练习」期待的是接着上次，不是重来。
+   */
+  openRecent() {
+    const lastPractice = this.buildLastPractice(this.repository.getProgress(this.storage))
+
+    if (lastPractice && lastPractice.resumed && lastPractice.url) {
+      return this.openPractice(lastPractice.url, lastPractice.title)
+    }
+
+    if (lastPractice) {
+      return {
+        command: {
+          type: 'toast',
+          title: `上次做过「${lastPractice.title}」，去题库继续`
+        }
+      }
+    }
+
+    return {
+      command: {
+        type: 'toast',
+        title: '还没有练习记录，先去题库开始第一套'
+      }
+    }
+  }
+
+  /**
+   * 模拟考试：沿用题库页「模拟测试」的入口。
+   * 首页不自己造题量与时长参数，避免和题库页的规则分叉。
+   */
+  openMock() {
+    return {
+      command: {
+        type: 'toast',
+        title: '在题库中选科目后点「模拟测试」开始'
+      }
+    }
+  }
+
+  // ---------- 公告 ----------
+
+  /**
+   * 公告内容就是 home.tip，由 buildHomeContent 按学习状态推导：
+   * 有错题 → 催复习；有进度 → 报剩余；全新用户 → 引导上手。
+   * 首页不再单独算一份文案，避免弹层与卡片口径不一致。
+   */
+  openAnnouncement() {
+    return {
+      data: {
+        announcementSheetVisible: true
+      }
+    }
+  }
+
+  closeAnnouncement() {
+    return {
+      data: {
+        announcementSheetVisible: false
+      }
+    }
+  }
+
+  // ---------- 题目搜索 ----------
+
+  openSearch() {
+    return {
+      data: {
+        searchVisible: true
+      }
+    }
+  }
+
+  closeSearch() {
+    return {
+      data: {
+        searchVisible: false,
+        searchKeyword: '',
+        searchResults: [],
+        searchSearched: false,
+        searchResultCount: 0
+      }
+    }
+  }
+
+  /**
+   * 搜索题目：纯本地。
+   * 首页是 tabBar 主页面，不能因为搜索把整卷加载出来，也不能依赖后端。
+   */
+  searchQuestions(keyword) {
+    const text = questionSearch.normalizeKeyword(keyword)
+
+    if (!text) {
+      return {
+        data: {
+          searchKeyword: '',
+          searchResults: [],
+          searchSearched: false,
+          searchResultCount: 0
+        }
+      }
+    }
+
+    let results = []
+
+    try {
+      const index = typeof this.repository.getQuestionIndex === 'function'
+        ? this.repository.getQuestionIndex()
+        : {}
+      results = questionSearch.searchQuestions(index, text)
+    } catch (error) {
+      results = []
+    }
+
+    return {
+      data: {
+        searchKeyword: text,
+        searchResults: results,
+        searchSearched: true,
+        searchResultCount: results.length
+      }
+    }
+  }
+
+  openSearchResult(questionId) {
+    if (!questionId) {
+      return null
+    }
+
+    return {
+      command: {
+        type: 'openRouteWithLoading',
+        payload: {
+          url: `/page/question-detail/index?id=${encodeURIComponent(questionId)}`,
+          title: '正在打开题目',
+          description: '读取题目与解析'
+        }
+      }
+    }
+  }
+
+  /** 倒计时卡未设置时点进去就是设置页的倒计时分组 */
+  openExamSettings() {
+    return {
+      command: {
+        type: 'openRouteWithLoading',
+        payload: {
+          url: '/page/settings/index?focus=exam',
+          title: '正在打开设置',
+          description: '设置考试倒计时'
+        }
+      }
+    }
+  }
+
   getShareMessage() {
     return {
       title: 'QandA 题库',
@@ -255,5 +542,6 @@ class SubjectListViewModel {
 }
 
 module.exports = {
+  STUDY_ENTRIES,
   SubjectListViewModel
 }

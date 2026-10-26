@@ -18,15 +18,41 @@
           </view>
         </view>
 
-        <view
-          class="rail-item rail-import"
-          bindtap="handleImportTap"
-          hover-class="rail-item-hover"
-          hover-start-time="0" hover-stay-time="200"
-        >
-          <view class="rail-body">
-            <text class="rail-name">导入题库</text>
-            <text class="rail-meta">CSV 表格</text>
+        <view class="rail-tools">
+          <view
+            class="rail-item rail-tool"
+            bindtap="handleImportTap"
+            hover-class="rail-item-hover"
+            hover-start-time="0" hover-stay-time="200"
+          >
+            <view class="rail-body">
+              <text class="rail-name">导入题库</text>
+              <text class="rail-meta">CSV 表格</text>
+            </view>
+          </view>
+
+          <view
+            class="rail-item rail-tool"
+            bindtap="handleWrongBookTap"
+            hover-class="rail-item-hover"
+            hover-start-time="0" hover-stay-time="200"
+          >
+            <view class="rail-body">
+              <text class="rail-name">错题本</text>
+              <text class="rail-meta">{{wrongCount}} 题待复习</text>
+            </view>
+          </view>
+
+          <view
+            class="rail-item rail-tool"
+            bindtap="handleFavoriteTap"
+            hover-class="rail-item-hover"
+            hover-start-time="0" hover-stay-time="200"
+          >
+            <view class="rail-body">
+              <text class="rail-name">我的收藏</text>
+              <text class="rail-meta">{{favoriteCount}} 题</text>
+            </view>
           </view>
         </view>
       </view>

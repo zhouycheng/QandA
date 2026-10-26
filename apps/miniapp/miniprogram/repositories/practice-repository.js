@@ -13,6 +13,7 @@ const mockScenario = require('../utils/mock-scenario.js')
 const playgroundSwitch = require('../utils/playground-switch.js')
 const playgroundScenarios = require('../playground/playground-scenarios.js')
 const userBankRepository = require('./user-bank-repository.js')
+const authRepository = require('./auth-repository.js')
 
 /**
  * 仓储层：页面与 ViewModel 只依赖这里，不直接依赖 utils。
@@ -41,6 +42,8 @@ module.exports = {
   // 按题目 id 反查（错题本 / 收藏用）
   getQuizByIds: questionLookup.getQuizByIds,
   findQuestionEntries: questionLookup.findQuestionEntries,
+  // 首页本地搜索：题目索引（题目 id → 题干/选项/来源）
+  getQuestionIndex: questionLookup.getQuestionIndex,
   // 做题进度读写（storage 由页面注入）
   getProgress: progressRepository.getProgress,
   saveScopeProgress: progressRepository.saveScopeProgress,
@@ -80,6 +83,7 @@ module.exports = {
   savePreferences: preferenceRepository.savePreferences,
   updatePreferenceSwitch: preferenceRepository.updatePreferenceSwitch,
   updatePreferenceChoice: preferenceRepository.updatePreferenceChoice,
+  updatePreferenceText: preferenceRepository.updatePreferenceText,
   resetPreferences: preferenceRepository.resetPreferences,
   // PracticeSession 读写（未完成会话检测、退出恢复、提交重试）
   getSession: sessionRepository.getSession,
@@ -117,5 +121,11 @@ module.exports = {
   removeUserBank: userBankRepository.removeUserBank,
   clearUserBanks: userBankRepository.clearUserBanks,
   parseBankText: userBankRepository.parseBankText,
-  buildUserBank: userBankRepository.buildUserBank
+  buildUserBank: userBankRepository.buildUserBank,
+  // 登录态：微信登录（后端已配时）⇄ 本地身份（降级），页面不感知走哪条路
+  getAuth: authRepository.getAuth,
+  login: authRepository.login,
+  logout: authRepository.logout,
+  updateAuthProfile: authRepository.updateProfile,
+  clearAuth: authRepository.clearAuth
 }

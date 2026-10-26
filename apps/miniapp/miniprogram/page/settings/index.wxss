@@ -172,7 +172,159 @@
   border-color: #dfe4ec;
 }
 
+/* 字号预览：选完当场变，档位差距与答题页一致（24 / 28 / 36rpx） */
+.font-preview {
+  margin-top: 18rpx;
+  padding: 18rpx 22rpx;
+  border-radius: 16rpx;
+  background: #f7f9fc;
+  border: 2rpx dashed #dfe6f2;
+}
+
+.font-preview-text {
+  display: block;
+  font-size: 28rpx;
+  line-height: 1.65;
+  color: var(--text-sub);
+}
+
+.font-small .font-preview-text {
+  font-size: 24rpx;
+}
+
+.font-large .font-preview-text {
+  font-size: 36rpx;
+}
+
+/* ==================== 考试倒计时 ==================== */
+.exam-row {
+  display: flex;
+  align-items: center;
+  padding: 26rpx 0;
+  border-bottom: 1rpx solid var(--line);
+}
+
+.exam-label {
+  flex: none;
+  width: 160rpx;
+  font-size: 27rpx;
+  color: var(--text-main);
+}
+
+.exam-input {
+  flex: 1;
+  height: 48rpx;
+  font-size: 27rpx;
+  color: var(--text-main);
+  text-align: right;
+}
+
+.exam-placeholder {
+  color: var(--text-muted);
+  font-size: 26rpx;
+}
+
+.exam-value-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.exam-value {
+  font-size: 27rpx;
+  color: var(--text-main);
+}
+
+.exam-value-empty {
+  color: var(--text-muted);
+}
+
+.exam-status {
+  display: flex;
+  align-items: baseline;
+  padding: 24rpx 0 6rpx;
+}
+
+.exam-status-text {
+  font-size: 24rpx;
+  color: var(--text-sub);
+}
+
+.exam-status-days {
+  margin: 0 8rpx 0 12rpx;
+  font-size: 44rpx;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.exam-status-unit {
+  font-size: 24rpx;
+  color: var(--text-sub);
+}
+
+.exam-status-idle {
+  display: block;
+  padding: 22rpx 0 6rpx;
+}
+
+.exam-status-idle .exam-status-text {
+  font-size: 22rpx;
+  color: var(--text-muted);
+}
+
 /* ==================== 账户与安全 ==================== */
+.account-identity {
+  display: flex;
+  align-items: center;
+  margin-bottom: 18rpx;
+  padding: 24rpx 26rpx;
+  border-radius: 22rpx;
+  background: var(--card);
+  box-shadow: 0 6rpx 24rpx rgba(31, 42, 55, 0.06);
+}
+
+.account-avatar {
+  flex: none;
+  width: 92rpx;
+  height: 92rpx;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.account-avatar-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand-soft);
+}
+
+.account-avatar-fallback .mi-icon {
+  width: 46rpx;
+  height: 46rpx;
+  opacity: 0.6;
+}
+
+.account-identity-main {
+  flex: 1;
+  min-width: 0;
+  margin-left: 22rpx;
+}
+
+.account-name {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.account-provider {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: var(--text-muted);
+}
+
 .account-hint {
   margin-bottom: 18rpx;
   padding: 20rpx 24rpx;

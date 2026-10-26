@@ -1,127 +1,186 @@
+<!-- 首页（原型 552:1410）
+     结构：蓝色头部（品牌 + 搜索 + 每日一句圆钮）→ 白色圆角内容区（倒计时卡 + 四宫格）
+     头部与内容区之间靠负 margin 咬合，内容区圆角把蓝底"切"出一道弧，不需要额外装饰图。 -->
 <view class="page home-page stagger">
-  <!-- 欢迎横幅：插画 + 按时段变化的问候语 + 每日一句 -->
-  <view class="banner anim-fade-up">
-    <image class="banner-image" src="/assets/home/banner-study.png" mode="aspectFill"></image>
-    <view class="banner-veil"></view>
-    <view class="banner-body">
-      <view class="banner-head">
-        <text class="banner-greeting">{{home.greeting}}</text>
-        <text class="banner-date">{{home.dateText}}</text>
-      </view>
-      <text class="banner-advice">{{home.advice}}</text>
+  <view class="hero">
+    <view class="hero-brand">QandA</view>
 
-      <!-- 每日一句：压在插画上，不再单独占一张卡 -->
-      <view class="banner-quote">
-        <view class="quote-mark"></view>
-        <text class="quote-text">{{home.quote}}</text>
-      </view>
-    </view>
-  </view>
-
-  <!-- 学习数据 -->
-  <view class="data-card card anim-fade-up" wx:if="{{overall}}">
-    <view class="data-head" bindtap="handleOpenStats" hover-class="row-hover" hover-start-time="0" hover-stay-time="200">
-      <view class="data-head-badge">
-        <view class="data-head-icon"></view>
-      </view>
-      <view class="data-head-main">
-        <text class="data-head-title">学习数据</text>
-        <text class="data-head-sub">真实练习概览</text>
-      </view>
-      <view class="data-head-more">详情 ›</view>
-    </view>
-
-    <view class="data-hero">
-      <view class="data-hero-top">
-        <view class="data-hero-main">
-          <text class="data-hero-label">题目总数</text>
-          <view class="data-hero-value-row">
-            <text class="data-hero-value">{{overall.total}}</text>
-            <text class="data-hero-unit">题</text>
-          </view>
-        </view>
-        <view class="data-hero-btn" bindtap="handleGoBank" hover-class="btn-hover" hover-start-time="0" hover-stay-time="200">去刷题</view>
-      </view>
-      <view class="data-hero-track">
-        <view class="data-hero-fill" style="width: {{overall.progressPercent}}%"></view>
-      </view>
-      <text class="data-hero-caption">已完成 {{overall.answered}} 题 · 完成度 {{overall.progressPercent}}%</text>
-    </view>
-
-    <!-- 指标格：两行两列，等宽撑满，不留空隙 -->
-    <view class="metric-grid">
-      <view class="metric-row">
-        <view class="metric" data-target="stats" bindtap="handleMetricTap" hover-class="row-hover" hover-start-time="0" hover-stay-time="200">
-          <view class="metric-icon metric-icon-done"></view>
-          <view class="metric-main">
-            <text class="metric-label">已完成</text>
-            <text class="metric-value">{{overall.answered}}</text>
-          </view>
-        </view>
-
-        <view class="metric" data-target="wrong" bindtap="handleMetricTap" hover-class="row-hover" hover-start-time="0" hover-stay-time="200">
-          <view class="metric-icon metric-icon-wrong"></view>
-          <view class="metric-main">
-            <text class="metric-label">待复习错题</text>
-            <text class="metric-value">{{home.wrongCount}}</text>
-          </view>
-        </view>
+    <view class="hero-search">
+      <view
+        class="search-box"
+        bindtap="handleOpenSearch"
+        hover-class="search-box-hover"
+        hover-start-time="0"
+        hover-stay-time="240"
+      >
+        <input
+          class="search-input"
+          value="{{searchKeyword}}"
+          placeholder="搜索题目、关键词"
+          placeholder-class="search-placeholder"
+          confirm-type="search"
+          bindinput="handleSearchInput"
+          bindconfirm="handleSearchConfirm"
+          bindfocus="handleOpenSearch"
+        />
+        <!-- 输入框里的放大镜只做视觉，热区是整条搜索框 -->
+        <view class="search-icon"></view>
       </view>
 
-      <view class="metric-row">
-        <view class="metric" data-target="stats" bindtap="handleMetricTap" hover-class="row-hover" hover-start-time="0" hover-stay-time="200">
-          <view class="metric-icon metric-icon-accuracy"></view>
-          <view class="metric-main">
-            <text class="metric-label">正确率</text>
-            <text class="metric-value">{{overall.accuracyText}}</text>
-          </view>
-        </view>
-
-        <view class="metric" data-target="stats" bindtap="handleMetricTap" hover-class="row-hover" hover-start-time="0" hover-stay-time="200">
-          <view class="metric-icon metric-icon-time"></view>
-          <view class="metric-main">
-            <text class="metric-label">学习时长</text>
-            <text class="metric-value">{{home.studyTimeText}}</text>
-          </view>
-        </view>
+      <!-- 小喇叭 = 公告入口（不是每日一句）。每日一句已经挪到下面的蓝色倒计时卡里。 -->
+      <view
+        class="hero-notice-btn"
+        bindtap="handleAnnouncementTap"
+        hover-class="hero-notice-hover"
+        hover-start-time="0"
+        hover-stay-time="240"
+      >
+        <view class="hero-notice-icon"></view>
       </view>
     </view>
   </view>
 
-  <!-- 公告条：文案由学习状态推导，点击查看完整说明 -->
-  <view class="tip-bar anim-fade-up" wx:if="{{home.tip}}" bindtap="handleTipOpen" hover-class="row-hover" hover-start-time="0" hover-stay-time="200">
-    <view class="tip-badge">
-      <view class="tip-badge-icon"></view>
-      <text class="tip-badge-text">{{home.tip.tag}}</text>
+  <view class="sheet">
+    <!-- 考试倒计时：未设置时整张卡变成「去设置」引导，不显示 0 天 -->
+    <view
+      class="exam-card"
+      bindtap="handleExamTap"
+      hover-class="exam-card-hover"
+      hover-start-time="0"
+      hover-stay-time="240"
+    >
+      <!-- 底图 + 左侧压暗层：插画只在右侧，压暗层保证左边文字始终读得清 -->
+      <image class="exam-cover" src="/assets/home/exam-cover.jpg" mode="aspectFill"></image>
+      <view class="exam-veil"></view>
+
+      <view class="exam-body">
+        <view class="exam-head">
+          <text class="exam-greeting">{{home.greeting}}</text>
+          <text class="exam-date">{{home.dateText}}</text>
+        </view>
+
+        <!-- 四种状态互斥，顺序不能换：
+             已结束 → 就是今天 → 还有 N 天 → 未设置。
+             把「就是今天」并进「还有 N 天」会渲染成「距离 X 考试还有 就是今天 天」。 -->
+        <view class="exam-main" wx:if="{{exam.configured && exam.isPast}}">
+          <text class="exam-text">{{exam.examName}} 考试已结束</text>
+        </view>
+
+        <view class="exam-main exam-main-today" wx:elif="{{exam.configured && exam.isExamDay}}">
+          <text class="exam-text">{{exam.examName}}</text>
+          <text class="exam-days exam-days-today">就在今天</text>
+        </view>
+
+        <view class="exam-main" wx:elif="{{exam.configured}}">
+          <!-- 不再拼「考试」二字：用户填的名称本身常带「考试」（期末考试），
+               拼上去会变成「距离 期末考试 考试还有」，重复且更长 -->
+          <text class="exam-text">距离 {{exam.examName}} 还有</text>
+          <text class="exam-days">{{exam.dayText}}</text>
+          <text class="exam-text">天</text>
+        </view>
+
+        <view class="exam-main exam-main-empty" wx:else>
+          <text class="exam-text">设置考试倒计时</text>
+        </view>
+
+        <view class="exam-foot">
+          <!-- 每日一句在这里，不再单独占一个弹层 -->
+          <text class="exam-quote">{{home.quote}}</text>
+          <!-- 已设置时这里是「修改」而不是状态文案：状态已经在主行说完了，
+               再挂一个「天」字上去只会重复。 -->
+          <text class="exam-action">{{exam.configured ? '修改' : exam.statusText}}</text>
+        </view>
+      </view>
     </view>
-    <text class="tip-text">{{home.tip.text}}</text>
-    <view class="tip-arrow">{{home.tip.actionText}} ›</view>
-  </view>
 
-  <!-- 继续上次练习 -->
-  <view class="continue-card card anim-fade-up" wx:if="{{lastPractice}}" bindtap="handleContinueTap" hover-class="row-hover" hover-start-time="0" hover-stay-time="200">
-    <view class="continue-main">
-      <text class="continue-label">继续上次练习</text>
-      <text class="continue-title">{{lastPractice.title}}</text>
-      <text class="continue-meta">{{lastPractice.metaText}}</text>
+    <view class="section-head">
+      <text class="section-title">我的学习空间</text>
     </view>
-    <view class="continue-action">继续</view>
+
+    <view class="entry-grid">
+      <view
+        wx:for="{{entries}}"
+        wx:key="key"
+        class="entry"
+        data-key="{{item.key}}"
+        bindtap="handleEntryTap"
+        hover-class="entry-hover"
+        hover-start-time="0"
+        hover-stay-time="240"
+      >
+        <view class="entry-icon entry-icon-{{item.key}}">
+          <view class="entry-badge" wx:if="{{item.badge}}">{{item.badge}}</view>
+        </view>
+        <text class="entry-label">{{item.label}}</text>
+      </view>
+    </view>
+
+    <!-- 底部说明：原型留白处放一条状态提示，空着会显得页面没写完 -->
+    <view class="home-foot" wx:if="{{overall}}">
+      <text class="home-foot-text">已做 {{overall.answered}} / {{overall.total}} 题 · 正确率 {{overall.accuracyText}}</text>
+    </view>
   </view>
 
-  <view class="home-foot anim-fade-up">
-    <text>题库已移至底部「题库」标签，随时切换科目开始练习</text>
+  <!-- 搜索结果面板：输入即搜，完全本地 -->
+  <view class="search-panel" wx:if="{{searchVisible}}">
+    <view class="search-mask" bindtap="handleSearchClose"></view>
+
+    <view class="search-panel-body">
+      <view class="search-panel-head">
+        <text class="search-panel-title">搜索题目</text>
+        <text class="search-panel-close" bindtap="handleSearchClose">关闭</text>
+      </view>
+
+      <scroll-view class="search-list" scroll-y enhanced bounces show-scrollbar="{{false}}">
+        <view
+          wx:for="{{searchResults}}"
+          wx:key="questionId"
+          class="search-item"
+          data-id="{{item.questionId}}"
+          bindtap="handleSearchResultTap"
+          hover-class="search-item-hover"
+          hover-start-time="0"
+          hover-stay-time="240"
+        >
+          <text class="search-item-stem">{{item.stem}}</text>
+          <text class="search-item-meta">{{item.typeText}}<text wx:if="{{item.sourceText}}"> · {{item.sourceText}}</text></text>
+        </view>
+
+        <view class="search-empty" wx:if="{{searchSearched && searchResultCount === 0}}">
+          <text class="search-empty-title">没有找到匹配的题目</text>
+          <text class="search-empty-tip">试试更短的关键词，比如题干的头两个字</text>
+        </view>
+
+        <view class="search-empty" wx:if="{{!searchSearched}}">
+          <text class="search-empty-title">输入关键词开始搜索</text>
+          <text class="search-empty-tip">{{searchTotalText}}</text>
+        </view>
+      </scroll-view>
+    </view>
   </view>
 
-  <!-- 公告详情 -->
+  <!-- 公告：内容由当前学习状态推导（错题堆积 / 进行中 / 新用户三种口径）。
+       placement="center" 是关键：底部升起会被自定义 tabBar 压住（tabBar 是独立图层，
+       z-index 再大也盖不过），居中弹窗从根上避开底部那一条。 -->
   <bottom-sheet
-    visible="{{tipSheetVisible}}"
+    visible="{{announcementSheetVisible}}"
     title="{{home.tip.tag}}"
-    bind:close="handleTipSheetClose"
+    placement="center"
+    bind:close="handleAnnouncementClose"
   >
-    <view class="tip-detail">
-      <text class="tip-detail-title">{{home.tip.text}}</text>
-      <text class="tip-detail-body">{{home.tip.detail}}</text>
-      <view class="tip-detail-btn" bindtap="handleTipAction" hover-class="chip-hover" hover-start-time="0" hover-stay-time="240">{{home.tip.actionText}}</view>
+    <view class="notice-sheet" wx:if="{{home.tip}}">
+      <view class="notice-badge">
+        <view class="notice-badge-icon"></view>
+      </view>
+      <text class="notice-title">{{home.tip.text}}</text>
+      <text class="notice-body">{{home.tip.detail}}</text>
+      <view
+        class="notice-btn"
+        bindtap="handleAnnouncementAction"
+        hover-class="notice-btn-hover"
+        hover-start-time="0"
+        hover-stay-time="240"
+      >{{home.tip.actionText}}</view>
     </view>
   </bottom-sheet>
 

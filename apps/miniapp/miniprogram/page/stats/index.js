@@ -17,7 +17,21 @@ Page(wrapTaps({
       return
     }
 
+    this.syncTabBar()
     this.applyViewModelResult(this.viewModel.load())
+  },
+
+  /** 自定义 tabBar 不会自动跟随页面切换，选中态要由页面主动同步 */
+  syncTabBar() {
+    if (typeof this.getTabBar !== 'function') {
+      return
+    }
+
+    const tabBar = this.getTabBar()
+
+    if (tabBar && typeof tabBar.setSelected === 'function') {
+      tabBar.setSelected('page/stats/index')
+    }
   },
 
   // 下拉刷新：重新汇总一遍本地数据

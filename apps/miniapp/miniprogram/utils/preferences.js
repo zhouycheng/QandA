@@ -38,7 +38,10 @@ const DEFAULT_PREFERENCES = {
   // 用户很难把它和「点击动效」区分开。想开的人可在「我的 · 学习偏好」里打开。
   vibrateOnAnswer: false,
   fontSize: 'normal',
-  voice: 'standard'
+  voice: 'standard',
+  // 考试倒计时：首页卡片用。空字符串 = 未设置，卡片退化成「去设置」引导
+  examName: '',
+  examDate: ''
 }
 
 /** 布尔型偏好，设置页按这个列表渲染开关，新增一项只需加一行 */
@@ -123,6 +126,12 @@ function normalizePreferences(rawPreferences) {
       return
     }
 
+    // 文本型偏好（考试名称 / 日期）：只接受字符串，非字符串回落默认值
+    if (typeof DEFAULT_PREFERENCES[key] === 'string') {
+      next[key] = typeof value === 'string' ? value : DEFAULT_PREFERENCES[key]
+      return
+    }
+
     if (isBoolean(DEFAULT_PREFERENCES[key])) {
       next[key] = isBoolean(value) ? value : DEFAULT_PREFERENCES[key]
     }
@@ -159,6 +168,24 @@ function setPreferenceChoice(preferences, key, value) {
 }
 
 /**
+ * 文本型偏好的更新（考试名称 / 日期）。
+ * 接受整段明文而不是逐字段拼，调用方把 examName / examDate 一起传进来即可。
+ */
+const TEXT_PREFERENCE_KEYS = ['examName', 'examDate']
+
+function setPreferenceText(preferences, key, value) {
+  const current = normalizePreferences(preferences)
+
+  if (TEXT_PREFERENCE_KEYS.indexOf(key) < 0) {
+    return current
+  }
+
+  current[key] = typeof value === 'string' ? value : ''
+
+  return current
+}
+
+/**
  * 构造设置页需要渲染的分组。
  * 把「有哪些开关 / 有哪些选项」收敛在一处，
  * 新增偏好只需改这个文件，页面模板不用动。
@@ -185,10 +212,12 @@ module.exports = {
   PREFERENCE_CHOICES,
   PREFERENCE_STORAGE_KEY,
   PREFERENCE_SWITCHES,
+  TEXT_PREFERENCE_KEYS,
   VOICE_OPTIONS,
   buildPreferenceView,
   cloneDefaultPreferences,
   normalizePreferences,
   setPreferenceChoice,
-  setPreferenceSwitch
+  setPreferenceSwitch,
+  setPreferenceText
 }
