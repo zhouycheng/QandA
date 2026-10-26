@@ -1,0 +1,4 @@
+// Keep this independent acceptance build separate from concurrent owner verification.
+gradle.projectsLoaded {
+    rootProject.layout.buildDirectory.set(new File(System.getenv('QANDA_QUALITY_BUILD_DIR')))
+}
