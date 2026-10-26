@@ -1,4 +1,5 @@
 const practiceRepository = require('../repositories/practice-repository.js')
+const { normalizePreferences } = require('../utils/preferences.js')
 
 /**
  * 题目详情（PRD 第 5 页清单中的 question-detail）。
@@ -34,7 +35,9 @@ function getInitialQuestionDetailData() {
     selectedText: '',
     correctText: '',
     explanation: '',
-    isFavorite: false
+    isFavorite: false,
+    // 题目详情页也是「读题」场景，字号偏好要跟着生效
+    fontSize: 'normal'
   }
 }
 
@@ -124,8 +127,18 @@ class QuestionDetailViewModel {
         selectedText: answer ? getAnswerText(question, answer.selectedKeys) || '未作答' : '',
         correctText: getAnswerText(question, question.answerKeys),
         explanation: question.explanation || '本题暂无解析。',
-        isFavorite: favoriteIds.indexOf(question.id) >= 0
+        isFavorite: favoriteIds.indexOf(question.id) >= 0,
+        fontSize: this.readFontSize()
       }
+    }
+  }
+
+  /** 读偏好失败时退回标准字号：少一个字号不该让整页打不开 */
+  readFontSize() {
+    try {
+      return normalizePreferences(this.repository.getPreferences(this.storage)).fontSize
+    } catch (error) {
+      return 'normal'
     }
   }
 

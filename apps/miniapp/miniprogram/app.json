@@ -6,6 +6,7 @@
     "page/practice/index",
     "page/question-detail/index",
     "page/my/index",
+    "page/login/index",
     "page/wrong-book/index",
     "page/settings/index",
     "page/import-bank/index",
@@ -19,6 +20,7 @@
     "backgroundTextStyle": "dark"
   },
   "tabBar": {
+    "custom": true,
     "color": "#8a94a6",
     "selectedColor": "#2b7ffc",
     "backgroundColor": "#ffffff",

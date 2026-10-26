@@ -142,3 +142,40 @@
   background: rgba(43, 127, 252, 0.12);
   border-color: rgba(43, 127, 252, 0.5);
 }
+
+/* ==================== 学习偏好：题目字号 ====================
+   看单题详情也是「读题」，字号偏好要跟答题页一致地生效。
+   档位与答题页对齐：小 26 / 标准 30 / 大 40rpx（拉大差距才看得出来）。 */
+.font-small .detail-stem {
+  font-size: 25rpx;
+}
+
+.font-small .detail-option-label {
+  font-size: 23rpx;
+}
+
+.font-small .detail-option-text {
+  font-size: 23rpx;
+}
+
+.font-small .explain-text {
+  font-size: 22rpx;
+}
+
+.font-large .detail-stem {
+  font-size: 40rpx;
+  line-height: 1.62;
+}
+
+.font-large .detail-option-label {
+  width: 50rpx;
+  font-size: 36rpx;
+}
+
+.font-large .detail-option-text {
+  font-size: 36rpx;
+}
+
+.font-large .explain-text {
+  font-size: 33rpx;
+}

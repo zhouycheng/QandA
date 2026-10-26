@@ -189,6 +189,65 @@ assert('抽屉 - 拒绝非法时长', detailVm.selectDuration(-1) === null)
 const closed = detailVm.closeConfig()
 assert('抽屉 - 可关闭', closed.data.configSheetVisible === false)
 
+// ---------- 左栏工具入口：错题本 / 我的收藏（2026-09-22 从「我的」页搬到题库页） ----------
+const fs = require('fs')
+
+assert('左栏工具 - 无数据时计数为 0',
+  loaded.data.wrongCount === 0 && loaded.data.favoriteCount === 0,
+  JSON.stringify({ wrong: loaded.data.wrongCount, favorite: loaded.data.favoriteCount }))
+
+const toolStorage = createMemoryStorage({
+  qandaWrongBook: {
+    'chinese-ch001-q1': { wrongCount: 1, rightCount: 0, streak: 0, updatedAt: 1 },
+    'chinese-ch001-q2': { wrongCount: 1, rightCount: 0, streak: 0, updatedAt: 2 },
+    // streak 已达阈值：属于已攻克，不该计入「待复习」
+    'chinese-ch001-q3': { wrongCount: 1, rightCount: 2, streak: 2, updatedAt: 3 }
+  },
+  qandaFavorites: { ids: ['chinese-ch001-q1'], updatedAt: 4 }
+})
+const toolVm = new BankDetailViewModel({ storage: toolStorage })
+const toolData = toolVm.load(SUBJECT_ID).data
+
+assert('左栏工具 - 待复习计数排除已攻克',
+  toolData.wrongCount === 2,
+  `期望 2，实际 ${toolData.wrongCount}`)
+assert('左栏工具 - 收藏计数正确',
+  toolData.favoriteCount === 1,
+  `期望 1，实际 ${toolData.favoriteCount}`)
+
+// 入口挂在左栏上，切换科目只是换右侧内容，计数不能跟着丢
+const otherSubjectId = catalog.getSubjectSummaries()
+  .map((item) => item.id)
+  .find((id) => id !== SUBJECT_ID)
+const switched = toolVm.switchSubject(otherSubjectId).data
+
+assert('左栏工具 - 切换科目后计数保留',
+  switched.wrongCount === 2 && switched.favoriteCount === 1,
+  JSON.stringify({ wrong: switched.wrongCount, favorite: switched.favoriteCount }))
+
+// 题库是 tabBar 主页面，读错题本失败不能让整个工作台白屏
+const dirtyToolVm = new BankDetailViewModel({
+  storage: createMemoryStorage({ qandaWrongBook: 'not-an-object', qandaFavorites: 42 })
+})
+assert('左栏工具 - 脏数据退化为 0 且不抛错',
+  dirtyToolVm.load(SUBJECT_ID).data.wrongCount === 0,
+  '脏数据把计数读崩了')
+
+// ---------- 入口归属：只应在题库页，不得回流到我的页 ----------
+const bankWxml = fs.readFileSync(path.join(MINIPROGRAM, 'page/bank-detail/index.wxml'), 'utf8')
+const myWxml = fs.readFileSync(path.join(MINIPROGRAM, 'page/my/index.wxml'), 'utf8')
+const myJs = fs.readFileSync(path.join(MINIPROGRAM, 'page/my/index.js'), 'utf8')
+
+assert('入口归属 - 题库页左栏绑定错题本与收藏',
+  bankWxml.indexOf('handleWrongBookTap') >= 0 && bankWxml.indexOf('handleFavoriteTap') >= 0,
+  '题库页缺少入口绑定')
+assert('入口归属 - 我的页不再残留错题本处理函数',
+  myWxml.indexOf('handleOpenWrongBook') < 0 && myJs.indexOf('handleOpenWrongBook') < 0,
+  '我的页仍在引用 handleOpenWrongBook')
+assert('入口归属 - 我的页不再有「学习工具」分组',
+  myWxml.indexOf('学习工具') < 0,
+  '「学习工具」分组仍留在我的页')
+
 // ---------- 输出 ----------
 const failed = results.filter((item) => !item.passed)
 

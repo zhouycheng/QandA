@@ -7,3 +7,15 @@
 - Communicate with users in Chinese. Commit plans, confirmation questions, warnings, errors, progress updates, and final reports must be in Chinese.
 - Generate commit messages and pull request titles and descriptions according to `docs/git-workflow.md`; their descriptions must be in Chinese.
 - Keep detailed Git rules in `docs/git-workflow.md` instead of duplicating them here.
+
+## Where to start
+
+Read the notes for the area you are touching before editing anything:
+
+| Area | File |
+| --- | --- |
+| `apps/miniapp` (WeChat mini program) | `apps/miniapp/AGENTS.md` |
+
+Each of those files carries the verification commands for that area and the traps that have
+already cost a debugging round. Do not re-derive them.
+

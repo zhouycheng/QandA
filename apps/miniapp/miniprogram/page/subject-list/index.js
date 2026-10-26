@@ -5,10 +5,7 @@ const { wrapTaps } = require('../../utils/tap-trace.js')
 const ROUTE_LOADING_DELAY = 240
 
 Page(wrapTaps({
-  data: Object.assign(SubjectListViewModel.getInitialData(), {
-    // 纯 UI 状态，不需要进 ViewModel
-    tipSheetVisible: false
-  }),
+  data: SubjectListViewModel.getInitialData(),
 
   isNavigating: false,
 
@@ -23,6 +20,9 @@ Page(wrapTaps({
 
   onShow() {
     this.isNavigating = false
+    this.syncTabBar()
+    // 兜底：万一上次是「弹层没关就跳走」，回来时底栏必须还在
+    this.setTabBarHidden(false)
 
     // 从答题页返回时重新读取进度，保证统计实时
     if (this.hasLoadedOnce && this.viewModel) {
@@ -30,6 +30,39 @@ Page(wrapTaps({
     }
 
     this.hasLoadedOnce = true
+  },
+
+  /**
+   * 自定义 tabBar 不会自动跟随页面切换，必须由页面 onShow 主动同步选中态。
+   * 不写这段的话：从首页跳到题库，底栏仍然高亮「首页」。
+   */
+  syncTabBar() {
+    if (typeof this.getTabBar !== 'function') {
+      return
+    }
+
+    const tabBar = this.getTabBar()
+
+    if (tabBar && typeof tabBar.setSelected === 'function') {
+      tabBar.setSelected('page/subject-list/index')
+    }
+  },
+
+  /**
+   * 弹层打开时收起底栏。
+   * 自定义 tabBar 是独立图层，页面里的 fixed 弹层永远在它下面，
+   * 不收起就会出现「公告正文和按钮被底栏压住」。
+   */
+  setTabBarHidden(hidden) {
+    if (typeof this.getTabBar !== 'function') {
+      return
+    }
+
+    const tabBar = this.getTabBar()
+
+    if (tabBar && typeof tabBar.setHidden === 'function') {
+      tabBar.setHidden(hidden)
+    }
   },
 
   onShareAppMessage() {
@@ -64,62 +97,94 @@ Page(wrapTaps({
     this.applyViewModelResult(this.viewModel.openPractice(lastPractice.url, lastPractice.title))
   },
 
-  handleRouteLoadingHide() {
-    this.applyViewModelResult(this.viewModel.closeRouteLoading())
+  // ---------- 倒计时卡 ----------
+
+  /**
+   * 已设置 → 直接进设置页修改；未设置 → 同样进设置页，由 ?focus=exam 自动聚焦分组。
+   * 两种情况都走同一个入口，不因为状态不同而分成「看详情」和「去设置」两条路。
+   */
+  handleExamTap() {
+    this.applyViewModelResult(this.viewModel.openExamSettings())
   },
 
-  /** 点击公告条：展开完整说明，而不是直接跳走 */
-  handleTipOpen() {
-    const tip = this.data.home && this.data.home.tip
+  // ---------- 我的学习空间 ----------
 
-    if (!tip) {
+  handleEntryTap(e) {
+    const key = e.currentTarget.dataset.key
+
+    if (!key) {
       return
     }
 
-    this.setData({
-      tipSheetVisible: true
-    })
+    this.applyViewModelResult(this.viewModel.openEntry(key))
   },
 
-  handleTipSheetClose() {
-    this.setData({
-      tipSheetVisible: false
-    })
+  // ---------- 搜索 ----------
+
+  handleOpenSearch() {
+    if (this.data.searchVisible) {
+      return
+    }
+
+    this.applyViewModelResult(this.viewModel.openSearch())
   },
 
-  /** 弹层里的行动按钮：按文案层给出的 action 决定去向 */
-  handleTipAction() {
+  /**
+   * 输入即搜。放到 bindinput 而不是 bindconfirm：
+   * 题库只有 200 多题，每次击键全表扫描也就几毫秒，
+   * 但体验上「边打边看到结果」比「打完再按回车」好得多。
+   * （对比：题库导入页的 textarea 必须放 bindblur，那里解析的是整张表。）
+   */
+  handleSearchInput(e) {
+    this.applyViewModelResult(this.viewModel.searchQuestions(e.detail.value))
+  },
+
+  handleSearchConfirm(e) {
+    this.applyViewModelResult(this.viewModel.searchQuestions(e.detail.value))
+  },
+
+  handleSearchClose() {
+    this.applyViewModelResult(this.viewModel.closeSearch())
+  },
+
+  handleSearchResultTap(e) {
+    const questionId = e.currentTarget.dataset.id
+
+    if (!questionId) {
+      return
+    }
+
+    // 先进面板再跳转：面板是 fixed 定位，跳页后仍留在这个 tab 的 DOM 里
+    this.applyViewModelResult(this.viewModel.closeSearch())
+    this.applyViewModelResult(this.viewModel.openSearchResult(questionId))
+  },
+
+  // ---------- 公告（小喇叭） ----------
+
+  handleAnnouncementTap() {
+    this.setTabBarHidden(true)
+    this.applyViewModelResult(this.viewModel.openAnnouncement())
+  },
+
+  handleAnnouncementClose() {
+    this.setTabBarHidden(false)
+    this.applyViewModelResult(this.viewModel.closeAnnouncement())
+  },
+
+  /** 公告里的行动按钮：按文案层给的 action 决定去向 */
+  handleAnnouncementAction() {
     const tip = this.data.home && this.data.home.tip
 
-    this.setData({
-      tipSheetVisible: false
-    })
+    this.setTabBarHidden(false)
+    this.applyViewModelResult(this.viewModel.closeAnnouncement())
 
     if (tip) {
       this.applyViewModelResult(this.viewModel.openTipAction(tip.action))
     }
   },
 
-  /** 学习数据卡右上角「详情」→ 统计 */
-  handleOpenStats() {
-    this.applyViewModelResult(this.viewModel.openStats())
-  },
-
-  /** 学习数据卡「去刷题」→ 题库（保留题库页当前科目） */
-  handleGoBank() {
-    this.applyViewModelResult(this.viewModel.openBank())
-  },
-
-  /** 指标格：错题格进错题本，其余进统计页 */
-  handleMetricTap(e) {
-    const target = e.currentTarget.dataset.target
-
-    if (target === 'wrong') {
-      this.applyViewModelResult(this.viewModel.openWrongBook())
-      return
-    }
-
-    this.applyViewModelResult(this.viewModel.openStats())
+  handleRouteLoadingHide() {
+    this.applyViewModelResult(this.viewModel.closeRouteLoading())
   },
 
   applyViewModelResult(result) {
@@ -166,6 +231,8 @@ Page(wrapTaps({
   openRouteWithLoading(payload) {
     const detail = payload || {}
     this.isNavigating = true
+    // 加载遮罩也是 fixed 浮层，同样会被底栏压在下面，一并收起
+    this.setTabBarHidden(true)
     this.setData({
       routeLoadingVisible: true,
       routeLoadingTitle: detail.title || '正在打开',
@@ -176,6 +243,7 @@ Page(wrapTaps({
       wx.navigateTo({
         url: detail.url,
         complete: () => {
+          this.setTabBarHidden(false)
           this.setData({
             routeLoadingVisible: false
           })

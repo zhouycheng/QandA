@@ -1,0 +1,60 @@
+<view class="page login-page stagger">
+  <view class="login-hero card anim-fade-up">
+    <button
+      class="avatar-btn"
+      open-type="chooseAvatar"
+      bindchooseavatar="handleChooseAvatar"
+      hover-class="ghost-flat-hover"
+      hover-start-time="0"
+      hover-stay-time="240"
+    >
+      <image class="avatar" src="{{avatarUrl}}" mode="aspectFill" wx:if="{{avatarUrl}}"></image>
+      <view class="avatar-fallback" wx:else>
+        <view class="mi-icon mi-user"></view>
+      </view>
+    </button>
+
+    <text class="login-name">{{displayName}}</text>
+
+    <view class="login-meta">
+      <text class="login-tag {{degraded ? 'tag-dev' : ''}}">{{accountTag}}</text>
+      <text class="login-time" wx:if="{{loginTimeText}}">{{loginTimeText}} 登录</text>
+    </view>
+
+    <text class="login-hint">{{loginHint}}</text>
+  </view>
+
+  <view class="section anim-fade-up">
+    <text class="section-title">资料</text>
+
+    <input
+      class="nickname-input card"
+      type="nickname"
+      value="{{nickname}}"
+      placeholder="{{canEditProfile ? '点击填写昵称' : '登录后才能设置昵称'}}"
+      disabled="{{!canEditProfile}}"
+      maxlength="32"
+      bindblur="handleNicknameBlur"
+    />
+
+    <text class="field-note">头像与昵称使用微信授权能力获取，登录后才可修改</text>
+  </view>
+
+  <view class="section anim-fade-up">
+    <view class="login-action">
+      <button
+        class="primary-btn {{loggedIn ? 'btn-danger' : ''}}"
+        bindtap="handlePrimaryTap"
+        hover-class="btn-hover"
+        hover-start-time="0"
+        hover-stay-time="240"
+      >{{primaryText}}</button>
+
+      <text class="action-desc">{{loggedIn ? '退出后本机学习数据仍会保留' : '使用微信身份登录，后端未接入时自动使用本地身份'}}</text>
+    </view>
+
+    <view class="footer-note">
+      <text>微信登录需由后端用 code 换取 openid。当前后端未接入，登录会自动降级为本地身份，不影响做题。</text>
+    </view>
+  </view>
+</view>

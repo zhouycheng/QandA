@@ -1,5 +1,9 @@
 {
-  "navigationBarTitleText": "QandA",
+  "navigationBarTitleText": "",
+  "navigationBarBackgroundColor": "#4A7BFB",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#4A7BFB",
+  "backgroundTextStyle": "light",
   "enablePullDownRefresh": true,
   "usingComponents": {
     "bottom-sheet": "/components/bottom-sheet/index",

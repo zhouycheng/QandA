@@ -136,6 +136,53 @@ function describeRequestError(errMsg) {
   return '网络请求失败，请检查网络后重试'
 }
 
+function readText(value, maxLength) {
+  if (typeof value !== 'string') {
+    return ''
+  }
+
+  return maxLength ? value.slice(0, maxLength) : value
+}
+
+/**
+ * 微信登录：用 wx.login 拿到的 code 换身份（API PRD 第 13 节的 auth 模块）。
+ *
+ * 后端字段命名各家不一（openId / openid、userId / uid），这里统一兜一遍。
+ * 但**用户标识必须有**：返回 200 却没有 userId/openId 时直接判失败，
+ * 否则端上会拿着一个空壳身份显示成「已登录」，实际什么都同步不了。
+ */
+function login(code) {
+  return request('POST', '/api/auth/login', { code: code || '' }).then((response) => {
+    if (!response.ok) {
+      return {
+        ok: false,
+        reason: response.reason || '登录接口调用失败'
+      }
+    }
+
+    const data = response.data || {}
+    const userId = readText(data.userId || data.uid || data.id || data.openId || data.openid, 64)
+    const openId = readText(data.openId || data.openid, 64)
+
+    if (!userId && !openId) {
+      return {
+        ok: false,
+        reason: '登录接口未返回用户标识'
+      }
+    }
+
+    return {
+      ok: true,
+      userId,
+      openId,
+      token: readText(data.token || data.accessToken, 512),
+      nickname: readText(data.nickname || data.nickName, 32),
+      avatarUrl: readText(data.avatarUrl || data.avatar, 512),
+      reason: ''
+    }
+  })
+}
+
 function getSubjects() {
   return request('GET', '/api/subjects').then((response) => {
     if (!response.ok) {
@@ -439,6 +486,7 @@ module.exports = {
   getSession,
   getSubjects,
   isConfigured,
+  login,
   name: 'http',
   normalizeRemoteResult,
   normalizeRemoteSession,

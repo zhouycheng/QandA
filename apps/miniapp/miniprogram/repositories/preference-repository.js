@@ -2,7 +2,8 @@ const {
   PREFERENCE_STORAGE_KEY,
   normalizePreferences,
   setPreferenceChoice,
-  setPreferenceSwitch
+  setPreferenceSwitch,
+  setPreferenceText
 } = require('../utils/preferences.js')
 
 /**
@@ -57,6 +58,11 @@ function updatePreferenceChoice(storage, key, value) {
   return savePreferences(storage, setPreferenceChoice(getPreferences(storage), key, value))
 }
 
+/** 文本型偏好：考试名称 / 考试日期（首页倒计时卡用） */
+function updatePreferenceText(storage, key, value) {
+  return savePreferences(storage, setPreferenceText(getPreferences(storage), key, value))
+}
+
 /** 恢复默认：偏好属于「设置」，清空学习数据时不该一并抹掉，因此单独提供重置入口 */
 function resetPreferences(storage) {
   return savePreferences(storage, normalizePreferences(null))
@@ -67,5 +73,6 @@ module.exports = {
   resetPreferences,
   savePreferences,
   updatePreferenceChoice,
-  updatePreferenceSwitch
+  updatePreferenceSwitch,
+  updatePreferenceText
 }

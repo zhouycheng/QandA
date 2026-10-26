@@ -1,6 +1,7 @@
 const practiceRepository = require('../repositories/practice-repository.js')
 const { getPendingIds } = require('../utils/wrong-book.js')
 const { countFavorites } = require('../utils/favorites.js')
+const { describeAuth } = require('../utils/auth-session.js')
 
 const BEST_SCORE_PREFIX = 'qandaBestScore:'
 
@@ -29,7 +30,18 @@ function getInitialMyViewData() {
     questionCount: 0,
     wrongCount: 0,
     favoriteCount: 0,
-    records: []
+    records: [],
+    auth: createGuestAuthView()
+  }
+}
+
+/** 未登录时的资料卡视图；读身份失败也用它，保证 tabBar 页面不会白屏 */
+function createGuestAuthView() {
+  return {
+    loggedIn: false,
+    displayName: '点击登录',
+    avatarUrl: '',
+    accountTag: '未登录'
   }
 }
 
@@ -52,8 +64,30 @@ class MyViewModel {
     return {
       data: Object.assign(getInitialMyViewData(), stats, {
         wrongCount: getPendingIds(wrongBook).length,
-        favoriteCount: countFavorites(favorites)
+        favoriteCount: countFavorites(favorites),
+        auth: this.readAuthView()
       })
+    }
+  }
+
+  /**
+   * 登录态。
+   * 「我的」是 tabBar 主页面，这里读身份一旦抛错就是整页白屏，
+   * 所以任何异常都退化成未登录视图，而不是让页面挂掉。
+   */
+  readAuthView() {
+    try {
+      const auth = this.repository.getAuth(this.storage)
+      const view = describeAuth(auth)
+
+      return {
+        loggedIn: view.loggedIn,
+        displayName: view.loggedIn ? view.displayName : '点击登录',
+        avatarUrl: view.avatarUrl,
+        accountTag: view.accountTag
+      }
+    } catch (error) {
+      return createGuestAuthView()
     }
   }
 

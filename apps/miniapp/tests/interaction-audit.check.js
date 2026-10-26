@@ -121,7 +121,9 @@ if (missingHover.length === 0) {
 console.log('\n=== 3) 是否存在「隐藏但仍占位」的全屏浮层 ===\n')
 const riskyOverlay = []
 for (const f of all.filter((p) => p.endsWith('.wxss'))) {
-  const src = fs.readFileSync(f, 'utf8')
+  // 必须先剥注释：注释里写了 "opacity:0" 这类字样会被当成真实声明，
+  // 而且注释里出现的 `}` 会把 split('}') 的块边界打乱（已因此误报过一次）。
+  const src = fs.readFileSync(f, 'utf8').replace(/\/\*[\s\S]*?\*\//g, ' ')
   const blocks = src.split('}')
   blocks.forEach((b, i) => {
     if (!/position\s*:\s*fixed/.test(b)) return

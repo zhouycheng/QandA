@@ -626,31 +626,78 @@
   color: var(--text-sub);
 }
 
-/* 字号随根节点的 font-* 类名整体缩放，只在三处正文生效 */
+/* 字号随根节点的 font-* 类名整体缩放，覆盖「读题」相关的正文：
+   题干、选项标号与文本、正确答案、解析、复盘题干与答案。
+
+   ⚠️ 三档差距必须够大（26 / 32 / 42rpx）。早期版本只差 4~5rpx，
+   用户点了「大」在手机上几乎看不出变化，反馈就是「字号点了没反应」——
+   差 2px 的视觉量级等于没做。 */
 .font-small .stem {
-  font-size: 28rpx;
+  font-size: 26rpx;
+}
+
+.font-small .option-key {
+  font-size: 22rpx;
 }
 
 .font-small .option-text {
-  font-size: 25rpx;
-}
-
-.font-small .explanation-text {
   font-size: 24rpx;
 }
 
+.font-small .correct-text {
+  font-size: 22rpx;
+}
+
+.font-small .explanation-title {
+  font-size: 21rpx;
+}
+
+.font-small .explanation-text {
+  font-size: 22rpx;
+}
+
+.font-small .review-stem {
+  font-size: 24rpx;
+}
+
+.font-small .review-value {
+  font-size: 23rpx;
+}
+
 .font-large .stem {
-  font-size: 37rpx;
+  font-size: 42rpx;
+  line-height: 1.62;
+}
+
+/* 选项标号是固定尺寸的圆圈，字号变大时圆圈也得跟着放大，
+   否则 32rpx 的字塞在 48rpx 的圈里会顶边 */
+.font-large .option-key {
+  width: 58rpx;
+  height: 58rpx;
+  line-height: 58rpx;
+  font-size: 32rpx;
 }
 
 .font-large .option-text {
-  font-size: 32rpx;
+  font-size: 36rpx;
+}
+
+.font-large .correct-text {
+  font-size: 31rpx;
+}
+
+.font-large .explanation-title {
+  font-size: 28rpx;
 }
 
 .font-large .explanation-text {
-  font-size: 30rpx;
+  font-size: 32rpx;
 }
 
 .font-large .review-stem {
-  font-size: 32rpx;
+  font-size: 34rpx;
+}
+
+.font-large .review-value {
+  font-size: 30rpx;
 }

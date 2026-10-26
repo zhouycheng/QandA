@@ -1,5 +1,9 @@
+/* 底部 272rpx 是留给自定义 tabBar 的（tabbar 232 + 40 呼吸位 + 安全区）：
+   原生 tabBar 由系统预留空间，100vh 正好；改成 custom 之后底栏是页面内的 fixed 组件，
+   不再预留 —— 不减掉这段，左右两栏最下面一截会被胶囊压住。 */
 .bank-detail-page {
-  height: 100vh;
+  height: calc(100vh - 272rpx);
+  height: calc(100vh - 272rpx - env(safe-area-inset-bottom));
   overflow: hidden;
   background: var(--page-bg);
 }
@@ -7,7 +11,7 @@
 /* 左侧科目栏 + 右侧内容面板 */
 .workbench {
   display: flex;
-  height: 100vh;
+  height: 100%;
 }
 
 .rail {
@@ -74,15 +78,15 @@
   opacity: 0.72;
 }
 
-/* 「导入题库」是入口而不是科目：用虚线框与常规科目区分开，
-   避免被当成第九个科目（它没有题库列表，点进去是导入流程） */
-.rail-import {
+/* 工具入口（导入题库 / 错题本 / 我的收藏）不是科目：整组用虚线分隔，
+   与常规科目明显区分开，避免被当成第九个科目（它们没有题库列表） */
+.rail-tools {
   margin-top: 12rpx;
   padding-top: 26rpx;
   border-top: 2rpx dashed var(--line);
 }
 
-.rail-import .rail-name {
+.rail-tool .rail-name {
   color: var(--brand);
 }
 

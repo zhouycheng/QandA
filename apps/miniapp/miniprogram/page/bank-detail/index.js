@@ -19,6 +19,9 @@ Page(wrapTaps({
 
   onShow() {
     this.isOpeningPractice = false
+    this.syncTabBar()
+    // 兜底：上次若是「弹层没关就跳走」，回来时底栏必须还在
+    this.setTabBarHidden(false)
 
     // 题库是 tabBar 页面，拿不到 URL 参数：首页点科目时把 subjectId
     // 暂存在全局数据里，这里取走；取不到就沿用上次浏览的科目。
@@ -40,6 +43,38 @@ Page(wrapTaps({
     }
   },
 
+  /**
+   * 自定义 tabBar 的选中态要由页面主动同步，否则跨 tab 切换后高亮还停在旧页。
+   */
+  syncTabBar() {
+    if (typeof this.getTabBar !== 'function') {
+      return
+    }
+
+    const tabBar = this.getTabBar()
+
+    if (tabBar && typeof tabBar.setSelected === 'function') {
+      tabBar.setSelected('page/bank-detail/index')
+    }
+  },
+
+  /**
+   * 弹层打开时收起底栏。
+   * 抽题设置面板（bottom-sheet）底部的「开始测试」按钮原本被底栏压着，
+   * 自定义 tabBar 是独立图层，页面内弹层躲不开，只能让它先让位。
+   */
+  setTabBarHidden(hidden) {
+    if (typeof this.getTabBar !== 'function') {
+      return
+    }
+
+    const tabBar = this.getTabBar()
+
+    if (tabBar && typeof tabBar.setHidden === 'function') {
+      tabBar.setHidden(hidden)
+    }
+  },
+
   onShareAppMessage() {
     return this.viewModel.getShareMessage(this.data.subjectId)
   },
@@ -57,6 +92,19 @@ Page(wrapTaps({
   handleImportTap() {
     wx.navigateTo({
       url: '/page/import-bank/index'
+    })
+  },
+
+  // 错题本与收藏原先挂在「我的」页，现归到题库页左栏（与科目同一区域）
+  handleWrongBookTap() {
+    wx.navigateTo({
+      url: '/page/wrong-book/index?tab=wrong'
+    })
+  },
+
+  handleFavoriteTap() {
+    wx.navigateTo({
+      url: '/page/wrong-book/index?tab=favorite'
     })
   },
 
@@ -102,6 +150,12 @@ Page(wrapTaps({
 
     if (result.data) {
       this.setData(result.data)
+
+      // 抽题设置面板的显示由 ViewModel 决定（打开/取消/确认三条路径都会下发），
+      // 这里跟着它的值同步底栏显隐，不用在每个处理函数里各写一遍。
+      if (result.data.configSheetVisible !== undefined) {
+        this.setTabBarHidden(!!result.data.configSheetVisible)
+      }
     }
 
     if (result.command) {
@@ -127,6 +181,8 @@ Page(wrapTaps({
   openRouteWithLoading(payload) {
     const detail = payload || {}
     this.isOpeningPractice = true
+    // 加载遮罩也是 fixed 浮层，同样会被底栏压在下面，一并收起
+    this.setTabBarHidden(true)
     this.setData({
       routeLoadingVisible: true,
       routeLoadingTitle: detail.title || '正在打开',
@@ -137,6 +193,7 @@ Page(wrapTaps({
       wx.navigateTo({
         url: detail.url,
         complete: () => {
+          this.setTabBarHidden(false)
           this.setData({
             routeLoadingVisible: false
           })

@@ -7,3 +7,6 @@ dist/
 # 微信小程序
 miniprogram_npm/
 project.private.config.json
+
+# 图标自查渲染输出（scripts/preview-entry-icons.cjs 生成）
+apps/miniapp/.tmp-preview/

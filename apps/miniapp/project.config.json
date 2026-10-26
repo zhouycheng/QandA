@@ -1,8 +1,8 @@
 {
-  "description": "QandA 小程序端项目配置。appid 为占位值 touristappid 时工具会进入「游客模式」，控制台会刷 webapi_getwxaasyncsecinfo:fail —— 这是缺 AppID 导致的，与本项目代码无关。导入时请改用测试号或你自己的真实 AppID（wx 开头）。",
+  "description": "QandA 小程序端项目配置。appid 已填真实 AppID：wx.login 才能拿到有效 code（占位值 touristappid 是游客模式，拿不到）。真微信登录还需后端 code2session 与小程序后台的 request 合法域名，两者都没配时登录会自动降级为本地身份。",
   "compileType": "miniprogram",
   "libVersion": "3.15.2",
-  "appid": "touristappid",
+  "appid": "wxc2451db6a3905203",
   "projectname": "QandA-miniapp",
   "miniprogramRoot": "miniprogram/",
   "cloudfunctionRoot": "",

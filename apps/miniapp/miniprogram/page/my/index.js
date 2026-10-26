@@ -29,7 +29,21 @@ Page(wrapTaps({
       return
     }
 
+    this.syncTabBar()
     this.applyViewModelResult(this.viewModel.load())
+  },
+
+  /** 自定义 tabBar 不会自动跟随页面切换，选中态要由页面主动同步 */
+  syncTabBar() {
+    if (typeof this.getTabBar !== 'function') {
+      return
+    }
+
+    const tabBar = this.getTabBar()
+
+    if (tabBar && typeof tabBar.setSelected === 'function') {
+      tabBar.setSelected('page/my/index')
+    }
   },
 
   // 下拉刷新
@@ -46,20 +60,19 @@ Page(wrapTaps({
     }, 400)
   },
 
-  handleOpenWrongBook(e) {
-    const tab = e.currentTarget.dataset.tab === 'favorite' ? 'favorite' : 'wrong'
-
-    wx.navigateTo({
-      url: `/page/wrong-book/index?tab=${tab}`
-    })
-  },
-
   /** 学习偏好 / 账户与安全 / 关于 都在设置页，用 focus 指定滚动到的分组 */
   handleOpenSettings(e) {
     const focus = e.currentTarget.dataset.focus || ''
 
     wx.navigateTo({
       url: focus ? `/page/settings/index?focus=${focus}` : '/page/settings/index'
+    })
+  },
+
+  /** 资料卡整体是登录入口：未登录用它登录，已登录进去改资料 / 退出 */
+  handleOpenLogin() {
+    wx.navigateTo({
+      url: '/page/login/index'
     })
   },
 
