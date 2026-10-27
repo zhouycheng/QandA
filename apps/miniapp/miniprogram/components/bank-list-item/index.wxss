@@ -1,102 +1,53 @@
-.bank-item {
-  padding: 24rpx 26rpx;
-  margin-bottom: 20rpx;
+/* 章节行：设计稿里题库列表就是一条条灰色圆角条，点一条配这一条的答题参数。
+   行高定死（96rpx）而不是靠内边距撑：题库页是长列表，行高一致才好扫读。 */
+
+.chapter-row {
+  height: 96rpx;
+  margin-bottom: 16rpx;
+  padding: 0 24rpx;
+  display: flex;
+  align-items: center;
   border-radius: 22rpx;
-  background: var(--card);
-  box-shadow: 0 6rpx 20rpx rgba(31, 42, 55, 0.05);
+  background: #f2f3f5;
+  transition: background-color 120ms ease;
 }
 
-.bank-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+/* ⚠️ 组件样式是隔离的：官方明确「除继承样式外，app.wxss 中的样式、组件所在页面的样式
+   对自定义组件无效」。所以 hover 类必须写在组件自己的 wxss 里 —— 只靠 app.wxss 那份，
+   真机上点这一行是全无反馈的（编译不报错）。按压只改底色，不做 transform：
+   组件用在 scroll-view 里，位移会被当成内容尺寸变化，滚动位置会跳。 */
+.chapter-hover {
+  background-color: #e3e7ef;
+  transition-duration: 100ms;
 }
 
-.bank-unit {
-  padding: 4rpx 14rpx;
-  border-radius: 8rpx;
-  background: #eef4ff;
-  color: var(--brand);
-  font-size: 21rpx;
-}
-
-.bank-arrow {
-  font-size: 38rpx;
-  line-height: 1;
-  color: var(--text-muted);
-}
-
-.bank-name {
-  display: block;
-  margin-top: 14rpx;
-  font-size: 31rpx;
-  font-weight: 600;
-  color: var(--text-main);
-  line-height: 1.4;
-}
-
-.bank-meta {
-  margin-top: 12rpx;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.meta-item {
-  font-size: 22rpx;
-  color: var(--text-muted);
-}
-
-.meta-dot {
-  margin: 0 10rpx;
-  font-size: 22rpx;
-  color: var(--text-muted);
-}
-
-.bank-progress {
-  margin-top: 18rpx;
-  display: flex;
-  align-items: center;
-}
-
-.progress-track {
+.chapter-body {
   flex: 1;
-  height: 10rpx;
-  border-radius: 999rpx;
-  background: #eef2f8;
-  overflow: hidden;
+  min-width: 0;
 }
 
-.progress-fill {
-  height: 100%;
-  border-radius: 999rpx;
-  transition: width 0.3s ease;
+.chapter-title {
+  font-size: 27rpx;
+  line-height: 1.35;
+  color: #141820;
 }
 
-.fill-chinese {
-  background: linear-gradient(90deg, #f97066, #f04438);
-}
-
-.fill-mental {
-  background: linear-gradient(90deg, #32d583, #17b26a);
-}
-
-.fill-english {
-  background: linear-gradient(90deg, #53b1fd, #2b7ffc);
-}
-
-/* 用户自助导入的题库：紫色，与三个内置科目区分开 */
-.fill-user {
-  background: linear-gradient(90deg, #9b8afb, #6941c6);
-}
-
-.is-complete {
-  background: linear-gradient(90deg, #32d583, #17b26a);
-}
-
-.progress-caption {
+.chapter-meta {
   flex: none;
-  margin-left: 16rpx;
-  font-size: 21rpx;
-  color: var(--text-muted);
+  margin-left: 12rpx;
+  font-size: 22rpx;
+  color: #8b8f99;
+}
+
+.chapter-arrow {
+  flex: none;
+  margin-left: 8rpx;
+  font-size: 30rpx;
+  line-height: 1;
+  color: #b4b9c2;
+}
+
+/* 整章刷完：只把进度数字染绿，不整条变绿 —— 列表里满屏绿条反而看不出重点 */
+.chapter-row.is-done .chapter-meta {
+  color: #17b26a;
 }

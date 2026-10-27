@@ -15,7 +15,7 @@ const preferenceUtils = require(path.join(MINIPROGRAM, 'utils/preferences.js'))
 const dailyLogUtils = require(path.join(MINIPROGRAM, 'utils/daily-log.js'))
 const insightUtils = require(path.join(MINIPROGRAM, 'utils/study-insight.js'))
 const chartSvg = require(path.join(MINIPROGRAM, 'utils/chart-svg.js'))
-const { SettingsViewModel, ACCOUNT_ACTIONS } = require(path.join(MINIPROGRAM, 'viewmodels/settings-viewmodel.js'))
+const { SettingsViewModel } = require(path.join(MINIPROGRAM, 'viewmodels/settings-viewmodel.js'))
 const { StatsViewModel } = require(path.join(MINIPROGRAM, 'viewmodels/stats-viewmodel.js'))
 const { PracticeViewModel } = require(path.join(MINIPROGRAM, 'viewmodels/practice-viewmodel.js'))
 
@@ -132,7 +132,8 @@ function checkPreferences() {
   const voiceChoice = view.choices.find((item) => item.key === 'voice')
 
   assert('偏好 - 设置视图含 5 个开关', view.switches.length === 5, `实际 ${view.switches.length}`)
-  assert('偏好 - 设置视图含 2 个选择项', view.choices.length === 2, `实际 ${view.choices.length}`)
+  assert('偏好 - 设置视图含 3 个选择项（字号 / 布局 / 音色）',
+    view.choices.length === 3, `实际 ${view.choices.length}`)
   assert('偏好 - 字号选中态唯一',
     fontChoice.options.filter((option) => option.selected).length === 1)
   assert('偏好 - 音色标记为未开放', voiceChoice.available === false)
@@ -315,13 +316,18 @@ function checkSettingsViewModel() {
   assert('设置 - 初始开关非空', initial.data.switches.length === 5)
   assert('设置 - 初始目录统计带题量', initial.data.catalog.questionCount > 0,
     `实际 ${initial.data.catalog.questionCount}`)
-  // 微信登录落地后：登录 / 登出已开放，改密码与换邮箱仍等后端账号接口
-  assert('设置 - 登录与登出已开放，改密码与换邮箱仍待接入',
-    ACCOUNT_ACTIONS
-      .filter((item) => item.available)
-      .map((item) => item.key)
-      .join(',') === 'wechat,logout',
-    JSON.stringify(ACCOUNT_ACTIONS.map((item) => `${item.key}:${item.available}`)))
+  // 改版后账户分组迁到「我的 → 账号管理」（设计稿 781:2123），设置页不该再有第二份账号状态
+  assert('设置 - 账户分组已迁出',
+    initial.data.accountActions === undefined && initial.data.auth === undefined,
+    JSON.stringify(Object.keys(initial.data)))
+
+  // 「自定义布局」是新增的可用选项（设计稿「我的 · 学习设置」的第二行）
+  const layout = initial.data.choices.find((item) => item.key === 'answerLayout')
+
+  assert('设置 - 自定义布局可选项齐全',
+    !!layout && layout.available === true &&
+      layout.options.map((option) => option.value).join(',') === 'below,above',
+    JSON.stringify(layout))
 
   vm.toggleSwitch('autoShowExplanation', false)
 
@@ -353,12 +359,12 @@ function checkSettingsViewModel() {
     reset.data.choices.find((item) => item.key === 'fontSize').value === 'normal')
   assert('设置 - 恢复默认带提示', reset.command.type === 'toast')
 
-  const password = vm.openAccountAction('password')
+  // 危险操作收到设置页底部：账号页只管身份资料，清数据仍归「设置」
+  const cleared = vm.clearRecords()
 
-  assert('设置 - 账户项给出说明而非静默',
-    password.command.type === 'toast' && password.command.title.indexOf('账号体系') >= 0,
-    JSON.stringify(password))
-  assert('设置 - 未知账户项返回空', vm.openAccountAction('unknown') === null)
+  assert('设置 - 清空学习数据带提示', cleared.command.type === 'toast', JSON.stringify(cleared.command))
+  assert('设置 - 清空学习数据不影响偏好视图',
+    Array.isArray(cleared.data.choices) && cleared.data.choices.length > 0)
 }
 
 // ---------- 七、统计页 ViewModel ----------
@@ -392,11 +398,20 @@ function checkStatsViewModel() {
   const freshStorage = createMemoryStorage()
   const fresh = new StatsViewModel({ storage: freshStorage }).load().data
 
-  assert('统计 - 全新用户雷达不出图', fresh.radar.hasData === false && fresh.radar.dataUri === '')
-  assert('统计 - 全新用户趋势不出图', fresh.trend.hasData === false)
-  assert('统计 - 全新用户环形图仍可用', fresh.hero.ringDataUri.indexOf('data:image/svg+xml') === 0)
-  assert('统计 - 全新用户标题给引导语',
-    fresh.hero.headline.indexOf('第一次练习') > 0, fresh.hero.headline)
+  // 复盘页：区间切换 + 三个数字 + 热力图 + 趋势
+  assert('复盘 - 默认区间是近 7 天', fresh.range === '7d', fresh.range)
+  assert('复盘 - 三个区间齐全',
+    fresh.rangeOptions.map((item) => item.value).join(',') === '7d,30d,all',
+    fresh.rangeOptions.map((item) => item.value).join(','))
+  assert('复盘 - 全新用户三个数字都是 0',
+    fresh.metrics.answered === '0' && fresh.metrics.accuracy === '0' && fresh.metrics.duration === '0',
+    JSON.stringify(fresh.metrics))
+  assert('复盘 - 全新用户趋势不出图', fresh.trend.hasData === false && fresh.trend.dataUri === '')
+  // 热力图即使没有记录也要画：一屏灰格子本身就是「还没开始」的信息
+  assert('复盘 - 全新用户热力图仍然出图',
+    fresh.activity.dataUri.indexOf('data:image/svg+xml') === 0 && fresh.activity.hasData === false)
+  assert('复盘 - 未登录时身份行有兜底文案',
+    fresh.identity.subtitle.length > 0, fresh.identity.subtitle)
 
   const storage = createMemoryStorage()
   const practiceVm = seedPractice(storage, { wrongFirstN: 4 })
@@ -405,28 +420,81 @@ function checkStatsViewModel() {
 
   const stats = new StatsViewModel({ storage }).load().data
 
-  assert('统计 - 已做题目数与交卷一致',
+  assert('复盘 - 总览口径与交卷一致',
     stats.overall.answered === practiceData.total, `${stats.overall.answered} / ${practiceData.total}`)
-  assert('统计 - 正确率与交卷一致',
+  assert('复盘 - 正确率与交卷一致',
     stats.overall.accuracy === Math.round((correctCount / practiceData.total) * 100),
     `${stats.overall.accuracy} vs ${correctCount}/${practiceData.total}`)
-  assert('统计 - 错题数与答错题数一致', stats.wrongCount === 4, `实际 ${stats.wrongCount}`)
-  assert('统计 - 雷达出图且有综合分',
-    stats.radar.hasData === true && stats.radar.dataUri.indexOf('data:image/svg+xml') === 0)
-  assert('统计 - 雷达长短项存在',
-    !!stats.radar.strongest && !!stats.radar.weakest &&
-    stats.radar.strongest.value >= stats.radar.weakest.value)
-  assert('统计 - 趋势图出图', stats.trend.dataUri.indexOf('data:image/svg+xml') === 0)
-  assert('统计 - 趋势今天有答题数', stats.trend.points[6].answered === practiceData.total,
-    JSON.stringify(stats.trend.points[6]))
-  assert('统计 - 每日汇总与趋势一致',
-    stats.daily.answered === stats.trend.points.reduce((sum, point) => sum + point.answered, 0))
-  assert('统计 - 连续天数至少 1', stats.daily.streak >= 1, `实际 ${stats.daily.streak}`)
-  assert('统计 - 科目进度按主题色', stats.subjectStats.every((item) => !!item.theme))
-  assert('统计 - 科目正确率分级有效',
-    stats.subjectStats.every((item) => ['good', 'mid', 'low', 'none'].indexOf(item.accuracyLevel) >= 0))
-  assert('统计 - 学习时长已结算', stats.studyTimeText !== '尚未开始', stats.studyTimeText)
+  assert('复盘 - 错题数与答错题数一致', stats.wrongCount === 4, `实际 ${stats.wrongCount}`)
+
+  // 错题本 / 收藏本两张入口卡：点进去是两个独立页面
+  assert('复盘 - 入口卡齐全',
+    stats.entries.wrong.title === '错题本' && stats.entries.favorite.title === '收藏本',
+    JSON.stringify(stats.entries))
+  assert('复盘 - 入口卡带 type 参数',
+    stats.entries.wrong.url.indexOf('type=wrong') > 0 &&
+    stats.entries.favorite.url.indexOf('type=favorite') > 0,
+    JSON.stringify({ wrong: stats.entries.wrong.url, favorite: stats.entries.favorite.url }))
+  assert('复盘 - 错题卡数字取待复习错题数',
+    stats.entries.wrong.value === '4', stats.entries.wrong.value)
+  assert('复盘 - 错题卡摘要是「近 7 天更新」而不是「新增」',
+    stats.entries.wrong.caption.indexOf('近 7 天更新') === 0, stats.entries.wrong.caption)
+  assert('复盘 - 没收藏时收藏卡给空态摘要',
+    stats.entries.favorite.value === '0' && stats.entries.favorite.caption === '还没有收藏',
+    JSON.stringify(stats.entries.favorite))
+  assert('复盘 - 全新用户两个入口卡都是 0',
+    fresh.entries.wrong.value === '0' && fresh.entries.favorite.value === '0',
+    JSON.stringify(fresh.entries))
+  assert('复盘 - 近 7 天答题量等于本次练习题量',
+    stats.metrics.answered === `${practiceData.total}`,
+    `${stats.metrics.answered} vs ${practiceData.total}`)
+  assert('复盘 - 近 7 天正确率等于本次正确率',
+    stats.metrics.accuracy === `${Math.round((correctCount / practiceData.total) * 100)}`,
+    stats.metrics.accuracy)
+  assert('复盘 - 学习时长已结算（分钟数 > 0）',
+    Number(stats.metrics.duration) > 0, `实际 ${stats.metrics.duration} 分`)
+  assert('复盘 - 趋势图出图', stats.trend.dataUri.indexOf('data:image/svg+xml') === 0)
+  assert('复盘 - 热力图标记为有数据', stats.activity.hasData === true)
+
+  // 区间切换：同一份存储，30 天与累计都应当不小于 7 天
+  const vm = new StatsViewModel({ storage })
+
+  vm.load()
+  const thirty = vm.setRange('30d')
+  const all = vm.setRange('all')
+
+  assert('复盘 - 切到近 30 天返回新数据', !!thirty && thirty.data.range === '30d')
+  assert('复盘 - 30 天答题量不少于 7 天',
+    Number(thirty.data.metrics.answered) >= Number(new StatsViewModel({ storage }).load().data.metrics.answered),
+    `${thirty.data.metrics.answered} vs 7 天`)
+  assert('复盘 - 切到累计返回新数据', !!all && all.data.range === 'all')
+  assert('复盘 - 累计答题量取全量而非日志',
+    all.data.metrics.answered === `${stats.overall.answered}`,
+    `${all.data.metrics.answered} vs ${stats.overall.answered}`)
+  assert('复盘 - 重复点同一个区间不重算', vm.setRange('all') === null)
+
+  // 切换区间不应该动热力图与身份（只重算数字与趋势）
+  assert('复盘 - 切区间不返回热力图字段',
+    thirty.data.activity === undefined && thirty.data.identity === undefined)
+
+  // 图表：空数据 / 单点不出图，两列以上才画
+  assert('图表 - 趋势图少于两点不出图',
+    chartSvg.buildAreaTrendSvg([]) === '' && chartSvg.buildAreaTrendSvg([{ value: 3 }]) === '')
+  assert('图表 - 趋势图有渐变面积与平滑曲线',
+    /url\(#areaFill\)/.test(chartSvg.buildAreaTrendSvg([{ value: 1 }, { value: 4 }, { value: 2 }])) &&
+    / C /.test(chartSvg.buildAreaTrendSvg([{ value: 1 }, { value: 4 }, { value: 2 }])))
+  assert('图表 - 热力图列数为 0 时不出图', chartSvg.buildHeatmapSvg({ columns: [] }) === '')
+
+  const heat = chartSvg.buildHeatmapSvg({
+    columns: [[{ level: 0 }, { level: 4 }, null, null, null, null, null]],
+    months: [{ col: 0, text: '10月' }]
+  })
+
+  assert('图表 - 热力图有空格子就不画（未来的日子）',
+    (heat.match(/<rect /g) || []).length === 2, `实际 ${(heat.match(/<rect /g) || []).length} 个`)
+  assert('图表 - 热力图带月份标签', heat.indexOf('10月') > 0)
 }
+
 
 // ---------- 八、偏好是否真的改变了答题行为 ----------
 function checkPreferenceEffects() {

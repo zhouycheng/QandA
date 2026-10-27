@@ -30,6 +30,19 @@ const PERIODS = [
   { from: 18, to: 23, text: '晚上好' }
 ]
 
+/**
+ * 封面图时段：早 / 中 / 晚 三张。
+ *
+ * 边界刻意和 PERIODS 不完全对齐 —— 图只有三张，而问候语有五档。
+ * 所以「中午好 + 下午好」共用正午图（11~18），「晚上好 + 夜深了」共用黄昏图（18~次日 5）。
+ * 两处都用同一份 hour，别在这里重算一遍时间，否则 18 点整会出现「说晚上好、却显示正午图」。
+ */
+const COVER_BY_DAY_PART = {
+  morning: '/assets/home/cover-morning.jpg',
+  noon: '/assets/home/cover-noon.jpg',
+  evening: '/assets/home/cover-evening.jpg'
+}
+
 function toTimestamp(timestamp) {
   const time = Number(timestamp)
 
@@ -48,6 +61,30 @@ function getDateText(timestamp) {
   const date = new Date(toTimestamp(timestamp))
 
   return `${date.getMonth() + 1} 月 ${date.getDate()} 日 ${WEEKDAYS[date.getDay()]}`
+}
+
+/**
+ * 时段档位（决定用哪张封面图）。
+ * 5~11 早、11~18 中、18~次日 5 晚。首尾相接、不留缝：
+ * 早期 PERIODS 用 5~11 / 11~13 / 13~18 相邻端点同值时，
+ * 11 点整会同时满足两段，靠 find 的先后顺序兜住——这里干脆写成显式区间。
+ */
+function getDayPart(timestamp) {
+  const hour = new Date(toTimestamp(timestamp)).getHours()
+
+  if (hour >= 5 && hour < 11) {
+    return 'morning'
+  }
+
+  if (hour >= 11 && hour < 18) {
+    return 'noon'
+  }
+
+  return 'evening'
+}
+
+function getCoverImage(timestamp) {
+  return COVER_BY_DAY_PART[getDayPart(timestamp)]
 }
 
 /**
@@ -136,10 +173,14 @@ function buildHomeTip(summary) {
  */
 function buildHomeContent(summary, timestamp) {
   const time = toTimestamp(timestamp)
+  const dayPart = getDayPart(time)
 
   return {
     greeting: getGreetingText(time),
     dateText: getDateText(time),
+    // 倒计时卡底图跟着时段走：早/中/晚三张，切 tab 回来时 onShow 会重算
+    dayPart,
+    coverImage: COVER_BY_DAY_PART[dayPart],
     advice: getGreetingAdvice(summary),
     // 每日一句：按当天日期取值，同一天稳定、次日自动更换
     quote: getDailyQuote(time).text,
@@ -150,9 +191,12 @@ function buildHomeContent(summary, timestamp) {
 module.exports = {
   TIP_ACTIONS,
   WEEKDAYS,
+  COVER_BY_DAY_PART,
   buildHomeContent,
   buildHomeTip,
+  getCoverImage,
   getDateText,
+  getDayPart,
   getGreetingAdvice,
   getGreetingText
 }

@@ -1,12 +1,16 @@
 /**
  * 交互静态审计：把「点不动 / 点了没反馈」能离线查出来的都查一遍。
  *
- * 查四件事：
+ * 查七件事：
  *   1. WXML 里每个 bindtap / bind:xxx / catchtap 的处理函数，在对应 JS 里是否真的定义了
  *   2. WXML 里每个 hover-class 的类名，在同页面可达的 WXSS 里是否有定义
  *      （app.wxss 全局 + 页面自己的 wxss + 该页声明的组件 wxss）
  *   3. 带 bindtap 的元素是否被 wx:if 挡住（提示性，不算失败）
  *   4. 是否存在「隐藏但仍占位」的全屏浮层（opacity:0 / visibility 而非 wx:if）——这类会吃掉全部点击
+ *   5. 点击探针（wrapTaps）是否都接上了、页名是否传对
+ *   6. scroll-view 内的按压反馈是否只改可插值属性（含 transform 就会让滚动区抖动）
+ *   7. 自定义组件的样式隔离：组件 wxml 用到的类名必须在组件自己的 wxss 里
+ *      （app.wxss / 页面样式对组件无效，漏了就是「点了毫无反应」，编译也不报错）
  */
 const fs = require('fs')
 const path = require('path')
@@ -216,6 +220,59 @@ if (shaking.length === 0) {
 } else {
   bad(`${shaking.length} 处滚动区域内的按压反馈会让画面抖动`, shaking.join('\n      '))
   console.log('      改法：去掉 transform，改用 background-color + box-shadow: inset 描边')
+}
+
+// ---------------------------------------------------------------------------
+// 5) 组件样式隔离：组件 wxml 里用到的类名，必须在组件自己的 wxss 里有定义。
+//    官方文档原文：「除继承样式外，app.wxss 中的样式、组件所在页面的样式对自定义组件无效」。
+//    所以组件里写 hover-class="card-hover"（只定义在 app.wxss）＝真机上点了毫无反馈，
+//    而且编译、页面级审计全都查不出来 —— 这条专门堵这个洞。
+//    （实测漏网：bank-list-item 的卡片按压、question-overview-sheet 的 .panel-btn.primary）
+
+console.log('\n=== 7) 组件内的类名是否都在组件自己的 wxss 里 ===\n')
+
+const isolatedLeaks = []
+const componentsDir = path.join(SRC, 'components')
+
+if (!fs.existsSync(componentsDir)) {
+  ok('没有 components/ 目录，跳过')
+} else {
+  for (const dir of fs.readdirSync(componentsDir)) {
+    const base = path.join(componentsDir, dir)
+    if (!fs.statSync(base).isDirectory()) continue
+
+    const wxmlPath = path.join(base, 'index.wxml')
+    const wxssPath = path.join(base, 'index.wxss')
+    if (!fs.existsSync(wxmlPath)) continue
+
+    const src = fs.readFileSync(wxmlPath, 'utf8')
+    const css = fs.existsSync(wxssPath)
+      ? fs.readFileSync(wxssPath, 'utf8').replace(/\/\*[\s\S]*?\*\//g, ' ')
+      : ''
+    const own = new Set([...css.matchAll(/\.(-?[_a-zA-Z][\w-]*)/g)].map((m) => m[1]))
+    const used = new Set()
+
+    // 动态类名（含 {{}}）跳过：那部分由状态决定，静态审计容易误报
+    for (const m of src.matchAll(/class="([^"]*)"/g)) {
+      if (m[1].includes('{{')) continue
+      m[1].split(/\s+/).filter(Boolean).forEach((c) => used.add(c))
+    }
+    for (const m of src.matchAll(/hover-class="([^"{]*?)"/g)) {
+      const cls = m[1].trim()
+      if (cls && cls !== 'none') used.add(cls)
+    }
+
+    for (const cls of used) {
+      if (!own.has(cls)) isolatedLeaks.push(`components/${dir}/index.wxml 用了 .${cls}，组件 wxss 里没有定义`)
+    }
+  }
+
+  if (isolatedLeaks.length === 0) {
+    ok('组件用到的类名都在组件自己的 wxss 里（不依赖 app.wxss / 页面样式）')
+  } else {
+    bad(`${isolatedLeaks.length} 处组件类名缺少本地样式`, isolatedLeaks.join('\n      '))
+    console.log('      改法：把这个类的规则复制进组件自己的 index.wxss')
+  }
 }
 
 // ---------------------------------------------------------------------------

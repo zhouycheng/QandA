@@ -18,6 +18,29 @@ const MINIPROGRAM = path.resolve(__dirname, '../miniprogram')
 const read = (relative) => fs.readFileSync(path.join(MINIPROGRAM, relative), 'utf8')
 const readJson = (relative) => JSON.parse(read(relative))
 
+/**
+ * 读 wxss 并把 @import 的内容就地展开。
+ * 页面把公共尺寸抽到 styles/*.wxss 之后，只读页面文件会漏掉真正的留白值。
+ */
+function readWithImports(relative, depth) {
+  const source = read(relative)
+  const level = Number(depth) || 0
+
+  if (level > 3) {
+    return source
+  }
+
+  return source.replace(/@import\s+"([^"]+)";/g, (whole, target) => {
+    const resolved = path.relative(MINIPROGRAM, path.resolve(path.join(MINIPROGRAM, path.dirname(relative)), target))
+
+    try {
+      return readWithImports(resolved, level + 1)
+    } catch (error) {
+      return ''
+    }
+  })
+}
+
 const tabBarJs = read('custom-tab-bar/index.js')
 const tabBarWxml = read('custom-tab-bar/index.wxml')
 const tabBarWxss = read('custom-tab-bar/index.wxss')
@@ -115,6 +138,8 @@ function checkSelectionSync() {
 function checkBottomSpace() {
   // 与 custom-tab-bar/index.wxss 的 .tabbar-wrap height 对应：
   // 底栏整体 232rpx + 40rpx 呼吸位。改底栏尺寸必须同步这里和四个页面，否则内容会被压住。
+  // 底栏在 2026-10-27 整体下移 24rpx（胶囊离底 40→16），实际需要的高度反而变小了，
+  // 预留值维持 272rpx 不动 —— 多留 60rpx 只会让内容更早结束，不会压住任何东西。
   const reserved = 272
 
   assert('留白 - tabBar 组件自身声明了高度',
@@ -149,10 +174,15 @@ function checkBottomSpace() {
     `文字顶到 ${labelBottom + labelHeight}rpx，圆钮底在 ${circleBottom}rpx`)
 
   // 通栏滚动的页面：靠根容器 padding 让位
+  // stats 用根 padding；my 改版后把让位放在底部协议链接上（设计稿 781:1922
+  // 的内容区是白底通栏，根容器不再有内边距），所以这里连 @import 一起读。
   ;['stats', 'my'].forEach((name) => {
-    const wxss = read(`page/${name}/index.wxss`)
+    const wxss = readWithImports(`page/${name}/index.wxss`)
     const matched = wxss.match(/\.[a-z-]*page\s*\{[^}]*padding:\s*[^;}]*?(\d+)rpx\s*;/)
-    const bottom = matched ? Number(matched[1]) : 0
+    const padded = matched ? Number(matched[1]) : 0
+    const bottoms = (wxss.match(/padding-bottom:\s*(\d+)rpx/g) || [])
+      .map((line) => Number((line.match(/(\d+)rpx/) || [])[1] || 0))
+    const bottom = Math.max(padded, ...(bottoms.length ? bottoms : [0]))
 
     assert(`留白 - ${name} 页底部预留 ≥ ${reserved}rpx`, bottom >= reserved, `实际 ${bottom}rpx`)
   })
@@ -224,6 +254,22 @@ function checkContinueButton() {
     circleTag.indexOf('继续答题') < 0 && circleTag.indexOf('continue-icon') >= 0,
     '文字还留在圆钮内部')
   assert('中央钮 - 文字是独立的 continue-label', tabBarWxml.indexOf('class="continue-label"') >= 0)
+
+  /*
+   * 真实出过的事故：`.continue-label` 用 left:0 + right:0 铺满整条底栏，
+   * 它和四个 tab 的标签同高、又是绝对定位且排在 tab 之后，
+   * 于是这一条 30rpx 高的带子盖住全部 tab 文字 —— 点「复盘」两个字，
+   * 实际触发的是 handleContinueTap，页面直接跳去答题页。用户报的就是这个。
+   * 所以宽度必须收在中央圆钮那一格里，禁止再用左右双向拉伸。
+   */
+  const labelBlock = (tabBarWxss.match(/\.continue-label\s*\{[^}]*\}/) || [''])[0]
+  const labelWidth = Number((labelBlock.match(/width:\s*(\d+)rpx/) || [])[1] || 0)
+
+  assert('中央钮 - 文字点击区不得铺满底栏（会吃掉四个 tab 的点击）',
+    !/right\s*:\s*0/.test(labelBlock) && labelWidth > 0 && labelWidth <= 140,
+    labelBlock.indexOf('right: 0') >= 0 ? '还在用 left:0 + right:0' : `宽度 ${labelWidth}rpx`)
+  assert('中央钮 - 文字点击区水平居中',
+    /left\s*:\s*50%/.test(labelBlock) && /margin-left\s*:\s*-?\d+rpx/.test(labelBlock))
   assert('中央钮 - 文字也能点击（与圆钮同一处理函数）',
     (tabBarWxml.match(/bindtap="handleContinueTap"/g) || []).length === 2,
     `实际 ${(tabBarWxml.match(/bindtap="handleContinueTap"/g) || []).length} 处`)
@@ -276,7 +322,10 @@ function checkNoOverlap() {
   const gap = Number(gapMatched[1])
   const screenWidth = 750
   const capsuleWidth = screenWidth - capsuleLeft - capsuleRight
-  const itemWidth = (capsuleWidth - gap) / 4
+  // .tabbar 的左右内边距也算进来：内宽变小，四格才等分
+  const paddingSide = Number((tabBarWxss.match(/\.tabbar\s*\{[^}]*?padding:\s*0\s+(\d+)rpx/) || [])[1] || 0)
+  const innerWidth = capsuleWidth - paddingSide * 2
+  const itemWidth = (innerWidth - gap) / 4
 
   // 圆钮用 left:50% + 负 margin 居中，换算到胶囊内部坐标
   const localCenter = screenWidth / 2 - capsuleLeft
@@ -284,7 +333,7 @@ function checkNoOverlap() {
   const buttonRight = localCenter + buttonWidth / 2
 
   const ranges = [0, 1, 2, 3].map((index) => {
-    const start = index * itemWidth + (index >= 2 ? gap : 0)
+    const start = paddingSide + index * itemWidth + (index >= 2 ? gap : 0)
 
     return { index, start, end: start + itemWidth }
   })

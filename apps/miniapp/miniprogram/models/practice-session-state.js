@@ -107,6 +107,10 @@ function serializeSession(rawSession) {
       }
     }),
     questionStates: questionIds.map((_, index) => pickValid(rawStates[index], VALID_QUESTION_STATES, QUESTION_STATE.UNANSWERED)),
+    // 标记同样只存 id；不属于本卷的脏 id 直接丢掉，否则答题卡会多出格子
+    markedIds: Array.isArray(session.markedIds)
+      ? session.markedIds.filter((id) => typeof id === 'string' && questionIds.indexOf(id) >= 0)
+      : [],
     elapsedTime: Math.max(Number(session.elapsedTime) || 0, 0),
     status: pickValid(session.status, VALID_SESSION_STATUS, SESSION_STATUS.IN_PROGRESS),
     syncStatus: pickValid(session.syncStatus, VALID_SYNC_STATUS, SYNC_STATUS.LOCAL_ONLY),
@@ -207,6 +211,10 @@ function normalizeSession(rawSession) {
       const answer = rawAnswers[index]
       return answer ? (answer.isCorrect ? QUESTION_STATE.CORRECT : QUESTION_STATE.WRONG) : QUESTION_STATE.UNANSWERED
     }),
+    // 历史版本没有这个字段：缺省成空数组即可，不需要迁移脚本
+    markedIds: Array.isArray(rawSession.markedIds)
+      ? rawSession.markedIds.filter((id) => typeof id === 'string' && questionIds.indexOf(id) >= 0)
+      : [],
     elapsedTime: Math.max(Number(rawSession.elapsedTime) || 0, 0),
     status: pickValid(rawSession.status, VALID_SESSION_STATUS, SESSION_STATUS.IN_PROGRESS),
     syncStatus: pickValid(rawSession.syncStatus, VALID_SYNC_STATUS, SYNC_STATUS.LOCAL_ONLY),

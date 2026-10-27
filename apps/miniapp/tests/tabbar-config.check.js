@@ -218,34 +218,30 @@ assert('统计页 - 正确率按已做计算', statsData.overall.accuracyText ==
 assert('统计页 - 完成度按总题量计算',
   statsData.overall.progressPercent === Math.round((2 / catalogStats.questionCount) * 100),
   String(statsData.overall.progressPercent))
-assert('统计页 - 列出全部科目',
-  statsData.subjectStats.length === catalogStats.subjectCount,
-  `${statsData.subjectStats.length} vs ${catalogStats.subjectCount}`)
 
-const chineseStat = statsData.subjectStats.find((item) => item.id === 'subject-chinese')
-assert('统计页 - 科目行带主题色', !!chineseStat && chineseStat.theme === 'chinese',
-  JSON.stringify(chineseStat && chineseStat.theme))
-assert('统计页 - 科目已做数正确',
-  !!chineseStat && chineseStat.answered === 2,
-  String(chineseStat && chineseStat.answered))
+// 复盘页把逐题进度换成了「区间 + 三个数字」，科目明细与历史最佳不再上页面，
+// 这里只守住它还留在 ViewModel 里的汇总口径（首页摘要也读它）
+assert('复盘页 - 待复习错题数', statsData.wrongCount === 1, String(statsData.wrongCount))
+assert('复盘页 - 收藏数', statsData.favoriteCount === 1, String(statsData.favoriteCount))
+assert('复盘页 - 三个数字齐全',
+  typeof statsData.metrics.answered === 'string' &&
+  typeof statsData.metrics.accuracy === 'string' &&
+  typeof statsData.metrics.duration === 'string',
+  JSON.stringify(statsData.metrics))
+assert('复盘页 - 热力图始终出图（没记录也是灰格子）',
+  statsData.activity.dataUri.indexOf('data:image/svg+xml') === 0)
 
-assert('统计页 - 待复习错题数', statsData.wrongCount === 1, String(statsData.wrongCount))
-assert('统计页 - 收藏数', statsData.favoriteCount === 1, String(statsData.favoriteCount))
-assert('统计页 - 历史最佳按分数倒序',
-  statsData.records.length === 1 && statsData.records[0].score === 80,
-  JSON.stringify(statsData.records))
-
-// 统计页是只读的：load 不应写入任何 storage 键
+// 复盘页是只读的：load 不应写入任何 storage 键
 const keysBefore = storage.keys().slice().sort().join(',')
 new StatsViewModel({ storage }).load()
-assert('统计页 - load 无写副作用',
+assert('复盘页 - load 无写副作用',
   storage.keys().slice().sort().join(',') === keysBefore,
   'load 过程改动了本地存储')
 
 // 空数据不应抛错
 const emptyData = new StatsViewModel({ storage: createMemoryStorage() }).load().data
-assert('统计页 - 空数据可用',
-  emptyData.overall.answered === 0 && emptyData.records.length === 0,
+assert('复盘页 - 空数据可用',
+  emptyData.overall.answered === 0 && emptyData.metrics.answered === '0' && emptyData.trend.hasData === false,
   JSON.stringify(emptyData.overall))
 
 // ---------- 输出 ----------

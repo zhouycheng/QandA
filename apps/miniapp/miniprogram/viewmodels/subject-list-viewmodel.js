@@ -36,6 +36,17 @@ const STUDY_ENTRIES = [
   }
 ]
 
+/** 一键模拟考试：抽题上限与时长下限（详见 openMock 注释） */
+const MOCK_EXAM_QUESTION_COUNT = 20
+const MOCK_EXAM_MIN_MINUTES = 10
+
+/** 每题 1 分钟，向上取整到 5 分钟倍数，保底下限 */
+function resolveMockDuration(count) {
+  const rounded = Math.ceil(Number(count) / 5) * 5
+
+  return Math.max(MOCK_EXAM_MIN_MINUTES, rounded)
+}
+
 function getInitialSubjectListViewData() {
   return {
     // 科目列表已归位到「题库」tab，首页只保留全局汇总，不再下发 subjects
@@ -46,6 +57,9 @@ function getInitialSubjectListViewData() {
       dateText: '',
       advice: '',
       quote: '',
+      // 封面图由 home-content 按时段给出（早/中/晚三张），初始值只是占位
+      dayPart: 'noon',
+      coverImage: '/assets/home/cover-noon.jpg',
       wrongCount: 0,
       studyTimeText: '尚未开始',
       tip: null
@@ -406,16 +420,86 @@ class SubjectListViewModel {
   }
 
   /**
-   * 模拟考试：沿用题库页「模拟测试」的入口。
-   * 首页不自己造题量与时长参数，避免和题库页的规则分叉。
+   * 模拟考试：一键直接开考，不再让用户先去题库选科目。
+   *
+   * 抽题规则（只此一处，题库页抽屉里用户手动确认的场合不适用）：
+   * - 科目：优先「上次练过的那科」，没练过就取题库第一个科目（与题库 tab 默认选中同源）
+   * - 题量：抽 MOCK_EXAM_QUESTION_COUNT 道，不够就按整科全量
+   * - 时长：每题 1 分钟，向上取整到 5 分钟，保底 MOCK_EXAM_MIN_MINUTES 分钟
    */
   openMock() {
-    return {
+    const subjectId = this.resolveMockSubjectId()
+    const empty = {
       command: {
         type: 'toast',
-        title: '在题库中选科目后点「模拟测试」开始'
+        title: '题库还是空的，先去题库导入'
       }
     }
+
+    if (!subjectId) {
+      return empty
+    }
+
+    const total = this.countSubjectQuestions(subjectId)
+
+    if (!total) {
+      return empty
+    }
+
+    const count = Math.min(MOCK_EXAM_QUESTION_COUNT, total)
+    const duration = resolveMockDuration(count)
+    const query = [
+      `subjectId=${encodeURIComponent(subjectId)}`,
+      'scope=subject',
+      'mode=test',
+      `count=${encodeURIComponent(count)}`,
+      `duration=${encodeURIComponent(duration)}`,
+      `seed=${Date.now()}`
+    ]
+
+    return {
+      command: {
+        type: 'openRouteWithLoading',
+        payload: {
+          url: `/page/practice/index?${query.join('&')}`,
+          title: '正在生成试卷',
+          description: `${this.getSubjectName(subjectId)} · ${count} 题 / ${duration} 分钟`
+        }
+      }
+    }
+  }
+
+  /** 模拟考试用哪科：上次练过优先，否则题库第一个科目 */
+  resolveMockSubjectId() {
+    const lastPractice = this.buildLastPractice(this.repository.getProgress(this.storage))
+    const meta = lastPractice && lastPractice.scopeKey
+      ? this.repository.getScopeMeta(lastPractice.scopeKey)
+      : null
+
+    if (meta && meta.subjectId) {
+      return meta.subjectId
+    }
+
+    const subjects = this.repository.getSubjectSummaries()
+    const usable = subjects.find((item) => Number(item.questionCount) > 0)
+
+    return usable ? usable.id : ''
+  }
+
+  countSubjectQuestions(subjectId) {
+    try {
+      const quiz = this.repository.getSubjectQuiz(subjectId)
+      return (quiz && quiz.questions) ? quiz.questions.length : 0
+    } catch (error) {
+      return 0
+    }
+  }
+
+  getSubjectName(subjectId) {
+    const subjects = this.repository.getSubjectSummaries()
+    const subject = subjects.find((item) => item.id === subjectId)
+
+    return subject ? subject.name : '模拟考试'
   }
 
   // ---------- 公告 ----------

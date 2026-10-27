@@ -1,26 +1,14 @@
-<view class="bank-item" bindtap="handleOpenTap" hover-class="card-hover" hover-start-time="0" hover-stay-time="200">
-  <view class="bank-head">
-    <text class="bank-unit">{{bank.unitText}}</text>
-    <text class="bank-arrow">›</text>
+<view
+  class="chapter-row {{bank.isComplete ? 'is-done' : ''}}"
+  bindtap="handleOpenTap"
+  hover-class="chapter-hover"
+  hover-start-time="0"
+  hover-stay-time="200"
+>
+  <view class="chapter-body">
+    <text class="chapter-title">{{bank.title}}</text>
   </view>
 
-  <text class="bank-name">{{bank.name}}</text>
-
-  <view class="bank-meta" wx:if="{{bank.stats}}">
-    <text class="meta-item">{{bank.stats.totalText}}</text>
-    <text class="meta-dot">·</text>
-    <text class="meta-item">已做 {{bank.stats.answered}}/{{bank.stats.total}}</text>
-    <text class="meta-dot">·</text>
-    <text class="meta-item">正确率 {{bank.stats.accuracyText}}</text>
-  </view>
-
-  <view class="bank-progress" wx:if="{{bank.stats}}">
-    <view class="progress-track">
-      <view
-        class="progress-fill fill-{{theme}} {{bank.stats.progressPercent >= 100 ? 'is-complete' : ''}}"
-        style="width: {{bank.stats.progressPercent}}%"
-      ></view>
-    </view>
-    <text class="progress-caption">{{bank.stats.answered}}/{{bank.stats.total}}</text>
-  </view>
+  <text class="chapter-meta">{{bank.metaText}}</text>
+  <text class="chapter-arrow">›</text>
 </view>

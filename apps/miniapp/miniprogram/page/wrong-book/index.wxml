@@ -1,69 +1,180 @@
-<view class="page wrong-book-page">
-  <view class="tabs card">
+<!-- 错题本 / 收藏本｜设计稿「错题本」「收藏本」两张画板
+     同一份结构承载两种模式：type=wrong 进错题本，type=favorite 进收藏本（由 ViewModel 决定文案与口径）。
+     返回用系统导航栏的返回钮（页内不再自绘，避免双层返回栏）；页内只留「居中标题 + 管理」。 -->
+<view class="list-page wb-page">
+  <view class="wb-head">
+    <view class="wb-head-spacer"></view>
+    <text class="wb-title">{{title}}</text>
     <view
-      wx:for="{{tabs}}"
-      wx:key="key"
-      class="tab {{activeTab === item.key ? 'active' : ''}}"
-      data-tab="{{item.key}}"
-      bindtap="onTabChange"
-      hover-class="tab-hover"
-      hover-start-time="0" hover-stay-time="200"
-    >
-      <text class="tab-text">{{item.text}}</text>
-      <text class="tab-count">{{item.count}}</text>
+      class="wb-manage {{manage ? 'is-on' : ''}}"
+      bindtap="handleManageTap"
+      hover-class="wb-manage-hover"
+      hover-start-time="0"
+      hover-stay-time="240"
+    >{{manage ? '完成' : '管理'}}</view>
+  </view>
+
+  <!-- ① 统计卡：标题 + 三指标 + 科目分布条 -->
+  <view class="stat-card">
+    <view class="stat-head">
+      <view class="stat-title-box">
+        <view class="stat-icon {{type}}"></view>
+        <text class="stat-title">{{statTitle}}</text>
+      </view>
+      <text class="stat-hint">{{statHint}}</text>
+    </view>
+
+    <view class="stat-row">
+      <view class="stat-item" wx:for="{{stats}}" wx:key="key">
+        <text class="stat-label">{{item.label}}</text>
+        <view class="stat-value">
+          <text class="stat-num">{{item.value}}</text>
+          <text class="stat-unit">{{item.unit}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="dist" wx:if="{{hasDist}}">
+      <view class="dist-bar">
+        <view class="dist-seg {{item.tone}}" wx:for="{{dist}}" wx:key="name" style="width: {{item.percent}}%"></view>
+      </view>
+      <view class="dist-legend">
+        <view class="dist-item" wx:for="{{dist}}" wx:key="name">
+          <text class="dist-name">{{item.name}}</text>
+          <text class="dist-count">{{item.count}}</text>
+        </view>
+      </view>
     </view>
   </view>
 
-  <view class="filters" wx:if="{{activeTab === 'wrong'}}">
+  <!-- ② 筛选行：科目下拉 + 排序切换 -->
+  <view class="filter-wrap">
+    <view class="filter-row">
+      <view
+        class="filter-subject"
+        bindtap="handleSubjectMenuTap"
+        hover-class="filter-hover"
+        hover-start-time="0"
+        hover-stay-time="240"
+      >
+        <text class="filter-strong">{{subjectFilterText}}</text>
+        <view class="filter-caret"></view>
+        <text class="filter-sep">·</text>
+        <text class="filter-weak">{{totalCount}} 题</text>
+      </view>
+      <view
+        class="filter-sort"
+        bindtap="handleSortTap"
+        hover-class="filter-hover"
+        hover-start-time="0"
+        hover-stay-time="240"
+      >
+        <view class="filter-sort-icon"></view>
+        <text class="filter-weak">{{sortText}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{subjectMenuOpen}}" class="subject-menu">
+      <view class="subject-mask" bindtap="handleSubjectMenuTap"></view>
+      <view class="subject-panel">
+        <view
+          class="subject-option {{subjectFilter === item.id ? 'is-active' : ''}}"
+          wx:for="{{subjectFilters}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="handleSubjectPick"
+          hover-class="subject-option-hover"
+          hover-start-time="0"
+          hover-stay-time="240"
+        >{{item.name}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ③ 状态筛选 -->
+  <view class="chips">
     <view
-      wx:for="{{filters}}"
+      class="chip {{activeChip === item.key ? 'is-active' : ''}}"
+      wx:for="{{chips}}"
       wx:key="key"
-      class="chip {{wrongFilter === item.key ? 'active' : ''}}"
-      data-filter="{{item.key}}"
-      bindtap="onFilterChange"
+      data-key="{{item.key}}"
+      bindtap="handleChipTap"
       hover-class="chip-hover"
-      hover-start-time="0" hover-stay-time="200"
+      hover-start-time="0"
+      hover-stay-time="240"
     >{{item.text}}</view>
   </view>
 
-  <view class="list stagger" wx:if="{{items.length}}">
-    <view wx:for="{{items}}" wx:key="id" class="q-card card anim-fade-up">
-      <view class="q-head">
-        <text class="q-number">{{item.number}}</text>
-        <text class="q-type">{{item.typeText}}</text>
-        <text class="q-flag" wx:if="{{item.mastered}}">已攻克</text>
-        <text class="q-flag favorite" wx:if="{{item.isFavorite}}">已收藏</text>
-      </view>
-
-      <text class="q-stem">{{item.stem}}</text>
-
-      <view class="q-meta">
-        <text class="q-source">{{item.sourceText}}</text>
-        <text class="q-stat" wx:if="{{activeTab === 'wrong'}}">{{item.metaText}}</text>
-      </view>
-
-      <view class="q-answer">
-        <text class="q-answer-label">正确答案</text>
-        <text class="q-answer-value">{{item.answerText}}</text>
-      </view>
-
-      <view class="q-actions">
-        <view class="q-action" data-id="{{item.id}}" bindtap="onToggleFavorite" hover-class="chip-hover" hover-start-time="0" hover-stay-time="200">
-          {{item.isFavorite ? '取消收藏' : '收藏'}}
+  <!-- ④ 题目卡片 -->
+  <view class="wb-list">
+    <view
+      class="q-card"
+      wx:for="{{items}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindtap="handleItemTap"
+      hover-class="q-card-hover"
+      hover-start-time="0"
+      hover-stay-time="240"
+    >
+      <view class="q-accent {{item.badgeTone}}"></view>
+      <view class="q-body">
+        <view class="q-top">
+          <text class="q-title">{{item.title}}</text>
+          <view
+            class="q-remove"
+            wx:if="{{manage}}"
+            data-id="{{item.id}}"
+            catchtap="handleRemoveTap"
+            hover-class="q-remove-hover"
+            hover-start-time="0"
+            hover-stay-time="240"
+          >移除</view>
+          <view class="q-chevron" wx:else></view>
         </view>
-        <view class="q-action danger" data-id="{{item.id}}" bindtap="onRemove" hover-class="chip-hover" hover-start-time="0" hover-stay-time="200">
-          {{activeTab === 'wrong' ? '移出错题本' : '取消收藏'}}
+        <text class="q-stem">{{item.stem}}</text>
+        <view class="q-meta">
+          <text class="q-badge {{item.badgeTone}}">{{item.badgeText}}</text>
+          <text class="q-type">{{item.typeText}}</text>
+          <text class="q-date" wx:if="{{item.dateText}}">{{item.dateText}}</text>
         </view>
       </view>
     </view>
   </view>
 
-  <view class="empty-block" wx:else>
-    <text>{{emptyText}}</text>
+  <view class="wb-empty" wx:if="{{!items.length}}">
+    <text class="wb-empty-text">{{emptyText}}</text>
   </view>
 
-  <view class="footer-bar" wx:if="{{currentCount}}">
-    <view class="footer-btn ghost" bindtap="handleClear" hover-class="btn-hover" hover-start-time="0" hover-stay-time="240">{{activeTab === 'wrong' ? '移除本组' : '清空收藏'}}</view>
-    <view class="footer-btn primary" bindtap="handlePractice" hover-class="btn-hover" hover-start-time="0" hover-stay-time="240">{{practiceText}}</view>
+  <!-- ⑤ 分页 -->
+  <view class="pager" wx:if="{{items.length}}">
+    <view
+      class="pager-btn"
+      bindtap="handlePrevPage"
+      hover-class="pager-btn-hover"
+      hover-start-time="0"
+      hover-stay-time="240"
+    >‹</view>
+    <text class="pager-text">{{pageText}}</text>
+    <text class="pager-index">{{page}} / {{pageCount}}</text>
+    <view
+      class="pager-btn"
+      bindtap="handleNextPage"
+      hover-class="pager-btn-hover"
+      hover-start-time="0"
+      hover-stay-time="240"
+    >›</view>
+  </view>
+
+  <!-- ⑥ 底部固定：主按钮 + 一句口径说明 -->
+  <view class="wb-footer">
+    <view
+      class="wb-footer-btn {{manage ? 'is-danger' : ''}}"
+      bindtap="handleFooterTap"
+      hover-class="wb-footer-hover"
+      hover-start-time="0"
+      hover-stay-time="240"
+    >{{manage ? (type === 'wrong' ? '清空错题本' : '清空收藏') : footerText}}</view>
+    <text class="wb-footer-hint">{{footerHint}}</text>
   </view>
 </view>

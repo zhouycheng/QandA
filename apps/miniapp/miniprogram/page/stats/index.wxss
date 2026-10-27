@@ -1,506 +1,312 @@
-/* 底部留 272rpx：自定义 tabBar 是页面内 fixed 组件，不占文档流，
-   留少了最后一张图表会被胶囊盖住。数值对应 tabbar 232rpx + 40rpx 呼吸位，
-   再叠加安全区（iPhone 的 Home 指示条）。 */
-.stats-page {
-  padding: 24rpx 24rpx 272rpx;
+@import "../../styles/list-page.wxss";
+
+/* 复盘页（设计稿「复盘」画板，402x874，系数 750/402 ≈ 1.8657）
+   页边距来自 styles/list-page.wxss，这里只写这一页独有的灰底、卡片与图表。
+   换算：22px 页边距 → 41rpx；14px 卡内边距 → 26rpx；12px 圆角 → 22rpx；
+        34px 分段高 → 63rpx；24px 指标数字 → 45rpx。
+
+   设计稿是「浅灰底 + 白卡」的层次，和「我的」那种纯白长页不一样：
+   标题和三指标直接落在底色上，只有热力图与趋势图各占一张白卡。 */
+
+.review-page {
+  background: #f4f5f9;
+  padding-bottom: 272rpx;
   padding-bottom: calc(272rpx + env(safe-area-inset-bottom));
 }
 
-/* ==================== 总览（环形进度） ==================== */
-.hero {
-  padding: 30rpx 28rpx 26rpx;
-  border-radius: 28rpx;
-  background: linear-gradient(135deg, #4f7dfb 0%, #2bb3fc 100%);
-  box-shadow: 0 16rpx 34rpx rgba(43, 127, 252, 0.28);
+.review-page .page-head {
+  height: 128rpx;
+  border-bottom: none;
+  background: transparent;
 }
 
-.hero-top {
-  display: flex;
-  align-items: center;
-}
-
-/* 环形进度：SVG 当背景图，尺寸与 viewBox 等比（240 × 240） */
-.hero-ring {
-  flex: none;
-  width: 200rpx;
-  height: 200rpx;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 100% 100%;
-}
-
-.hero-info {
-  flex: 1;
-  min-width: 0;
-  margin-left: 24rpx;
-}
-
-.hero-headline {
-  display: block;
-  font-size: 34rpx;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.hero-sub {
-  display: block;
-  margin-top: 10rpx;
-  font-size: 22rpx;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.82);
-}
-
-.hero-chips {
-  margin-top: 18rpx;
-  display: flex;
-  flex-wrap: wrap;
-  margin-right: -12rpx;
-}
-
-.hero-chip {
-  margin: 0 12rpx 10rpx 0;
-  padding: 8rpx 18rpx;
-  border-radius: 999rpx;
-  background: rgba(255, 255, 255, 0.2);
-  font-size: 21rpx;
-  color: #ffffff;
-}
-
-.hero-stats {
-  margin-top: 26rpx;
-  padding-top: 22rpx;
-  display: flex;
-  align-items: center;
-  border-top: 1rpx solid rgba(255, 255, 255, 0.22);
-}
-
-.hero-stat {
+.page-head-main {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  justify-content: center;
 }
 
-.hero-stat-value {
-  font-size: 36rpx;
-  font-weight: 700;
-  line-height: 1.1;
-  color: #ffffff;
-}
-
-.hero-stat-label {
-  margin-top: 8rpx;
+/* 身份行：学院 · 昵称，紧跟在标题下面，是标题的延伸而不是另一块内容 */
+.review-sub {
+  display: block;
+  margin-top: 4rpx;
   font-size: 21rpx;
-  color: rgba(255, 255, 255, 0.78);
+  line-height: 32rpx;
+  font-weight: 500;
+  color: #8b8f99;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-/* ==================== 区块通用 ==================== */
-.section {
-  margin-top: 36rpx;
+/* ---------- 区间切换 ---------- */
+
+.segmented {
+  display: flex;
+  align-items: center;
+  height: 63rpx;
+  margin-top: 8rpx;
+  padding: 6rpx;
+  box-sizing: border-box;
+  border-radius: 20rpx;
+  background: #ffffff;
 }
 
-.section-head {
+.seg {
+  flex: 1;
+  height: 51rpx;
+  border-radius: 15rpx;
+  font-size: 22rpx;
+  line-height: 51rpx;
+  font-weight: 500;
+  color: #6b7684;
+  text-align: center;
+  transition: background-color 0.16s ease, color 0.16s ease;
+}
+
+.seg-hover {
+  opacity: 0.7;
+}
+
+/* 选中态：蓝色胶囊 + 白字。蓝底白字对比度足够，不要再叠透明度 */
+.seg-active {
+  background: #466bff;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* ---------- 三个指标 ---------- */
+
+.metric-row {
+  display: flex;
+  align-items: flex-start;
+  margin-top: 30rpx;
+}
+
+.metric {
+  flex: 1;
+  min-width: 0;
+}
+
+.metric-label {
+  display: block;
+  font-size: 21rpx;
+  line-height: 32rpx;
+  font-weight: 500;
+  color: #8b8f99;
+}
+
+.metric-value {
   display: flex;
   align-items: baseline;
-  justify-content: space-between;
-  margin: 0 6rpx 18rpx;
+  margin-top: 2rpx;
 }
 
-.section-title {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: var(--text-main);
-}
-
-.section-note {
-  font-size: 22rpx;
-  color: var(--text-muted);
-}
-
-.chart-card {
-  padding: 24rpx 0 20rpx;
-  overflow: hidden;
-}
-
-.chart-empty {
-  padding: 60rpx 40rpx;
-  text-align: center;
-  font-size: 24rpx;
-  line-height: 1.6;
-  color: var(--text-muted);
-}
-
-.chart-empty.plain {
-  padding: 60rpx 24rpx;
-  background: var(--card);
-  border-radius: 24rpx;
-  box-shadow: 0 6rpx 24rpx rgba(31, 42, 55, 0.06);
-}
-
-/* ==================== 雷达图 ==================== */
-.radar-head {
-  padding: 0 26rpx 8rpx;
-  display: flex;
-  align-items: center;
-}
-
-.radar-score {
-  flex: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 10rpx 26rpx 10rpx 0;
-  border-right: 1rpx solid var(--line);
-}
-
-.radar-score-value {
-  font-size: 56rpx;
+.metric-num {
+  font-size: 45rpx;
+  line-height: 62rpx;
   font-weight: 700;
-  line-height: 1;
-  color: var(--brand);
+  color: #141820;
 }
 
-.radar-score-label {
-  margin-top: 8rpx;
+.metric-unit {
+  margin-left: 3rpx;
   font-size: 21rpx;
-  color: var(--text-muted);
+  line-height: 32rpx;
+  font-weight: 600;
+  color: #141820;
 }
 
-.radar-tags {
+/* ---------- 错题本 / 收藏本入口卡 ---------- */
+
+.entry-row {
+  display: flex;
+  margin-top: 26rpx;
+}
+
+.entry-card {
   flex: 1;
   min-width: 0;
+  padding: 22rpx 22rpx 24rpx;
+  box-sizing: border-box;
+  border-radius: 22rpx;
+  transition: opacity 0.1s ease;
+}
+
+/* 两张卡一左一右，右边固定 margin-left 而不是 gap —— WXSS 的 gap 在旧机型上不生效 */
+.entry-card + .entry-card {
   margin-left: 24rpx;
 }
 
-.radar-tag {
+.entry-card-hover {
+  opacity: 0.72;
+}
+
+.entry-wrong {
+  background: #fdeef0;
+}
+
+.entry-favorite {
+  background: #eef3ff;
+}
+
+.entry-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 10rpx 18rpx;
-  border-radius: 14rpx;
 }
 
-.radar-tag + .radar-tag {
-  margin-top: 12rpx;
+.entry-icon {
+  flex: none;
+  width: 26rpx;
+  height: 26rpx;
+  margin-right: 8rpx;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
 }
 
-.radar-tag-key {
+.entry-icon-wrong {
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIxLjciIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTQgNS42QTIuNiAyLjYgMCAwIDEgNi42IDNIMTl2MTVINi42QTIuNiAyLjYgMCAwIDAgNCAyMC42eiIgc3Ryb2tlPSIjRTA2NTZGIi8+PHBhdGggZD0iTTQgMjAuNkEyLjYgMi42IDAgMCAxIDYuNiAxOEgxOXYzSDYuNkEyLjYgMi42IDAgMCAxIDQgMjAuNnoiIHN0cm9rZT0iI0UwNjU2RiIvPjxsaW5lIHgxPSIxMS40IiB5MT0iNy40IiB4Mj0iMTEuNCIgeTI9IjEyLjIiIHN0cm9rZT0iI0UwNjU2RiIvPjxjaXJjbGUgY3g9IjExLjQiIGN5PSIxNC45IiByPSIwLjkiIGZpbGw9IiNFMDY1NkYiIHN0cm9rZT0ibm9uZSIvPjwvc3ZnPg==");
+}
+
+.entry-icon-favorite {
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIxLjciIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTYuNiAzLjZoMTAuOHYxNi44TDEyIDE1LjlsLTUuNCA0LjV6IiBzdHJva2U9IiM0NjZCRkYiLz48L3N2Zz4=");
+}
+
+.entry-title {
   font-size: 21rpx;
-}
-
-.radar-tag-value {
-  font-size: 23rpx;
+  line-height: 32rpx;
   font-weight: 600;
+  color: #8b8f99;
 }
 
-.tag-good {
-  background: #e9fbf1;
-}
-
-.tag-good .radar-tag-key {
-  color: #0e8c53;
-}
-
-.tag-good .radar-tag-value {
-  color: #0e8c53;
-}
-
-.tag-weak {
-  background: #fff5e6;
-}
-
-.tag-weak .radar-tag-key {
-  color: #b25e00;
-}
-
-.tag-weak .radar-tag-value {
-  color: #b25e00;
-}
-
-/* 620 × 410 的 viewBox 按 702rpx 展示，高度等比放大 */
-.radar-chart {
-  width: 100%;
-  height: 464rpx;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 100% 100%;
-}
-
-/* ==================== 趋势图 ==================== */
-.trend-chart {
-  width: 100%;
-  height: 329rpx;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 100% 100%;
-}
-
-.legend {
-  margin-top: 14rpx;
-  padding: 0 26rpx;
+.entry-value {
   display: flex;
-  align-items: center;
+  align-items: baseline;
+  margin-top: 8rpx;
 }
 
-.legend-item {
-  display: flex;
-  align-items: center;
-  margin-right: 32rpx;
+.entry-num {
+  font-size: 38rpx;
+  line-height: 52rpx;
+  font-weight: 700;
+  color: #141820;
 }
 
-.legend-dot {
-  width: 18rpx;
-  height: 18rpx;
-  border-radius: 50%;
-  margin-right: 10rpx;
+.entry-unit {
+  margin-left: 4rpx;
+  font-size: 20rpx;
+  line-height: 30rpx;
+  font-weight: 600;
+  color: #141820;
 }
 
-.dot-answered {
-  background: #2b7ffc;
+.entry-caption {
+  display: block;
+  margin-top: 4rpx;
+  font-size: 19rpx;
+  line-height: 28rpx;
+  font-weight: 500;
+  color: #a0a5af;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-.dot-correct {
-  background: #17b26a;
+/* ---------- 图表白卡 ---------- */
+
+.block {
+  margin-top: 26rpx;
+  padding: 26rpx 26rpx 22rpx;
+  border-radius: 26rpx;
+  background: #ffffff;
 }
 
-.legend-text {
-  font-size: 22rpx;
-  color: var(--text-muted);
-}
-
-/* ==================== 科目进度 ==================== */
-.subject-list {
-  padding: 8rpx 26rpx;
-}
-
-.subject-row {
-  padding: 24rpx 0;
-}
-
-.subject-row + .subject-row {
-  border-top: 1rpx solid var(--line);
-}
-
-.subject-head {
+.block-head {
   display: flex;
   align-items: center;
   margin-bottom: 16rpx;
 }
 
-.subject-dot {
-  flex: none;
-  width: 16rpx;
-  height: 16rpx;
-  border-radius: 50%;
-  margin-right: 14rpx;
-}
-
-.dot-chinese {
-  background: #f04438;
-}
-
-.dot-mental {
-  background: #17b26a;
-}
-
-.dot-english {
-  background: #2b7ffc;
-}
-
-.dot-user {
-  background: #6941c6;
-}
-
-.subject-name {
-  flex: 1;
-  min-width: 0;
+.block-title {
   font-size: 28rpx;
-  font-weight: 600;
-  color: var(--text-main);
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.subject-meta {
-  flex: none;
-  margin-left: 12rpx;
-  font-size: 22rpx;
-  color: var(--text-muted);
-}
-
-.subject-accuracy {
-  flex: none;
-  margin-left: 14rpx;
-  padding: 4rpx 14rpx;
-  border-radius: 999rpx;
-  font-size: 22rpx;
-  font-weight: 600;
-}
-
-.acc-good {
-  color: #0e8c53;
-  background: #e9fbf1;
-}
-
-.acc-mid {
-  color: #b25e00;
-  background: #fff5e6;
-}
-
-.acc-low {
-  color: #b42318;
-  background: #fef3f2;
-}
-
-.acc-none {
-  color: var(--text-muted);
-  background: #f2f4f7;
-}
-
-.progress-track {
-  height: 12rpx;
-  border-radius: 999rpx;
-  background: #eef2f8;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  border-radius: 999rpx;
-  background: linear-gradient(90deg, #53b1fd, #2b7ffc);
-  transition: width 0.3s ease;
-}
-
-/* 科目主题色，与首页横幅、题库列表保持一致 */
-.fill-chinese {
-  background: linear-gradient(90deg, #f97066, #f04438);
-}
-
-.fill-mental {
-  background: linear-gradient(90deg, #32d583, #17b26a);
-}
-
-.fill-english {
-  background: linear-gradient(90deg, #53b1fd, #2b7ffc);
-}
-
-.fill-user {
-  background: linear-gradient(90deg, #9b8afb, #6941c6);
-}
-
-/* ==================== 错题与收藏 ==================== */
-.grid {
-  display: flex;
-}
-
-.grid-item {
-  flex: 1;
-  min-width: 0;
-  padding: 24rpx 0 22rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.grid-item + .grid-item {
-  margin-left: 16rpx;
-}
-
-.grid-icon {
-  width: 44rpx;
-  height: 44rpx;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 100% 100%;
-}
-
-.grid-icon-wrong {
-  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2U9IiNmMDQ0MzgiIHN0cm9rZS13aWR0aD0iMiI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iOSIvPjxsaW5lIHgxPSI5LjIiIHkxPSI5LjIiIHgyPSIxNC44IiB5Mj0iMTQuOCIvPjxsaW5lIHgxPSIxNC44IiB5MT0iOS4yIiB4Mj0iOS4yIiB5Mj0iMTQuOCIvPjwvc3ZnPg==");
-}
-
-.grid-icon-done {
-  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2U9IiMxN2IyNmEiIHN0cm9rZS13aWR0aD0iMiI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iOSIvPjxwb2x5bGluZSBwb2ludHM9IjcuOCAxMi4zIDEwLjcgMTUuMiAxNi4yIDkuNCIvPjwvc3ZnPg==");
-}
-
-.grid-icon-star {
-  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2Y3OTAwOSIgc3Ryb2tlPSIjZjc5MDA5IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwb2x5Z29uIHBvaW50cz0iMTIgMi42IDE1LjEgOC42IDIxLjggOS42IDE2LjkgMTQuMyAxOC4xIDIxIDEyIDE3LjggNS45IDIxIDcuMSAxNC4zIDIuMiA5LjYgOC45IDguNiAxMiAyLjYiLz48L3N2Zz4=");
-}
-
-.grid-value {
-  margin-top: 14rpx;
-  font-size: 40rpx;
+  line-height: 40rpx;
   font-weight: 700;
-  line-height: 1.1;
+  color: #141820;
 }
 
-.value-danger {
-  color: #f04438;
+.block-caption {
+  margin-left: auto;
+  font-size: 20rpx;
+  line-height: 32rpx;
+  font-weight: 500;
+  color: #8b8f99;
 }
 
-.value-success {
-  color: #17b26a;
+/* 两张图都按宽度铺满：SVG 的 viewBox 比例固定，宽度交给容器 */
+.heatmap {
+  display: block;
+  width: 100%;
 }
 
-.value-warning {
-  color: #f79009;
+/* 趋势图给固定高度：mode="widthFix" 会让 640x240 的图在 600rpx 宽时压得很扁，
+   曲线糊成一条。190rpx ≈ 设计稿里 100px 的绘图区高度。 */
+.trend-chart {
+  display: block;
+  width: 100%;
+  height: 190rpx;
 }
 
-.grid-label {
-  margin-top: 6rpx;
+/* ---------- 热力图图例 ---------- */
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 12rpx;
+}
+
+.legend-text {
+  font-size: 19rpx;
+  line-height: 28rpx;
+  color: #8b8f99;
+}
+
+.legend-cell {
+  width: 22rpx;
+  height: 22rpx;
+  margin: 0 4rpx;
+  border-radius: 5rpx;
+}
+
+.legend-cell.lv-0 {
+  background: #f0f2f5;
+}
+
+.legend-cell.lv-1 {
+  background: #dbe6ff;
+}
+
+.legend-cell.lv-2 {
+  background: #b8cdff;
+}
+
+.legend-cell.lv-3 {
+  background: #8aabfc;
+}
+
+.legend-cell.lv-4 {
+  background: #4f7dfb;
+}
+
+/* ---------- 空态 ---------- */
+
+.chart-empty {
+  padding: 40rpx 0;
   font-size: 21rpx;
-  color: var(--text-muted);
-}
-
-/* ==================== 历史最佳 ==================== */
-.records {
-  padding: 8rpx 26rpx;
-}
-
-.record-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 24rpx 0;
-}
-
-.record-row + .record-row {
-  border-top: 1rpx solid var(--line);
-}
-
-.record-title {
-  flex: 1;
-  min-width: 0;
-  font-size: 27rpx;
-  color: var(--text-sub);
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.record-score {
-  flex: none;
-  margin-left: 20rpx;
-  min-width: 92rpx;
-  padding: 8rpx 0;
+  line-height: 34rpx;
+  color: #8b8f99;
   text-align: center;
-  border-radius: 999rpx;
-  font-size: 26rpx;
-  font-weight: 700;
-}
-
-.score-good {
-  color: #0e8c53;
-  background: #e9fbf1;
-}
-
-.score-mid {
-  color: #b25e00;
-  background: #fff5e6;
-}
-
-.score-low {
-  color: #b42318;
-  background: #fef3f2;
 }

@@ -1,98 +1,144 @@
-<view class="page my-page stagger">
+<!-- 我的｜设计稿 Figma 781:1922（画板 402x874，系数 750/402 ≈ 1.8657）
+     页内大标题 + 资料头 + 账号管理 + 学习设置 + 其他 + 法律协议。 -->
+<view class="list-page">
+  <view class="page-head">
+    <text class="page-head-title">我的</text>
+  </view>
+
+  <!-- 资料头：未登录点它去登录，已登录进账号管理 -->
   <view
-    class="profile anim-fade-up"
-    bindtap="handleOpenLogin"
-    hover-class="card-hover"
+    class="profile"
+    bindtap="handleProfileTap"
+    hover-class="profile-hover"
     hover-start-time="0"
     hover-stay-time="240"
   >
     <view class="profile-avatar">
       <image class="profile-avatar-img" src="{{auth.avatarUrl}}" mode="aspectFill" wx:if="{{auth.avatarUrl}}"></image>
-      <view class="mi-icon mi-user" wx:else></view>
+      <view class="avatar-icon" wx:else></view>
     </view>
     <view class="profile-main">
       <text class="profile-name">{{auth.displayName}}</text>
-      <text class="profile-sub">{{auth.loggedIn ? '微信登录 · 数据仅存本机' : '点击登录 · 数据仅存本机'}}</text>
-    </view>
-    <view class="profile-badge">{{version}}</view>
-  </view>
-
-  <view class="snapshot card anim-fade-up">
-    <view class="snapshot-item">
-      <text class="snapshot-value">{{questionCount}}</text>
-      <text class="snapshot-label">题库题目</text>
-    </view>
-    <view class="snapshot-divider"></view>
-    <view class="snapshot-item">
-      <text class="snapshot-value value-danger">{{wrongCount}}</text>
-      <text class="snapshot-label">待复习错题</text>
-    </view>
-    <view class="snapshot-divider"></view>
-    <view class="snapshot-item">
-      <text class="snapshot-value value-warning">{{favoriteCount}}</text>
-      <text class="snapshot-label">我的收藏</text>
+      <text class="profile-sub" wx:if="{{auth.loggedIn}}">{{auth.subText}}</text>
+      <text class="profile-sub" wx:else>{{auth.accountTag}}</text>
+      <text class="profile-meta">{{auth.metaText}}</text>
     </view>
   </view>
 
-  <view class="section anim-fade-up">
-    <text class="section-title">设置</text>
+  <view
+    class="pill-row"
+    bindtap="handleAccountTap"
+    hover-class="pill-row-hover"
+    hover-start-time="0"
+    hover-stay-time="240"
+  >
+    <text class="pill-row-label">账号管理</text>
+    <text class="pill-row-value">个人信息与安全</text>
+    <view class="chevron"></view>
+  </view>
 
-    <view class="menu card">
-      <view class="menu-row" data-focus="practice" bindtap="handleOpenSettings" hover-class="row-hover" hover-start-time="0" hover-stay-time="200">
-        <view class="mi-tile mi-tile-switch">
-          <view class="mi-icon mi-switch"></view>
-        </view>
-        <view class="menu-main">
-          <text class="menu-title">学习偏好</text>
-          <text class="menu-desc">解析展示、自动翻页、答题卡与字号</text>
-        </view>
-        <text class="menu-arrow">›</text>
-      </view>
-
-      <view class="menu-row" data-focus="account" bindtap="handleOpenSettings" hover-class="row-hover" hover-start-time="0" hover-stay-time="200">
-        <view class="mi-tile mi-tile-shield">
-          <view class="mi-icon mi-shield"></view>
-        </view>
-        <view class="menu-main">
-          <text class="menu-title">账户与安全</text>
-          <text class="menu-desc">修改密码、更换邮箱与登录状态</text>
-        </view>
-        <text class="menu-tag">{{auth.accountTag}}</text>
-        <text class="menu-arrow">›</text>
-      </view>
-
-      <view class="menu-row" bindtap="handleClearRecords" hover-class="row-hover" hover-start-time="0" hover-stay-time="200">
-        <view class="mi-tile mi-tile-trash">
-          <view class="mi-icon mi-trash"></view>
-        </view>
-        <view class="menu-main">
-          <text class="menu-title">清空学习数据</text>
-          <text class="menu-desc">进度、错题、收藏、时长一并清除</text>
-        </view>
-        <text class="menu-arrow">›</text>
-      </view>
+  <view class="group">
+    <text class="group-title">学习设置</text>
+    <view
+      class="row"
+      wx:for="{{learnRows}}"
+      wx:key="key"
+      data-key="{{item.key}}"
+      bindtap="handleRowTap"
+      hover-class="row-hover"
+      hover-start-time="0"
+      hover-stay-time="240"
+    >
+      <text class="row-label">{{item.title}}</text>
+      <text class="row-value">{{item.value}}</text>
+      <view class="chevron"></view>
     </view>
   </view>
 
-  <view class="section anim-fade-up">
-    <text class="section-title">关于</text>
-
-    <view class="menu card">
-      <view class="menu-row" data-focus="about" bindtap="handleOpenSettings" hover-class="row-hover" hover-start-time="0" hover-stay-time="200">
-        <view class="mi-tile mi-tile-info">
-          <view class="mi-icon mi-info"></view>
-        </view>
-        <view class="menu-main">
-          <text class="menu-title">QandA 刷题</text>
-          <text class="menu-desc">版本信息与题库规模</text>
-        </view>
-        <text class="menu-value">{{version}}</text>
-        <text class="menu-arrow">›</text>
-      </view>
+  <view class="group">
+    <text class="group-title">其他</text>
+    <view
+      class="row"
+      wx:for="{{otherRows}}"
+      wx:key="key"
+      data-key="{{item.key}}"
+      bindtap="handleRowTap"
+      hover-class="row-hover"
+      hover-start-time="0"
+      hover-stay-time="240"
+    >
+      <text class="row-label">{{item.title}}</text>
+      <text class="row-value" wx:if="{{item.value}}">{{item.value}}</text>
+      <view class="chevron"></view>
     </view>
+  </view>
 
-    <view class="footer-note">
-      <text>练习进度与错题都保存在本机，不上传服务端</text>
-    </view>
+  <view class="links">
+    <text
+      class="link"
+      data-key="agreement"
+      bindtap="handleRowTap"
+      hover-class="link-hover"
+      hover-start-time="0"
+      hover-stay-time="240"
+    >用户协议</text>
+    <view class="link-divider"></view>
+    <text
+      class="link"
+      data-key="privacy"
+      bindtap="handleRowTap"
+      hover-class="link-hover"
+      hover-start-time="0"
+      hover-stay-time="240"
+    >隐私政策</text>
   </view>
 </view>
+
+<!-- 居中弹窗：自定义 tabBar 是独立图层，底部弹层会被它压住 -->
+<bottom-sheet
+  visible="{{sheet !== ''}}"
+  title="{{sheetTitle}}"
+  placement="center"
+  bind:close="handleSheetClose"
+>
+  <view wx:if="{{sheet === 'about'}}">
+    <view class="about-line">
+      <text class="about-label">版本</text>
+      <text class="about-value">{{about.version || '—'}}</text>
+    </view>
+    <view class="about-line">
+      <text class="about-label">题库题量</text>
+      <text class="about-value">{{about.questionCount}} 题</text>
+    </view>
+    <view class="about-line">
+      <text class="about-label">题库覆盖</text>
+      <text class="about-value">{{about.subjectCount}} 个科目 · {{about.bankCount}} 个题库</text>
+    </view>
+    <view class="about-line">
+      <text class="about-label">技术形态</text>
+      <text class="about-value">原生小程序 · 零依赖零构建</text>
+    </view>
+    <view
+      class="about-line"
+      wx:if="{{about.playgroundEnabled}}"
+      bindtap="handlePlaygroundTap"
+      hover-class="row-hover"
+      hover-start-time="0"
+      hover-stay-time="240"
+    >
+      <text class="about-label">开发者 Playground</text>
+      <view class="chevron"></view>
+    </view>
+  </view>
+  <text class="sheet-text" wx:else>{{sheetBody}}</text>
+
+  <view class="sheet-actions">
+    <view
+      class="bottom-btn"
+      bindtap="handleSheetClose"
+      hover-class="bottom-btn-hover"
+      hover-start-time="0"
+      hover-stay-time="240"
+    >知道了</view>
+  </view>
+</bottom-sheet>

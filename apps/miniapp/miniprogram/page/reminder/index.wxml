@@ -1,0 +1,166 @@
+<!-- 邮箱提醒｜设计稿 Figma 781:2043（画板 402x874，系数 750/402 ≈ 1.8657）
+     总开关 + 定时复习 + 考试提醒 + 提前提醒，设置即时落盘。 -->
+<view class="list-page page-with-bottom-bar">
+  <view class="switch-row switch-row-tall">
+    <view class="row-main">
+      <text class="row-label">允许邮箱提醒</text>
+      <text class="row-desc">发送至 {{emailMasked || '未绑定邮箱'}}</text>
+    </view>
+    <switch
+      class="switch"
+      checked="{{enabled}}"
+      color="#466BFF"
+      data-key="enabled"
+      bindchange="handleSwitchChange"
+    />
+  </view>
+
+  <view class="group">
+    <text class="group-title">定时复习</text>
+
+    <view class="switch-row">
+      <text class="row-label">定时复习</text>
+      <switch
+        class="switch"
+        checked="{{reviewEnabled}}"
+        color="#466BFF"
+        data-key="reviewEnabled"
+        bindchange="handleSwitchChange"
+      />
+    </view>
+
+    <picker mode="time" value="{{reviewTime}}" bindchange="handleTimeChange">
+      <view class="row" hover-class="row-hover" hover-start-time="0" hover-stay-time="240">
+        <text class="row-label">提醒时间</text>
+        <text class="row-value">{{reviewTime}}</text>
+        <view class="chevron"></view>
+      </view>
+    </picker>
+
+    <picker
+      mode="selector"
+      range="{{frequencyOptions}}"
+      value="{{frequencyIndex}}"
+      bindchange="handleFrequencyChange"
+    >
+      <view class="row" hover-class="row-hover" hover-start-time="0" hover-stay-time="240">
+        <text class="row-label">重复频率</text>
+        <text class="row-value">{{frequencyLabel}}</text>
+        <view class="chevron"></view>
+      </view>
+    </picker>
+  </view>
+
+  <view class="group">
+    <view class="switch-row">
+      <text class="row-label">考试提醒</text>
+      <switch
+        class="switch"
+        checked="{{examEnabled}}"
+        color="#466BFF"
+        data-key="examEnabled"
+        bindchange="handleSwitchChange"
+      />
+    </view>
+
+    <text class="exam-title">我的考试</text>
+
+    <view
+      class="exam-row"
+      wx:for="{{exams}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      data-name="{{item.name}}"
+      bindtap="handleExamTap"
+      hover-class="row-hover"
+      hover-start-time="0"
+      hover-stay-time="240"
+    >
+      <text class="row-label">{{item.name}}</text>
+      <text class="exam-date">{{item.dateText}}</text>
+      <view
+        class="status-pill {{item.statusTone === 'upcoming' ? 'status-pill-upcoming' : ''}} {{item.statusTone === 'today' ? 'status-pill-today' : ''}}"
+      >{{item.statusText}}</view>
+    </view>
+
+    <text class="exam-empty" wx:if="{{examCount === 0}}">还没有考试，添加后会在考试前提醒你</text>
+
+    <view
+      class="add-btn"
+      bindtap="handleAddExamTap"
+      hover-class="add-btn-hover"
+      hover-start-time="0"
+      hover-stay-time="240"
+    >+ 添加考试</view>
+
+    <view class="advance">
+      <text class="advance-label">提前提醒</text>
+      <view class="checkbox-row">
+        <view
+          class="checkbox-item"
+          wx:for="{{advanceOptions}}"
+          wx:key="value"
+          data-value="{{item.value}}"
+          bindtap="handleAdvanceTap"
+          hover-class="checkbox-hover"
+          hover-start-time="0"
+          hover-stay-time="240"
+        >
+          <view class="checkbox {{item.checked ? 'checkbox-checked' : ''}}">
+            <view class="checkbox-check" wx:if="{{item.checked}}"></view>
+          </view>
+          <text class="checkbox-label">{{item.label}}</text>
+        </view>
+      </view>
+      <text class="checkbox-hint">已结束的考试不再发送提醒</text>
+    </view>
+  </view>
+</view>
+
+<view class="bottom-bar">
+  <view
+    class="bottom-btn"
+    bindtap="handleSaveTap"
+    hover-class="bottom-btn-hover"
+    hover-start-time="0"
+    hover-stay-time="240"
+  >保存设置</view>
+</view>
+
+<!-- 添加考试：居中弹窗，避免被系统键盘和底部固定按钮挤在一起 -->
+<bottom-sheet
+  visible="{{addSheetVisible}}"
+  title="添加考试"
+  placement="center"
+  bind:close="handleAddSheetClose"
+>
+  <view class="field">
+    <text class="field-label">考试名称</text>
+    <input
+      class="field-input"
+      type="text"
+      value="{{examDraftName}}"
+      placeholder="如：大学语文 / 期末考试"
+      placeholder-class="field-placeholder"
+      maxlength="20"
+      bindblur="handleExamNameBlur"
+    />
+  </view>
+
+  <view class="field">
+    <text class="field-label">考试日期</text>
+    <picker mode="date" value="{{examDraftDate}}" bindchange="handleExamDateChange">
+      <view class="picker-value">{{examDraftDate}}</view>
+    </picker>
+  </view>
+
+  <view class="sheet-actions">
+    <view
+      class="bottom-btn"
+      bindtap="handleAddExamConfirm"
+      hover-class="bottom-btn-hover"
+      hover-start-time="0"
+      hover-stay-time="240"
+    >添加</view>
+  </view>
+</bottom-sheet>

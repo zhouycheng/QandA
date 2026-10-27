@@ -29,18 +29,22 @@ Page(wrapTaps({
     const pendingSubjectId = app && app.consumePendingSubjectId
       ? app.consumePendingSubjectId()
       : ''
-    const subjectId = pendingSubjectId || this.data.subjectId
 
     if (!this.hasLoadedOnce) {
       this.hasLoadedOnce = true
-      this.applyViewModelResult(this.viewModel.load(subjectId))
+      this.applyViewModelResult(this.viewModel.load(pendingSubjectId || this.data.subjectId))
       return
     }
 
-    // 从答题页返回或跨 tab 切换时刷新进度统计
-    if (subjectId) {
-      this.applyViewModelResult(this.viewModel.switchSubject(subjectId))
+    // 从答题页返回或跨 tab 切换时刷新进度统计。
+    // 「最近在刷」是一个视图状态，刷新时不能把它顶回普通科目（否则列表会在
+    // 用户没做任何操作的情况下跳走），所以交给 refresh 按当前状态决定。
+    if (pendingSubjectId) {
+      this.applyViewModelResult(this.viewModel.switchSubject(pendingSubjectId))
+      return
     }
+
+    this.applyViewModelResult(this.viewModel.refresh(this.data))
   },
 
   /**
@@ -60,8 +64,8 @@ Page(wrapTaps({
 
   /**
    * 弹层打开时收起底栏。
-   * 抽题设置面板（bottom-sheet）底部的「开始测试」按钮原本被底栏压着，
-   * 自定义 tabBar 是独立图层，页面内弹层躲不开，只能让它先让位。
+   * 答题配置抽屉底部的「开始答题」原本会被底栏压着，自定义 tabBar 是独立图层，
+   * 页面内弹层躲不开，只能让它先让位。
    */
   setTabBarHidden(hidden) {
     if (typeof this.getTabBar !== 'function') {
@@ -79,10 +83,19 @@ Page(wrapTaps({
     return this.viewModel.getShareMessage(this.data.subjectId)
   },
 
+  handleRecentTap() {
+    this.applyViewModelResult(this.viewModel.enterRecent())
+  },
+
   handleSubjectSwitch(e) {
     const subjectId = e.currentTarget.dataset.subjectId
 
-    if (!subjectId || subjectId === this.data.subjectId) {
+    if (!subjectId) {
+      return
+    }
+
+    // 已经在看这个科目、且不是「最近在刷」状态时不需要重建
+    if (subjectId === this.data.subjectId && this.data.railMode === 'subject') {
       return
     }
 
@@ -95,52 +108,106 @@ Page(wrapTaps({
     })
   },
 
-  // 错题本与收藏原先挂在「我的」页，现归到题库页左栏（与科目同一区域）
-  handleWrongBookTap() {
-    wx.navigateTo({
-      url: '/page/wrong-book/index?tab=wrong'
-    })
+  /**
+   * 搜索是纯本地过滤，逐字触发。回写的 searchKeyword 是去掉首尾空格后的值，
+   * 直接 setData 会在用户敲空格时把光标拽回行尾，所以只回写结果、不动输入框。
+   */
+  handleSearchInput(e) {
+    const result = this.viewModel.updateSearch(e.detail.value)
+
+    if (!result || !result.data) {
+      return
+    }
+
+    const data = Object.assign({}, result.data)
+    delete data.searchKeyword
+    this.setData(data)
   },
 
-  handleFavoriteTap() {
-    wx.navigateTo({
-      url: '/page/wrong-book/index?tab=favorite'
-    })
+  handleSearchConfirm(e) {
+    this.handleSearchInput(e)
+
+    if (typeof wx.hideKeyboard === 'function') {
+      wx.hideKeyboard({})
+    }
   },
 
-  handleModeSelect(e) {
-    this.applyViewModelResult(this.viewModel.selectMode(e.currentTarget.dataset.mode))
+  handleSearchClear() {
+    this.setData({ searchKeyword: '' })
+    this.applyViewModelResult(this.viewModel.clearSearch())
   },
 
+  handleFilterToggle() {
+    this.applyViewModelResult(this.viewModel.toggleFilter())
+  },
+
+  /** 章节行点击 → 打开这一章的答题配置 */
   handleBankOpen(e) {
     const bank = e.detail && e.detail.bank
-    this.applyViewModelResult(this.viewModel.openBank(bank))
+    const subjectId = this.data.subjectId
+
+    if (!bank || !bank.bankId) {
+      return
+    }
+
+    this.applyViewModelResult(this.viewModel.openBankConfig(subjectId, bank.bankId))
   },
 
-  handleStartTap() {
-    this.applyViewModelResult(this.viewModel.startPractice(this.data))
+  /** 搜索结果可能属于别的科目，科目 id 从行数据取，不能用手上的 data.subjectId */
+  handleSearchResultTap(e) {
+    const dataset = e.currentTarget.dataset
+
+    if (!dataset || !dataset.bankId) {
+      return
+    }
+
+    this.applyViewModelResult(this.viewModel.openBankConfig(dataset.subjectId, dataset.bankId))
   },
 
-  handleTestTap() {
-    this.applyViewModelResult(this.viewModel.openTestConfig())
+  /** 统计卡 = 整科练习的入口（设计稿没有独立按钮，卡片右上角标了「整科」） */
+  handleStatTap() {
+    this.applyViewModelResult(this.viewModel.openSubjectConfig(this.data.subjectId))
   },
 
-  handleCountSelect(e) {
+  handleSheetMode(e) {
+    this.applyViewModelResult(this.viewModel.setSheetMode(e.currentTarget.dataset.value))
+  },
+
+  handleSheetOrder(e) {
+    if (this.data.sheetOrderDisabled) {
+      wx.showToast({
+        title: '背题模式固定按顺序',
+        icon: 'none'
+      })
+      return
+    }
+
+    this.applyViewModelResult(this.viewModel.setSheetOrder(e.currentTarget.dataset.value))
+  },
+
+  handleSheetTimed(e) {
+    this.applyViewModelResult(this.viewModel.setSheetTimed(e.detail.value))
+  },
+
+  handleSheetDuration(e) {
     const value = e.currentTarget.dataset.value
-    this.applyViewModelResult(this.viewModel.selectCount(value))
+    const result = this.viewModel.selectDuration(value)
+
+    if (result) {
+      this.applyViewModelResult(result)
+    }
   },
 
-  handleDurationSelect(e) {
-    const value = e.currentTarget.dataset.value
-    this.applyViewModelResult(this.viewModel.selectDuration(value))
-  },
-
-  handleConfigConfirm() {
-    this.applyViewModelResult(this.viewModel.confirmConfig(this.data))
+  handleSheetOnlyWrong(e) {
+    this.applyViewModelResult(this.viewModel.setSheetOnlyWrong(e.detail.value))
   },
 
   handleSheetClose() {
     this.applyViewModelResult(this.viewModel.closeConfig())
+  },
+
+  handleConfigConfirm() {
+    this.applyViewModelResult(this.viewModel.confirmConfig(this.data))
   },
 
   applyViewModelResult(result) {
@@ -151,7 +218,7 @@ Page(wrapTaps({
     if (result.data) {
       this.setData(result.data)
 
-      // 抽题设置面板的显示由 ViewModel 决定（打开/取消/确认三条路径都会下发），
+      // 抽屉的显示由 ViewModel 决定（打开/取消/确认三条路径都会下发），
       // 这里跟着它的值同步底栏显隐，不用在每个处理函数里各写一遍。
       if (result.data.configSheetVisible !== undefined) {
         this.setTabBarHidden(!!result.data.configSheetVisible)

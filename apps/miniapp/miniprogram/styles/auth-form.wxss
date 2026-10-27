@@ -1,0 +1,300 @@
+/**
+ * 认证页公用样式（登录 / 注册 / 找回密码）。
+ *
+ * 三张画板 763:567 / 772:1036 / 772:1076 共用同一套头部与控件，
+ * 只有表单行距和底部操作区不同，所以公共部分放这里，页面 wxss 只写差异。
+ *
+ * 尺寸换算：设计稿画板宽 402px，小程序按 750rpx 满宽，系数 750/402 ≈ 1.8657
+ *   36px 页边距 → 67rpx   330px 内容宽 → 616rpx   52px 输入框高 → 97rpx
+ *   48px 按钮高 → 90rpx   12px 圆角   → 22rpx     14px 正文  → 26rpx
+ *   42px 品牌名 → 78rpx   20px 标题   → 37rpx     16px 勾选框 → 30rpx
+ * 设计稿写的字体是 Inter，小程序端不引外部字体，统一落到系统字体栈。
+ */
+
+.auth-page {
+  min-height: 100vh;
+  padding: 48rpx 67rpx 60rpx;
+  box-sizing: border-box;
+  background: #ffffff;
+  /* 设计稿顶部留白 116px 已含状态栏与导航栏，导航栏本身占掉约 91px，
+     所以页面内只需补 25px（≈48rpx），品牌名才会落在设计稿的位置 */
+  font-family: 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', Arial, sans-serif;
+}
+
+/* ---------- 头部 ---------- */
+
+.brand {
+  display: flex;
+  align-items: flex-end;
+  height: 97rpx;
+}
+
+.brand-name {
+  font-size: 78rpx;
+  line-height: 97rpx;
+  font-weight: 700;
+  color: #000000;
+  letter-spacing: -1rpx;
+}
+
+.brand-sub {
+  margin-left: 11rpx;
+  margin-bottom: 7rpx;
+  font-size: 22rpx;
+  line-height: 24rpx;
+  font-weight: 500;
+  color: #000000;
+}
+
+.page-title {
+  display: block;
+  margin-top: 34rpx;
+  font-size: 37rpx;
+  line-height: 52rpx;
+  font-weight: 600;
+  color: #000000;
+}
+
+/* ---------- 表单 ---------- */
+
+.form {
+  margin-top: 75rpx;
+}
+
+.field + .field {
+  margin-top: 22rpx;
+}
+
+.field-label {
+  display: block;
+  font-size: 26rpx;
+  line-height: 37rpx;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.9);
+}
+
+.field-input {
+  display: block;
+  width: 100%;
+  height: 97rpx;
+  margin-top: 11rpx;
+  padding: 0 52rpx;
+  box-sizing: border-box;
+  border-radius: 22rpx;
+  background: #f0f0f0;
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+.field-ph {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #8a8a8a;
+}
+
+/* 错误态用内阴影而不是 border：border 会吃掉 2rpx 高度，输入框会跟着抖一下 */
+.field-input-error {
+  box-shadow: inset 0 0 0 2rpx #f04438;
+}
+
+/* 验证码输入行：输入框 + 右侧「发送验证码」 */
+.code-row {
+  display: flex;
+  align-items: center;
+  margin-top: 11rpx;
+  height: 97rpx;
+  padding: 0 52rpx 0 0;
+  box-sizing: border-box;
+  border-radius: 22rpx;
+  background: #f0f0f0;
+}
+
+.code-row .field-input {
+  flex: 1;
+  margin-top: 0;
+  height: 97rpx;
+  background: transparent;
+}
+
+.code-btn {
+  flex: none;
+  padding-left: 16rpx;
+  font-size: 22rpx;
+  line-height: 45rpx;
+  font-weight: 500;
+  color: #1477fb;
+}
+
+.code-btn-off {
+  color: #b8bcc4;
+}
+
+/* ---------- 协议勾选 ---------- */
+
+.agree-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-top: 35rpx;
+}
+
+.agree-left {
+  display: flex;
+  align-items: flex-start;
+  flex: 1;
+  min-width: 0;
+}
+
+.checkbox {
+  flex: none;
+  width: 30rpx;
+  height: 30rpx;
+  margin-top: 1rpx;
+  box-sizing: border-box;
+  border: 2rpx solid #c9cdd4;
+  border-radius: 10rpx;
+  background: #ffffff;
+}
+
+.checkbox-on {
+  border-color: #0d6fff;
+  background: #0d6fff;
+}
+
+.checkbox-error {
+  border-color: #f04438;
+}
+
+/* 对勾：纯 CSS 两条边旋转，避免再引一张图 */
+.checkbox-tick {
+  width: 8rpx;
+  height: 14rpx;
+  margin: 4rpx 0 0 9rpx;
+  border-right: 3rpx solid #ffffff;
+  border-bottom: 3rpx solid #ffffff;
+  transform: rotate(45deg);
+}
+
+.agree-text {
+  margin-left: 9rpx;
+  font-size: 22rpx;
+  line-height: 30rpx;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+.forgot-link {
+  flex: none;
+  margin-left: 16rpx;
+  font-size: 22rpx;
+  line-height: 30rpx;
+  font-weight: 500;
+  color: #1477fb;
+}
+
+/* ---------- 按钮与入口 ---------- */
+
+.btn {
+  height: 90rpx;
+  margin-top: 41rpx;
+  border-radius: 22rpx;
+  text-align: center;
+  font-size: 26rpx;
+  line-height: 90rpx;
+  font-weight: 500;
+}
+
+.btn-primary {
+  background: #1477fb;
+  color: #ffffff;
+}
+
+/* 未填完时压暗而不是置灰禁用：置灰按钮在真机上几乎看不出可点性差别 */
+.btn-disabled {
+  opacity: 0.5;
+}
+
+.btn-wechat {
+  background: #f0f0f0;
+  color: rgba(0, 0, 0, 0.9);
+}
+
+/* 认证页的按钮是满宽大块，按压只做透明度（见 AGENTS.md 交互约定）。
+   ⚠️ 只写 opacity 是**盖不掉**全局 .btn-hover 的：app.wxss 里的
+   transform: scale(0.96) 和 box-shadow 会继续生效，满宽按钮会整体抽动一下。
+   所以 transform / box-shadow 必须显式置回 none。 */
+.btn-hover {
+  transform: none;
+  box-shadow: none;
+  opacity: 0.86;
+}
+
+/* 纯文字链接的按压态：全局没有 text-hover，这里补一个 */
+.text-hover {
+  opacity: 0.6;
+}
+
+.or-text {
+  display: block;
+  margin-top: 15rpx;
+  font-size: 26rpx;
+  line-height: 45rpx;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.entry-link {
+  display: block;
+  margin-top: 22rpx;
+  font-size: 26rpx;
+  line-height: 45rpx;
+  font-weight: 500;
+  color: #1477fb;
+  text-align: center;
+}
+
+.back-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  margin-top: 41rpx;
+}
+
+.back-tip {
+  font-size: 22rpx;
+  line-height: 45rpx;
+  font-weight: 400;
+  color: #000000;
+}
+
+.back-link {
+  margin-left: 8rpx;
+  font-size: 26rpx;
+  line-height: 45rpx;
+  font-weight: 500;
+  color: #1477fb;
+}
+
+/* 找回密码页那句说明，设计稿里是 12px 常规字重 */
+.hint-line {
+  display: block;
+  margin-top: 45rpx;
+  font-size: 22rpx;
+  line-height: 30rpx;
+  font-weight: 400;
+  color: #000000;
+}
+
+/* 降级提示条：后端未接入时出现，说清楚现状而不是让用户以为登录失败 */
+.degrade-note {
+  display: block;
+  margin-top: 24rpx;
+  padding: 16rpx 24rpx;
+  border-radius: 16rpx;
+  background: #fff7e6;
+  font-size: 22rpx;
+  line-height: 32rpx;
+  color: #b06d00;
+}

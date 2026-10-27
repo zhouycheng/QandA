@@ -1,224 +1,652 @@
-.wrong-book-page {
-  padding: 24rpx 24rpx 180rpx;
+@import "../../styles/list-page.wxss";
+
+/* 错题本 / 收藏本（设计稿两张画板，402x874，系数 750/402 ≈ 1.8657）
+   页边距沿用 list-page.wxss 的 41rpx，这里只写这一页的灰底、统计卡、卡片与分页。
+   换算：16px 卡内边距 → 30rpx；14px 圆角 → 26rpx；22px 数字 → 41rpx；
+        30px 筛选项高 → 56rpx；46px 底部按钮 → 86rpx。 */
+
+.wb-page {
+  min-height: 100vh;
+  background: #f5f6fa;
+  /* 底部固定按钮（86rpx）+ 说明行 + 呼吸位，再叠安全区 */
+  padding-bottom: 200rpx;
+  padding-bottom: calc(200rpx + env(safe-area-inset-bottom));
 }
 
-.tabs {
+/* ---------- 页头：居中标题 + 管理（返回走系统导航栏，页内不再自绘返回钮） ---------- */
+
+.wb-head {
   display: flex;
-  padding: 8rpx;
+  align-items: center;
+  height: 104rpx;
+  margin: 0 -41rpx;
+  padding: 0 41rpx;
 }
 
-.tab {
+/* 左侧占位：与「管理」同宽，标题才真居中 */
+.wb-head-spacer {
+  flex: none;
+  min-width: 56rpx;
+  height: 56rpx;
+  margin-left: -12rpx;
+}
+
+.wb-title {
   flex: 1;
-  padding: 22rpx 0;
+  min-width: 0;
+  font-size: 32rpx;
+  line-height: 44rpx;
+  font-weight: 700;
+  color: #141820;
   text-align: center;
-  border-radius: 18rpx;
-  transition: background 0.2s, color 0.2s;
 }
 
-.tab.active {
-  background: var(--brand-soft);
-}
-
-/* 顶部 tab 是整块页面区域的一部分，缩放会让下方列表跟着晃，只改底色 + 描边 */
-.tab-hover {
-  background: rgba(43, 127, 252, 0.16);
-  box-shadow: inset 0 0 0 3rpx rgba(43, 127, 252, 0.34);
-  transition-duration: 100ms;
-}
-
-.tab-text {
-  display: block;
-  font-size: 30rpx;
+/* 「管理」占的位置要和返回按钮一样宽，标题才真居中 */
+.wb-manage {
+  flex: none;
+  min-width: 56rpx;
+  height: 56rpx;
+  margin-right: -12rpx;
+  font-size: 22rpx;
+  line-height: 56rpx;
   font-weight: 600;
-  color: var(--text-sub);
+  color: #466bff;
+  text-align: right;
+  transition: opacity 100ms ease;
 }
 
-.tab.active .tab-text {
-  color: var(--brand);
+.wb-manage-hover {
+  opacity: 0.6;
 }
 
-.tab-count {
-  display: block;
-  margin-top: 6rpx;
-  font-size: 24rpx;
-  color: var(--text-muted);
+/* 管理模式：按钮变成「完成」，颜色收到中性，避免和蓝色主按钮抢注意力 */
+.wb-manage.is-on {
+  color: #8b8f99;
 }
 
-.tab.active .tab-count {
-  color: var(--brand);
+/* ---------- 统计卡 ---------- */
+
+.stat-card {
+  padding: 26rpx 30rpx 28rpx;
+  border-radius: 26rpx;
+  background: #ffffff;
 }
 
-.filters {
-  display: flex;
-  margin-top: 24rpx;
-}
-
-.chip {
-  margin-right: 16rpx;
-  padding: 12rpx 28rpx;
-  font-size: 26rpx;
-  color: var(--text-sub);
-  background: var(--card);
-  border: 1rpx solid var(--line);
-  border-radius: 999rpx;
-}
-
-.chip.active {
-  color: #ffffff;
-  background: var(--brand);
-  border-color: var(--brand);
-}
-
-.list {
-  margin-top: 24rpx;
-}
-
-.q-card {
-  margin-bottom: 24rpx;
-  padding: 28rpx;
-}
-
-.q-head {
+.stat-head {
   display: flex;
   align-items: center;
 }
 
-.q-number {
-  width: 44rpx;
-  height: 44rpx;
-  line-height: 44rpx;
-  text-align: center;
-  font-size: 24rpx;
-  font-weight: 600;
-  color: var(--brand);
-  background: var(--brand-soft);
-  border-radius: 12rpx;
+.stat-title-box {
+  display: flex;
+  align-items: center;
 }
 
-.q-type {
-  margin-left: 16rpx;
-  font-size: 24rpx;
-  color: var(--text-muted);
+.stat-icon {
+  flex: none;
+  width: 26rpx;
+  height: 26rpx;
+  margin-right: 8rpx;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
 }
 
-.q-flag {
-  margin-left: 12rpx;
-  padding: 4rpx 14rpx;
-  font-size: 22rpx;
-  color: var(--success);
-  background: rgba(23, 178, 106, 0.1);
-  border-radius: 999rpx;
+.stat-icon.wrong {
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIxLjciIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTQgNS42QTIuNiAyLjYgMCAwIDEgNi42IDNIMTl2MTVINi42QTIuNiAyLjYgMCAwIDAgNCAyMC42eiIgc3Ryb2tlPSIjRTA2NTZGIi8+PHBhdGggZD0iTTQgMjAuNkEyLjYgMi42IDAgMCAxIDYuNiAxOEgxOXYzSDYuNkEyLjYgMi42IDAgMCAxIDQgMjAuNnoiIHN0cm9rZT0iI0UwNjU2RiIvPjxsaW5lIHgxPSIxMS40IiB5MT0iNy40IiB4Mj0iMTEuNCIgeTI9IjEyLjIiIHN0cm9rZT0iI0UwNjU2RiIvPjxjaXJjbGUgY3g9IjExLjQiIGN5PSIxNC45IiByPSIwLjkiIGZpbGw9IiNFMDY1NkYiIHN0cm9rZT0ibm9uZSIvPjwvc3ZnPg==");
 }
 
-.q-flag.favorite {
-  color: var(--warning);
-  background: rgba(247, 144, 9, 0.12);
+.stat-icon.favorite {
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIxLjciIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTYuNiAzLjZoMTAuOHYxNi44TDEyIDE1LjlsLTUuNCA0LjV6IiBzdHJva2U9IiM0NjZCRkYiLz48L3N2Zz4=");
 }
 
-.q-stem {
+.stat-title {
+  font-size: 26rpx;
+  line-height: 38rpx;
+  font-weight: 700;
+  color: #141820;
+}
+
+.stat-hint {
+  margin-left: auto;
+  font-size: 19rpx;
+  line-height: 28rpx;
+  font-weight: 500;
+  color: #8b8f99;
+}
+
+.stat-row {
+  display: flex;
+  align-items: flex-start;
+  margin-top: 22rpx;
+}
+
+.stat-item {
+  flex: 1;
+  min-width: 0;
+}
+
+.stat-label {
   display: block;
+  font-size: 20rpx;
+  line-height: 30rpx;
+  font-weight: 500;
+  color: #8b8f99;
+}
+
+.stat-value {
+  display: flex;
+  align-items: baseline;
+  margin-top: 2rpx;
+}
+
+.stat-num {
+  font-size: 41rpx;
+  line-height: 56rpx;
+  font-weight: 700;
+  color: #141820;
+}
+
+.stat-unit {
+  margin-left: 3rpx;
+  font-size: 19rpx;
+  line-height: 28rpx;
+  font-weight: 600;
+  color: #141820;
+}
+
+/* ---------- 科目分布：一条分段进度 + 一行图例 ---------- */
+
+.dist {
+  margin-top: 22rpx;
+}
+
+.dist-bar {
+  display: flex;
+  height: 12rpx;
+  border-radius: 6rpx;
+  overflow: hidden;
+  background: #f0f2f5;
+}
+
+/* 段与段之间留一道白缝：没有它，同色相邻的两段会看成一段 */
+.dist-seg + .dist-seg {
+  margin-left: 4rpx;
+}
+
+.dist-seg.tone-0 {
+  background: #466bff;
+}
+
+.dist-seg.tone-1 {
+  background: #7f9dff;
+}
+
+.dist-seg.tone-2 {
+  background: #b4c8ff;
+}
+
+.dist-seg.tone-3 {
+  background: #d8e2ff;
+}
+
+.dist-legend {
+  display: flex;
+  align-items: center;
+  margin-top: 12rpx;
+}
+
+.dist-item {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+}
+
+.dist-name {
+  font-size: 19rpx;
+  line-height: 28rpx;
+  font-weight: 500;
+  color: #8b8f99;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.dist-count {
+  margin-left: 6rpx;
+  font-size: 19rpx;
+  line-height: 28rpx;
+  font-weight: 600;
+  color: #141820;
+}
+
+/* ---------- 筛选行 ---------- */
+
+.filter-wrap {
+  position: relative;
+  margin-top: 26rpx;
+}
+
+.filter-row {
+  display: flex;
+  align-items: center;
+}
+
+.filter-subject {
+  display: flex;
+  align-items: center;
+  height: 52rpx;
+  transition: opacity 100ms ease;
+}
+
+.filter-sort {
+  display: flex;
+  align-items: center;
+  height: 52rpx;
+  margin-left: auto;
+  transition: opacity 100ms ease;
+}
+
+.filter-hover {
+  opacity: 0.6;
+}
+
+.filter-strong {
+  font-size: 24rpx;
+  line-height: 34rpx;
+  font-weight: 700;
+  color: #141820;
+}
+
+.filter-weak {
+  font-size: 21rpx;
+  line-height: 30rpx;
+  font-weight: 500;
+  color: #8b8f99;
+}
+
+.filter-caret {
+  width: 10rpx;
+  height: 10rpx;
+  margin-left: 8rpx;
+  margin-top: -4rpx;
+  border-right: 3rpx solid #8b8f99;
+  border-bottom: 3rpx solid #8b8f99;
+  transform: rotate(45deg);
+}
+
+.filter-sep {
+  margin: 0 10rpx;
+  font-size: 20rpx;
+  color: #c3c7d1;
+}
+
+/* 排序图标：两条横线，用两个伪元素拼，省一张图 */
+.filter-sort-icon {
+  position: relative;
+  width: 22rpx;
+  height: 18rpx;
+  margin-right: 6rpx;
+}
+
+.filter-sort-icon::before,
+.filter-sort-icon::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  height: 3rpx;
+  border-radius: 2rpx;
+  background: #8b8f99;
+}
+
+.filter-sort-icon::before {
+  top: 2rpx;
+  width: 22rpx;
+}
+
+.filter-sort-icon::after {
+  top: 10rpx;
+  width: 13rpx;
+}
+
+/* ---------- 科目下拉 ---------- */
+
+.subject-menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 56rpx;
+  z-index: 20;
+}
+
+/* 透明遮罩：点空白处收起。铺满全屏才收得掉，但它在面板下面（z-index 19） */
+.subject-mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 19;
+}
+
+.subject-panel {
+  position: relative;
+  z-index: 21;
+  padding: 10rpx 0;
+  border-radius: 22rpx;
+  background: #ffffff;
+  box-shadow: 0 12rpx 40rpx rgba(20, 24, 32, 0.12);
+}
+
+.subject-option {
+  height: 78rpx;
+  padding: 0 30rpx;
+  font-size: 24rpx;
+  line-height: 78rpx;
+  font-weight: 500;
+  color: #141820;
+  transition: background-color 100ms ease;
+}
+
+.subject-option-hover {
+  background: #f5f6fa;
+}
+
+.subject-option.is-active {
+  color: #466bff;
+  font-weight: 600;
+}
+
+/* ---------- chips ---------- */
+
+.chips {
+  display: flex;
   margin-top: 20rpx;
-  font-size: 29rpx;
-  line-height: 1.6;
-  color: var(--text-main);
+}
+
+.chip {
+  flex: 1;
+  height: 56rpx;
+  margin-right: 16rpx;
+  border-radius: 16rpx;
+  background: #ffffff;
+  font-size: 21rpx;
+  line-height: 56rpx;
+  font-weight: 500;
+  color: #6b7684;
+  text-align: center;
+  transition: background-color 0.14s ease, color 0.14s ease;
+}
+
+.chip:last-child {
+  margin-right: 0;
+}
+
+.chip-hover {
+  opacity: 0.7;
+}
+
+.chip.is-active {
+  background: #466bff;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* ---------- 题目卡片 ---------- */
+
+.wb-list {
+  margin-top: 20rpx;
+}
+
+.q-card {
+  position: relative;
+  display: flex;
+  margin-bottom: 18rpx;
+  padding: 24rpx 26rpx 24rpx 30rpx;
+  box-sizing: border-box;
+  border-radius: 22rpx;
+  background: #ffffff;
+  transition: opacity 100ms ease;
+}
+
+.q-card-hover {
+  opacity: 0.72;
+}
+
+/* 左侧细色条：错题偏红、收藏偏蓝，扫一眼就知道这是哪一类 */
+.q-accent {
+  position: absolute;
+  left: 0;
+  top: 24rpx;
+  bottom: 24rpx;
+  width: 6rpx;
+  border-radius: 0 6rpx 6rpx 0;
+}
+
+.q-accent.wrong {
+  background: #f2a6ac;
+}
+
+.q-accent.todo {
+  background: #a9c1ff;
+}
+
+.q-accent.done {
+  background: #b6e7d2;
+}
+
+.q-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.q-top {
+  display: flex;
+  align-items: center;
+}
+
+.q-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 24rpx;
+  line-height: 34rpx;
+  font-weight: 700;
+  color: #141820;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* 右侧箭头：和「我的」页一致，用边框画 */
+.q-chevron {
+  flex: none;
+  width: 14rpx;
+  height: 14rpx;
+  margin-left: 16rpx;
+  border-top: 3rpx solid #c3c7d1;
+  border-right: 3rpx solid #c3c7d1;
+  transform: rotate(45deg);
+}
+
+/* 管理态的「移除」：红字，比一枚图标更不容易误触 */
+.q-remove {
+  flex: none;
+  margin-left: 16rpx;
+  padding: 0 14rpx;
+  height: 44rpx;
+  border-radius: 12rpx;
+  background: #fdeef0;
+  font-size: 20rpx;
+  line-height: 44rpx;
+  font-weight: 600;
+  color: #e0656f;
+  transition: opacity 100ms ease;
+}
+
+.q-remove-hover {
+  opacity: 0.6;
+}
+
+/* 题干最多两行：列表用来「认题」，不是用来读题的 */
+.q-stem {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  line-height: 34rpx;
+  font-weight: 500;
+  color: #6b7684;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .q-meta {
   display: flex;
-  justify-content: space-between;
-  margin-top: 18rpx;
+  align-items: center;
+  margin-top: 14rpx;
 }
 
-.q-source {
-  flex: 1;
-  min-width: 0;
-  font-size: 24rpx;
-  color: var(--text-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.q-stat {
+.q-badge {
   flex: none;
-  margin-left: 20rpx;
-  font-size: 24rpx;
-  color: var(--danger);
+  padding: 0 10rpx;
+  height: 34rpx;
+  border-radius: 8rpx;
+  font-size: 18rpx;
+  line-height: 34rpx;
+  font-weight: 600;
 }
 
-.q-answer {
+.q-badge.wrong {
+  background: #fdeef0;
+  color: #e0656f;
+}
+
+.q-badge.todo {
+  background: #eef3ff;
+  color: #466bff;
+}
+
+.q-badge.done {
+  background: #e9f7ef;
+  color: #17b26a;
+}
+
+.q-type {
+  margin-left: 12rpx;
+  font-size: 19rpx;
+  line-height: 28rpx;
+  font-weight: 500;
+  color: #a0a5af;
+}
+
+.q-date {
+  margin-left: auto;
+  font-size: 19rpx;
+  line-height: 28rpx;
+  font-weight: 500;
+  color: #a0a5af;
+}
+
+/* ---------- 空态 ---------- */
+
+.wb-empty {
+  padding: 90rpx 40rpx;
+}
+
+.wb-empty-text {
+  display: block;
+  font-size: 22rpx;
+  line-height: 36rpx;
+  font-weight: 500;
+  color: #8b8f99;
+  text-align: center;
+}
+
+/* ---------- 分页 ---------- */
+
+.pager {
   display: flex;
   align-items: center;
-  margin-top: 18rpx;
-  padding: 16rpx 20rpx;
-  background: #f7f9fc;
-  border-radius: 14rpx;
+  height: 68rpx;
+  margin-top: 6rpx;
 }
 
-.q-answer-label {
-  font-size: 24rpx;
-  color: var(--text-sub);
-}
-
-.q-answer-value {
-  margin-left: 12rpx;
+.pager-btn {
+  flex: none;
+  width: 52rpx;
+  height: 52rpx;
+  border-radius: 50%;
   font-size: 26rpx;
+  line-height: 52rpx;
   font-weight: 600;
-  color: var(--success);
+  color: #6b7684;
+  text-align: center;
+  transition: background-color 100ms ease;
 }
 
-.q-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 22rpx;
+.pager-btn-hover {
+  background: #eceef4;
 }
 
-.q-action {
-  margin-left: 16rpx;
-  padding: 12rpx 30rpx;
-  font-size: 26rpx;
-  color: var(--text-sub);
-  border: 1rpx solid var(--line);
-  border-radius: 999rpx;
+.pager-text {
+  margin-left: 10rpx;
+  font-size: 20rpx;
+  line-height: 30rpx;
+  font-weight: 500;
+  color: #8b8f99;
 }
 
-.q-action.danger {
-  color: var(--danger);
-  border-color: rgba(240, 68, 56, 0.3);
+.pager-index {
+  margin-left: auto;
+  margin-right: 10rpx;
+  font-size: 20rpx;
+  line-height: 30rpx;
+  font-weight: 600;
+  color: #6b7684;
 }
 
-.footer-bar {
+/* ---------- 底部固定 ---------- */
+
+.wb-footer {
   position: fixed;
+  left: 0;
   right: 0;
   bottom: 0;
-  left: 0;
-  display: flex;
-  padding: 20rpx 24rpx calc(20rpx + env(safe-area-inset-bottom));
-  background: rgba(255, 255, 255, 0.96);
-  border-top: 1rpx solid var(--line);
+  padding: 16rpx 41rpx 20rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  background: #ffffff;
+  box-shadow: 0 -8rpx 24rpx rgba(20, 24, 32, 0.05);
 }
 
-.footer-btn {
-  flex: 1;
-  height: 88rpx;
-  line-height: 88rpx;
-  text-align: center;
-  font-size: 30rpx;
-  border-radius: 44rpx;
-}
-
-.footer-btn + .footer-btn {
-  margin-left: 20rpx;
-}
-
-.footer-btn.ghost {
-  flex: none;
-  width: 240rpx;
-  color: var(--text-sub);
-  border: 1rpx solid var(--line);
-}
-
-.footer-btn.primary {
+.wb-footer-btn {
+  height: 86rpx;
+  border-radius: 22rpx;
+  background: #466bff;
+  font-size: 26rpx;
+  line-height: 86rpx;
+  font-weight: 600;
   color: #ffffff;
-  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
+  text-align: center;
+  transition: opacity 0.14s ease;
+}
+
+.wb-footer-hover {
+  opacity: 0.86;
+}
+
+/* 管理态：主按钮变「清空」，用红底红字把破坏性动作和「开始练习」分开 */
+.wb-footer-btn.is-danger {
+  background: #fdeef0;
+  color: #e0656f;
+}
+
+.wb-footer-hint {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 18rpx;
+  line-height: 26rpx;
+  font-weight: 500;
+  color: #a0a5af;
+  text-align: center;
 }

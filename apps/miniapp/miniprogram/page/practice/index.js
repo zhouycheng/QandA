@@ -12,7 +12,11 @@ const AUTO_ADVANCE_DELAY = 800
 const SUBMIT_LOADING_DELAY = 250
 
 Page(wrapTaps({
-  data: PracticeViewModel.getInitialData(),
+  data: Object.assign(PracticeViewModel.getInitialData(), {
+    // 长解析默认收起（设计稿「剩下的收起来了」）。纯界面状态，不进 ViewModel：
+    // 换题时由 applyViewModelResult 归零，和答题逻辑没有关系
+    explanationOpen: false
+  }),
 
   onLoad(options) {
     this.viewModel = new PracticeViewModel({
@@ -157,6 +161,23 @@ Page(wrapTaps({
     this.applyViewModelResult(this.viewModel.jumpToQuestion(nextIndex))
   },
 
+  /** 答题卡里的「确认结束」：先收起弹层，再走正常交卷（未答完会弹二次确认） */
+  handleOverviewSubmit() {
+    if (!this.viewModel) {
+      return
+    }
+
+    this.applyViewModelResult(this.viewModel.closeQuestionOverview())
+    this.submitPractice()
+  },
+
+  /** 长解析的展开 / 收起 */
+  toggleExplanation() {
+    this.setData({
+      explanationOpen: !this.data.explanationOpen
+    })
+  },
+
   toggleFavorite() {
     const result = this.viewModel.toggleFavoriteQuestion()
     this.applyViewModelResult(result)
@@ -168,6 +189,38 @@ Page(wrapTaps({
         duration: 1200
       })
     }
+  },
+
+  /** 标记 / 取消标记当前题：和收藏一样给一句 toast，否则用户不知道点没点上 */
+  toggleMark() {
+    const result = this.viewModel.toggleMarkQuestion()
+    this.applyViewModelResult(result)
+
+    if (result && typeof result.value === 'boolean') {
+      wx.showToast({
+        title: result.value ? '已标记本题' : '已取消标记',
+        icon: 'none',
+        duration: 1200
+      })
+    }
+  },
+
+  /** 答题卡里的「看标记」：直接跳到第一个标记题，没有就提示 */
+  jumpToFirstMarked() {
+    const items = this.data.overviewItems || []
+    const firstMarked = items.filter((item) => item.isMarked)[0]
+
+    if (!firstMarked) {
+      wx.showToast({
+        title: '还没有标记的题目',
+        icon: 'none',
+        duration: 1200
+      })
+      return
+    }
+
+    this.applyViewModelResult(this.viewModel.closeQuestionOverview())
+    this.jumpToQuestion({ detail: { index: firstMarked.index } })
   },
 
   restartPractice() {
@@ -226,7 +279,15 @@ Page(wrapTaps({
     }
 
     if (result.data) {
-      this.setData(result.data, runEffects)
+      const patch = Object.assign({}, result.data)
+
+      // 换题就把解析收回去：否则上一题展开的长解析会带到下一题
+      if (patch.currentIndex !== undefined && patch.currentIndex !== this.lastQuestionIndex) {
+        this.lastQuestionIndex = patch.currentIndex
+        patch.explanationOpen = false
+      }
+
+      this.setData(patch, runEffects)
       return
     }
 

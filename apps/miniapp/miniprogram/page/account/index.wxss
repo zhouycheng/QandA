@@ -1,0 +1,58 @@
+@import "../../styles/list-page.wxss";
+
+/* 账号管理｜设计稿 Figma 781:2123（画板 402x874，系数 750/402 ≈ 1.8657）
+   公共行高 / 输入框 / 底部按钮在 styles/list-page.wxss，这里只写本页差异。 */
+
+/* 头像行：设计稿里这一行没有下边框（52px 高） */
+.avatar-row {
+  display: flex;
+  align-items: center;
+  min-height: 97rpx;
+}
+
+.avatar-sm {
+  width: 97rpx;
+  height: 97rpx;
+  margin-top: 0;
+}
+
+.avatar-sm .avatar-icon {
+  width: 48rpx;
+  height: 48rpx;
+}
+
+.avatar-label {
+  margin-left: 26rpx;
+  font-size: 22rpx;
+  line-height: 45rpx;
+  font-weight: 500;
+  color: #141820;
+}
+
+/* 用 button 承载 open-type="chooseAvatar"（微信现行唯一合规能力），
+   所以要把它还原成一行普通文字，不能带原生按钮外观 */
+.link-btn {
+  flex: none;
+  display: flex;
+  align-items: center;
+  margin: 0 0 0 auto;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  font-size: 22rpx;
+  line-height: 45rpx;
+}
+
+.link-btn::after {
+  border: none;
+}
+
+.link-btn-hover {
+  opacity: 0.7;
+}
+
+/* 换头像按钮里的文字要跟右侧「更换 / 绑定 / 修改」一致 */
+.link-btn .info-action {
+  margin-left: 0;
+}

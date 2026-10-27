@@ -1,191 +1,38 @@
-/* 底部留 272rpx：自定义 tabBar 是页面内 fixed 组件，不占文档流。
-   数值对应 tabbar 232rpx + 40rpx 呼吸位，再叠加安全区。 */
-.my-page {
-  padding: 24rpx 24rpx 272rpx;
-  padding-bottom: calc(272rpx + env(safe-area-inset-bottom));
+@import "../../styles/list-page.wxss";
+
+/* 我的｜设计稿 Figma 781:1922（画板 402x874，系数 750/402 ≈ 1.8657）
+   三页公共的行高 / 分隔线 / 配色在 styles/list-page.wxss，这里只写本页差异。 */
+
+.profile-hover {
+  opacity: 0.72;
 }
 
-/* ==================== 资料卡 ==================== */
-.profile {
+/* 分区标题与第一行之间留 8px（设计稿 276 → 284） */
+.group-title {
+  margin-bottom: 15rpx;
+}
+
+/* 「关于」弹层里的信息行 */
+.about-line {
   display: flex;
   align-items: center;
-  padding: 28rpx 26rpx;
-  border-radius: 28rpx;
-  background: linear-gradient(135deg, #4f7dfb 0%, #2bb3fc 100%);
-  box-shadow: 0 14rpx 30rpx rgba(43, 127, 252, 0.26);
+  min-height: 76rpx;
+  border-bottom: 2rpx solid #eef0f5;
 }
 
-.profile-avatar {
-  flex: none;
-  width: 96rpx;
-  height: 96rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.22);
+.about-label {
+  font-size: 24rpx;
+  line-height: 40rpx;
+  color: #141820;
 }
 
-.profile-avatar-img {
-  display: block;
-  width: 96rpx;
-  height: 96rpx;
-}
-
-.profile-avatar .mi-icon {
-  width: 52rpx;
-  height: 52rpx;
-}
-
-.profile-main {
-  flex: 1;
-  min-width: 0;
-  margin-left: 24rpx;
-}
-
-.profile-name {
-  display: block;
-  font-size: 34rpx;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.profile-sub {
-  display: block;
-  margin-top: 8rpx;
-  font-size: 21rpx;
-  color: rgba(255, 255, 255, 0.82);
-}
-
-.profile-badge {
-  flex: none;
-  margin-left: 16rpx;
-  padding: 8rpx 18rpx;
-  border-radius: 999rpx;
-  background: rgba(255, 255, 255, 0.2);
-  font-size: 20rpx;
-  color: #ffffff;
-}
-
-/* ==================== 数据快照 ==================== */
-.snapshot {
-  margin-top: 20rpx;
-  padding: 24rpx 0;
-  display: flex;
-  align-items: center;
-}
-
-.snapshot-item {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.snapshot-divider {
-  flex: none;
-  width: 1rpx;
-  height: 48rpx;
-  background: var(--line);
-}
-
-.snapshot-value {
-  font-size: 40rpx;
-  font-weight: 700;
-  line-height: 1.1;
-  color: var(--text-main);
-}
-
-.value-danger {
-  color: #f04438;
-}
-
-.value-warning {
-  color: #f79009;
-}
-
-.snapshot-label {
-  margin-top: 8rpx;
-  font-size: 21rpx;
-  color: var(--text-muted);
-}
-
-/* ==================== 菜单 ==================== */
-.section {
-  margin-top: 40rpx;
-}
-
-.section-title {
-  display: block;
-  margin: 0 6rpx 18rpx;
-  font-size: 32rpx;
-  font-weight: 600;
-  color: var(--text-main);
-}
-
-.menu {
-  padding: 0 24rpx;
-}
-
-.menu-row {
-  display: flex;
-  align-items: center;
-  padding: 26rpx 0;
-}
-
-.menu-row + .menu-row {
-  border-top: 1rpx solid var(--line);
-}
-
-.menu-main {
-  flex: 1;
-  min-width: 0;
-  margin-left: 20rpx;
-}
-
-.menu-title {
-  display: block;
-  font-size: 28rpx;
-  color: var(--text-main);
-}
-
-.menu-desc {
-  display: block;
-  margin-top: 6rpx;
-  font-size: 21rpx;
-  line-height: 1.5;
-  color: var(--text-muted);
-}
-
-.menu-value {
-  flex: none;
-  margin-left: 16rpx;
-  font-size: 25rpx;
-  color: var(--text-muted);
-}
-
-.menu-arrow {
-  flex: none;
-  margin-left: 8rpx;
-  color: var(--text-muted);
-  font-size: 32rpx;
-}
-
-.menu-tag {
-  flex: none;
-  margin-left: 14rpx;
-  padding: 4rpx 14rpx;
-  border-radius: 999rpx;
-  background: #f2f4f7;
-  font-size: 20rpx;
-  color: var(--text-muted);
-}
-
-.footer-note {
-  margin-top: 32rpx;
-  text-align: center;
+.about-value {
+  margin-left: auto;
   font-size: 22rpx;
-  color: var(--text-muted);
+  line-height: 40rpx;
+  color: #8b8f99;
+}
+
+.link-hover {
+  opacity: 0.6;
 }

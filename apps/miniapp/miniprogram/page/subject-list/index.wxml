@@ -49,8 +49,10 @@
       hover-start-time="0"
       hover-stay-time="240"
     >
-      <!-- 底图 + 左侧压暗层：插画只在右侧，压暗层保证左边文字始终读得清 -->
-      <image class="exam-cover" src="/assets/home/exam-cover.jpg" mode="aspectFill"></image>
+      <!-- 底图 + 左侧压暗层：插画只在右侧，压暗层保证左边文字始终读得清。
+           底图早/中/晚三张，由 home.coverImage 按时段给（utils/home-content.js），
+           三张用同一个裁剪窗口，换图时书本与时钟不会在卡片里跳位置。 -->
+      <image class="exam-cover" src="{{home.coverImage}}" mode="aspectFill"></image>
       <view class="exam-veil"></view>
 
       <view class="exam-body">

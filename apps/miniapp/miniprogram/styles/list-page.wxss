@@ -1,0 +1,520 @@
+/**
+ * 「我的 / 账号管理 / 邮箱提醒」三页公用样式。
+ *
+ * 三张画板（Figma 781:1922 / 781:2123 / 781:2043）同一套视觉语言：
+ * 22px 页边距、54px 行高、#EEF0F5 分隔线、#466BFF 主色、纯白底。
+ * 公共部分放这里，页面 wxss 只写各自的差异，避免三页慢慢长歪。
+ *
+ * 尺寸换算：画板宽 402px，小程序按 750rpx 满宽，系数 750/402 ≈ 1.8657
+ *   22px 页边距 → 41rpx   54px 行高 → 101rpx   14px 正文 → 26rpx
+ *   12px 次要  → 22rpx    11px 说明 → 21rpx    16px 分区标题 → 30rpx
+ *   56px 头像  → 104rpx   46px 输入框 → 86rpx   48px 主按钮 → 90rpx
+ *   12px 圆角  → 22rpx     8px 圆角  → 15rpx
+ * 设计稿写的字体是 Inter，小程序端不引外部字体，统一落到系统字体栈。
+ */
+
+.list-page {
+  min-height: 100vh;
+  padding: 0 41rpx;
+  box-sizing: border-box;
+  background: #ffffff;
+  color: #141820;
+}
+
+/* ---------- 页内标题（「我的」是 tab 页，导航栏标题留空） ---------- */
+
+.page-head {
+  display: flex;
+  align-items: center;
+  height: 131rpx;
+  margin: 0 -41rpx;
+  padding: 0 41rpx;
+  border-bottom: 2rpx solid #eef0f5;
+}
+
+.page-head-title {
+  font-size: 34rpx;
+  line-height: 45rpx;
+  font-weight: 700;
+  color: #141820;
+}
+
+/* ---------- 资料头 ---------- */
+
+.profile {
+  display: flex;
+  align-items: flex-start;
+  padding-top: 26rpx;
+}
+
+.profile-avatar {
+  flex: none;
+  width: 104rpx;
+  height: 104rpx;
+  margin-top: 9rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #f0f3ff;
+}
+
+.profile-avatar-img {
+  display: block;
+  width: 104rpx;
+  height: 104rpx;
+}
+
+/* 蓝描边用户图标：app.wxss 里的 .mi-user 是白色描边（给蓝底卡片用），
+   放在浅色头像底上会看不见，所以这里单独一份 */
+.avatar-icon {
+  width: 52rpx;
+  height: 52rpx;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNDY2QkZGIiBzdHJva2Utd2lkdGg9IjEuOSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48Y2lyY2xlIGN4PSIxMiIgY3k9IjguNiIgcj0iMy45Ii8+PHBhdGggZD0iTTQuOSAyMGMuNy0zLjYgMy42LTUuNyA3LjEtNS43czYuNCAyLjEgNy4xIDUuNyIvPjwvc3ZnPg==");
+}
+
+.profile-main {
+  flex: 1;
+  min-width: 0;
+  margin-left: 26rpx;
+}
+
+.profile-name {
+  display: block;
+  font-size: 34rpx;
+  line-height: 45rpx;
+  font-weight: 700;
+  color: #141820;
+}
+
+.profile-sub {
+  display: block;
+  margin-top: 4rpx;
+  font-size: 22rpx;
+  line-height: 37rpx;
+  font-weight: 500;
+  color: #141820;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.profile-meta {
+  display: block;
+  margin-top: 4rpx;
+  font-size: 21rpx;
+  line-height: 34rpx;
+  font-weight: 500;
+  color: #8b8f99;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ---------- 灰底整行入口（设计稿里的「账号管理」） ---------- */
+
+.pill-row {
+  display: flex;
+  align-items: center;
+  height: 101rpx;
+  margin-top: 47rpx;
+  padding: 0 26rpx;
+  border-radius: 22rpx;
+  background: #efefef;
+  transition: background-color 0.16s ease;
+}
+
+.pill-row-hover {
+  background: #e6e8ee;
+}
+
+.pill-row-label {
+  font-size: 26rpx;
+  line-height: 45rpx;
+  font-weight: 500;
+  color: #141820;
+}
+
+.pill-row-value {
+  margin-left: auto;
+  font-size: 22rpx;
+  line-height: 45rpx;
+  font-weight: 500;
+  color: #8b8f99;
+}
+
+/* ---------- 分组与行 ---------- */
+
+.group {
+  margin-top: 52rpx;
+}
+
+.group-title {
+  display: block;
+  font-size: 30rpx;
+  line-height: 45rpx;
+  font-weight: 700;
+  color: #141820;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  min-height: 101rpx;
+  border-bottom: 2rpx solid #eef0f5;
+  background: transparent;
+  transition: background-color 0.16s ease;
+}
+
+.row-hover {
+  background: #f7f8fa;
+}
+
+.row-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.row-label {
+  display: block;
+  font-size: 26rpx;
+  line-height: 45rpx;
+  font-weight: 500;
+  color: #141820;
+}
+
+.row-desc {
+  display: block;
+  margin-top: 3rpx;
+  font-size: 21rpx;
+  line-height: 34rpx;
+  font-weight: 500;
+  color: #8b8f99;
+}
+
+.row-value {
+  flex: none;
+  margin-left: 22rpx;
+  font-size: 22rpx;
+  line-height: 45rpx;
+  font-weight: 500;
+  color: #8b8f99;
+}
+
+.row-strong {
+  flex: none;
+  margin-left: auto;
+  font-size: 22rpx;
+  line-height: 45rpx;
+  font-weight: 500;
+  color: #466bff;
+}
+
+/* 右向箭头：用边框画，比文字「›」在各机型上更稳定 */
+.chevron {
+  flex: none;
+  width: 16rpx;
+  height: 16rpx;
+  margin-left: 18rpx;
+  border-top: 3rpx solid #8b8f99;
+  border-right: 3rpx solid #8b8f99;
+  transform: rotate(45deg);
+}
+
+.chevron-strong {
+  border-color: #466bff;
+}
+
+/* ---------- 底部协议链接 ---------- */
+
+.links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 52rpx;
+  padding-bottom: 272rpx;
+}
+
+.link {
+  font-size: 21rpx;
+  line-height: 45rpx;
+  font-weight: 500;
+  color: #8b8f99;
+}
+
+.link-divider {
+  width: 2rpx;
+  height: 19rpx;
+  margin: 0 30rpx;
+  background: #eef0f5;
+}
+
+/* ---------- 账号管理页：表单项 ---------- */
+
+.section {
+  margin-top: 49rpx;
+}
+
+.field {
+  margin-top: 15rpx;
+}
+
+.field-label {
+  display: block;
+  margin-top: 22rpx;
+  font-size: 22rpx;
+  line-height: 45rpx;
+  font-weight: 500;
+  color: #141820;
+}
+
+.field-input {
+  height: 86rpx;
+  margin-top: 15rpx;
+  padding: 0 26rpx;
+  border-radius: 15rpx;
+  background: #efefef;
+  font-size: 26rpx;
+  line-height: 86rpx;
+  color: #141820;
+}
+
+.field-placeholder {
+  color: #8b8f99;
+}
+
+/* 账号信息项：两行（标签 + 状态与操作），行高合计 80px */
+.info-item {
+  padding: 26rpx 0;
+  border-bottom: 2rpx solid #eef0f5;
+}
+
+.info-label {
+  display: block;
+  font-size: 22rpx;
+  line-height: 45rpx;
+  font-weight: 500;
+  color: #141820;
+}
+
+.info-line {
+  display: flex;
+  align-items: center;
+  margin-top: 7rpx;
+}
+
+.info-value {
+  font-size: 22rpx;
+  line-height: 45rpx;
+  font-weight: 500;
+  color: #8b8f99;
+}
+
+.info-action {
+  margin-left: auto;
+  font-size: 22rpx;
+  line-height: 45rpx;
+  font-weight: 500;
+  color: #466bff;
+}
+
+.section-note {
+  display: block;
+  margin-top: 11rpx;
+  font-size: 21rpx;
+  line-height: 34rpx;
+  font-weight: 500;
+  color: #8b8f99;
+}
+
+/* ---------- 底部固定主按钮 ---------- */
+
+.bottom-bar {
+  position: fixed;
+  left: 41rpx;
+  right: 41rpx;
+  bottom: 67rpx;
+  bottom: calc(67rpx + env(safe-area-inset-bottom));
+}
+
+.bottom-btn {
+  height: 90rpx;
+  border-radius: 22rpx;
+  background: #466bff;
+  color: #ffffff;
+  font-size: 26rpx;
+  line-height: 90rpx;
+  font-weight: 500;
+  text-align: center;
+  transition: opacity 0.16s ease;
+}
+
+.bottom-btn-hover {
+  opacity: 0.86;
+}
+
+.bottom-btn-disabled {
+  background: #c3ccf7;
+}
+
+/* 内容底部让位：90rpx 按钮 + 67rpx 底距 + 呼吸位，再叠安全区 */
+.page-with-bottom-bar {
+  padding-bottom: 240rpx;
+  padding-bottom: calc(240rpx + env(safe-area-inset-bottom));
+}
+
+/* ---------- 开关行 ---------- */
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  min-height: 101rpx;
+  border-bottom: 2rpx solid #eef0f5;
+}
+
+.switch-row-tall {
+  min-height: 134rpx;
+}
+
+/* 原生 switch 最小就是 52x32，缩放贴近设计稿的 40x24 */
+.switch {
+  flex: none;
+  margin-left: auto;
+  transform: scale(0.78);
+  transform-origin: right center;
+}
+
+/* ---------- 考试记录 ---------- */
+
+.exam-row {
+  display: flex;
+  align-items: center;
+  min-height: 93rpx;
+  border-bottom: 2rpx solid #eef0f5;
+}
+
+.exam-date {
+  margin-left: auto;
+  font-size: 21rpx;
+  line-height: 45rpx;
+  font-weight: 500;
+  color: #8b8f99;
+}
+
+.status-pill {
+  flex: none;
+  margin-left: 15rpx;
+  padding: 0 11rpx;
+  height: 34rpx;
+  border-radius: 7rpx;
+  background: #efefef;
+  font-size: 17rpx;
+  line-height: 34rpx;
+  font-weight: 500;
+  color: #8b8f99;
+  text-align: center;
+}
+
+.status-pill-upcoming {
+  background: #eef2ff;
+  color: #466bff;
+}
+
+.status-pill-today {
+  background: #e9f7ef;
+  color: #17b26a;
+}
+
+.add-btn {
+  height: 67rpx;
+  margin-top: 22rpx;
+  border-radius: 15rpx;
+  background: #efefef;
+  font-size: 22rpx;
+  line-height: 67rpx;
+  font-weight: 500;
+  color: #466bff;
+  text-align: center;
+  transition: background-color 0.16s ease;
+}
+
+.add-btn-hover {
+  background: #e6e8ee;
+}
+
+/* ---------- 提前提醒勾选 ---------- */
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 24rpx;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+}
+
+.checkbox {
+  flex: none;
+  width: 30rpx;
+  height: 30rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10rpx;
+  border: 2rpx solid #d5d8e0;
+  background: #ffffff;
+  transition: background-color 0.16s ease, border-color 0.16s ease;
+}
+
+.checkbox-checked {
+  border-color: #466bff;
+  background: #466bff;
+}
+
+/* 白色对勾：两根边框拼出来，不依赖图片资源 */
+.checkbox-check {
+  width: 8rpx;
+  height: 15rpx;
+  margin: -3rpx 0 0 0;
+  border-right: 3rpx solid #ffffff;
+  border-bottom: 3rpx solid #ffffff;
+  transform: rotate(45deg);
+}
+
+.checkbox-label {
+  margin-left: 11rpx;
+  font-size: 22rpx;
+  line-height: 30rpx;
+  font-weight: 500;
+  color: #141820;
+}
+
+.checkbox-hint {
+  display: block;
+  margin-top: 15rpx;
+  font-size: 19rpx;
+  line-height: 34rpx;
+  color: #8b8f99;
+}
+
+/* ---------- 弹层内容共用 ---------- */
+
+.sheet-text {
+  display: block;
+  padding: 8rpx 0 24rpx;
+  font-size: 24rpx;
+  line-height: 1.7;
+  color: #6b7684;
+  white-space: pre-wrap;
+}
+
+.sheet-actions {
+  padding-bottom: 40rpx;
+}

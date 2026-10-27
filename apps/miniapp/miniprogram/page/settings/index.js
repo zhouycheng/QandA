@@ -4,8 +4,9 @@ const { wrapTaps } = require('../../utils/tap-trace.js')
 
 const SECTION_IDS = {
   practice: 'section-practice',
+  layout: 'choice-answerLayout',
   exam: 'section-exam',
-  account: 'section-account',
+  data: 'section-data',
   about: 'section-about'
 }
 
@@ -73,8 +74,18 @@ Page(wrapTaps({
     })
   },
 
-  handleAccountTap(e) {
-    this.applyViewModelResult(this.viewModel.openAccountAction(e.currentTarget.dataset.key))
+  handleClearRecords() {
+    wx.showModal({
+      title: '清空学习数据',
+      content: '将清空本机的做题进度、错题本、收藏、学习时长与历史最佳成绩，且无法恢复。学习偏好与登录状态会保留。确定继续吗？',
+      confirmText: '清空',
+      confirmColor: '#f04438',
+      success: (res) => {
+        if (res.confirm) {
+          this.applyViewModelResult(this.viewModel.clearRecords())
+        }
+      }
+    })
   },
 
   /** 考试名称放 bindblur：放 bindinput 会每敲一个字写一次 storage */

@@ -1,10 +1,28 @@
+/**
+ * 答题卡弹层（2026-10-27 按设计稿重做）
+ *
+ * 结构：grip → 标题 → 三格统计（已答/未答/标记）→ 图例 → 6 列网格 → 按钮组。
+ *
+ * 配色（从设计稿采样得到）：
+ *   已答 #B6E7D2 / 字 #17845A      未答 白底 + 虚线灰边 / 字 #9AA0A6
+ *   当前 #466BFF / 字 #fff         标记点 #F79009
+ *
+ * ⚠️ 格子只区分「答没答」，不区分「对不对」：考试模式下按对错染色等于当场泄题。
+ *    结果页的 `res-cell` 才按对错染色（那是交卷之后）。
+ *
+ * ⚠️ 网格用「固定宽度 + 换行 + 第 6 个去右边距」，不用百分比：
+ *    百分比在 flex 容器里会被 border 撑出 7 列。
+ */
+
 .overview {
   position: fixed;
   left: 0;
   right: 0;
   top: 0;
   bottom: 0;
-  z-index: 900;
+  z-index: 80;
+  display: flex;
+  align-items: flex-end;
 }
 
 .mask {
@@ -13,139 +31,254 @@
   right: 0;
   top: 0;
   bottom: 0;
-  background: rgba(15, 23, 42, 0.45);
+  background: rgba(17, 22, 33, 0.45);
 }
 
 .panel {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: #ffffff;
-  border-radius: 28rpx 28rpx 0 0;
-  padding-bottom: env(safe-area-inset-bottom);
-  animation: overview-rise 0.22s ease-out;
+  position: relative;
+  width: 100%;
+  max-height: 68vh;
+  padding: 16rpx 40rpx 0;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  background: #fff;
+  border-radius: 32rpx 32rpx 0 0;
+  display: flex;
+  flex-direction: column;
 }
 
-@keyframes overview-rise {
-  from {
-    transform: translateY(100%);
-  }
-
-  to {
-    transform: translateY(0);
-  }
+/* 顶部拖动条：只做视觉暗示，不接手势 */
+.panel-grip {
+  width: 72rpx;
+  height: 8rpx;
+  margin: 0 auto 22rpx;
+  background: #DDE1E6;
+  border-radius: 999rpx;
 }
 
 .panel-header {
-  padding: 28rpx 32rpx;
-  border-bottom: 1rpx solid var(--line);
+  display: flex;
+  align-items: center;
+  margin-bottom: 12rpx;
 }
 
 .panel-title {
-  font-size: 30rpx;
+  font-size: 32rpx;
   font-weight: 600;
-  color: var(--text-main);
+  color: #141820;
+}
+
+/* 三格统计挤在一行，用 · 分隔 */
+.panel-stats {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6rpx;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+}
+
+.stat-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  margin-right: 8rpx;
+}
+
+.stat-text {
+  font-size: 21rpx;
+  color: #9AA0A6;
+}
+
+.stat-sep {
+  margin: 0 12rpx;
+  font-size: 21rpx;
+  color: #C9CDD3;
 }
 
 .panel-sub {
-  margin-left: 16rpx;
-  font-size: 24rpx;
-  color: var(--text-muted);
-}
-
-.grid-scroll {
-  max-height: 56vh;
-  padding: 28rpx 32rpx;
-}
-
-.grid {
-  display: flex;
-  flex-wrap: wrap;
-}
-
-.cell {
-  position: relative;
-  width: 96rpx;
-  height: 96rpx;
-  margin: 0 16rpx 16rpx 0;
-  border-radius: 16rpx;
-  background: #f2f4f7;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.cell-number {
-  font-size: 28rpx;
-  color: var(--text-sub);
-}
-
-.cell.correct {
-  background: #dcfae6;
-}
-
-.cell.correct .cell-number {
-  color: var(--success);
-}
-
-.cell.wrong {
-  background: #fee4e2;
-}
-
-.cell.wrong .cell-number {
-  color: var(--danger);
-}
-
-.cell.current {
-  border: 2rpx solid var(--brand);
-}
-
-/* 格子按压：只回缩不动背景——背景已被答对/答错/当前三个状态占用 */
-/* 答题卡格子在 scroll-view 里：格子小、又密，缩放会让整片网格一起晃，
-   所以只做描边 + 底色 */
-.cell-hover {
-  background: rgba(43, 127, 252, 0.16);
-  box-shadow: inset 0 0 0 4rpx rgba(43, 127, 252, 0.45);
-  transition-duration: 90ms;
-}
-
-.cell-star {
-  position: absolute;
-  right: 6rpx;
-  top: 2rpx;
-  font-size: 20rpx;
-  color: var(--warning);
+  font-size: 21rpx;
+  color: #9AA0A6;
+  margin-bottom: 8rpx;
 }
 
 .legend {
   display: flex;
-  padding: 0 32rpx 32rpx;
+  align-items: center;
+  margin-top: 20rpx;
+  margin-bottom: 22rpx;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  margin-right: 32rpx;
-  font-size: 22rpx;
-  color: var(--text-muted);
+  margin-right: 26rpx;
 }
 
 .dot {
-  width: 20rpx;
-  height: 20rpx;
+  width: 16rpx;
+  height: 16rpx;
   border-radius: 50%;
-  margin-right: 10rpx;
+  margin-right: 8rpx;
 }
 
-.dot.correct {
-  background: #dcfae6;
+/* 未答用「空心圆」而不是灰点：设计稿里未答格子就是白底虚线，图例要呼应 */
+.dot-answered {
+  background: #0DAD69;
 }
 
-.dot.wrong {
-  background: #fee4e2;
+.dot-pending {
+  background: #fff;
+  border: 2rpx solid #C9CDD3;
+  box-sizing: border-box;
 }
 
-.dot.pending {
-  background: #f2f4f7;
+.dot-current {
+  background: #466BFF;
+}
+
+.dot-mark {
+  background: #F79009;
+}
+
+.legend-text {
+  font-size: 20rpx;
+  color: #9AA0A6;
+}
+
+.grid-scroll {
+  flex: 1;
+  min-height: 0;
+}
+
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  padding-bottom: 8rpx;
+}
+
+.cell {
+  position: relative;
+  flex: 0 0 auto;
+  /* 6 格正好铺满一行：(100% - 5×间距) / 6，写死宽度会在右边剩一条空档 */
+  width: calc((100% - 80rpx) / 6);
+  height: 90rpx;
+  margin-right: 16rpx;
+  margin-bottom: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16rpx;
+  /* 基态 = 未答：白底虚线框。⚠️ 必须 border-box，否则 2rpx 边框会把 6 格挤成 5 格 */
+  background: #fff;
+  border: 2rpx dashed #D8DCE3;
+  box-sizing: border-box;
+  transition: opacity 100ms ease;
+}
+
+.cell:nth-child(6n) {
+  margin-right: 0;
+}
+
+.cell-hover {
+  opacity: 0.6;
+}
+
+.cell-number {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #9AA0A6;
+}
+
+.cell.cell-answered {
+  background: #B6E7D2;
+  border-style: solid;
+  border-color: #B6E7D2;
+}
+
+.cell.cell-answered .cell-number {
+  color: #17845A;
+}
+
+/* 当前题压过其它状态：蓝底白字，一眼能找到「我在哪」 */
+.cell.cell-current {
+  background: #466BFF;
+  border-style: solid;
+  border-color: #466BFF;
+}
+
+.cell.cell-current .cell-number {
+  color: #fff;
+}
+
+/* 标记点固定在右上角，不随题号居中 */
+.cell-mark {
+  position: absolute;
+  top: 8rpx;
+  right: 8rpx;
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: #F79009;
+}
+
+.panel-actions {
+  flex: none;
+  padding-top: 20rpx;
+}
+
+.panel-row {
+  display: flex;
+  align-items: center;
+}
+
+.panel-row-single {
+  margin-top: 18rpx;
+}
+
+.panel-btn {
+  flex: 1;
+  height: 88rpx;
+  line-height: 84rpx;
+  text-align: center;
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #466BFF;
+  background: #fff;
+  border: 2rpx solid #466BFF;
+  border-radius: 18rpx;
+  box-sizing: border-box;
+  transition: opacity 100ms ease;
+}
+
+.panel-btn + .panel-btn {
+  margin-left: 20rpx;
+}
+
+/* 按压反馈只用 opacity：弹层里的按钮如果加位移，整块面板会跟着视觉抖动 */
+.panel-btn-hover {
+  opacity: 0.68;
+}
+
+/* 主操作：蓝底白字。
+   ⚠️ 组件样式是隔离的，页面的 `.pra-btn.primary` 不会漏进来 —— 预览脚本把两套 wxss 拼在
+   同一个文档里，曾经因此「看起来是蓝的、真机却是白底描边」。组件内必须自带这一条 */
+.panel-btn.primary {
+  color: #fff;
+  background: #466BFF;
+  border-color: #466BFF;
+}
+
+/* 白底红字：交卷是「结束」动作，用红色把它和翻页按钮分开 */
+.panel-btn.danger {
+  color: #E5484D;
+  border-color: #F5C2C4;
+}
+
+.panel-btn.accent {
+  color: #fff;
+  background: #F79009;
+  border-color: #F79009;
 }

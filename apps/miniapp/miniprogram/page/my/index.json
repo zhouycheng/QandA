@@ -1,5 +1,11 @@
 {
-  "navigationBarTitleText": "我的",
+  "navigationBarTitleText": "",
+  "navigationBarBackgroundColor": "#FFFFFF",
+  "navigationBarTextStyle": "black",
+  "backgroundColor": "#FFFFFF",
+  "backgroundTextStyle": "dark",
   "enablePullDownRefresh": true,
-  "usingComponents": {}
+  "usingComponents": {
+    "bottom-sheet": "/components/bottom-sheet/index"
+  }
 }

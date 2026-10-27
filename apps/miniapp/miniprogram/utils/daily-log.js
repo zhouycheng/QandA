@@ -17,7 +17,12 @@
  */
 
 const DAILY_LOG_STORAGE_KEY = 'qandaDailyLog'
-const MAX_KEEP_DAYS = 90
+/**
+ * 保留天数。复盘页的「学习活动」热力图按设计稿是**近半年**，
+ * 90 天会让左侧一半格子永远是空的，所以放到 190 天（≈27 周）。
+ * 体积代价很小：190 条 × 约 40 字节 ≈ 8KB，相对 1MB 的存储上限可以忽略。
+ */
+const MAX_KEEP_DAYS = 190
 const WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
 
 function toTimestamp(timestamp) {
@@ -238,5 +243,8 @@ module.exports = {
   hasActivity,
   normalizeDailyLog,
   pruneDailyLog,
+  // 热力图要按「周列」重排，需要按天平移与取当天零点
+  shiftDays,
+  startOfDay,
   summarizeRecentDays
 }

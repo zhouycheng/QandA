@@ -23,90 +23,99 @@ Page(wrapTaps({
   },
 
   /**
-   * 主按钮：未登录走登录，已登录走退出。
-   * 合成一个入口是为了避免页面上同时出现「登录」和「退出」两个按钮——
-   * 用户会先纠结该点哪个。
+   * 输入只回写 errorField 等状态，**不回写 value**。
+   * 把 value 也 setData 回去会让受控输入在真机上出现光标跳到末尾的问题。
    */
-  handlePrimaryTap() {
-    if (this.data.loggedIn) {
-      this.confirmLogout()
+  syncForm(result) {
+    if (!result || !result.data) {
       return
     }
 
-    this.runLogin()
+    this.setData({
+      errorField: result.data.errorField,
+      canSubmit: result.data.canSubmit,
+      submitting: result.data.submitting,
+      agreed: result.data.agreed
+    })
   },
 
-  runLogin() {
+  handleEmailInput(e) {
+    this.syncForm(this.viewModel.setField('email', e.detail.value))
+  },
+
+  handlePasswordInput(e) {
+    this.syncForm(this.viewModel.setField('password', e.detail.value))
+  },
+
+  handleToggleAgreed() {
+    this.syncForm(this.viewModel.toggleAgreed())
+  },
+
+  handleLoginTap() {
+    this.runAuth(() => this.viewModel.submit(), '登录中')
+  },
+
+  handleWechatTap() {
+    this.runAuth(() => this.viewModel.wechatLogin(), '登录中')
+  },
+
+  /**
+   * 统一跑一次认证请求。
+   *
+   * 用实例上的 busy 锁而不是 `data.submitting`：setData 是异步生效的，
+   * 连点两下时 data 里还是旧值，锁不住 —— 会叠两个 loading，
+   * 先结束的那个把另一个的 loading 一起 hide 掉，界面看着像闪了一下。
+   * 另外 factory 同步抛错时必须有兜底，否则 loading 永远不消失。
+   */
+  runAuth(factory, title) {
+    if (this.busy) {
+      return
+    }
+
+    this.busy = true
     wx.showLoading({
-      title: '登录中',
+      title,
       mask: true
     })
 
-    this.viewModel.login().then((result) => {
+    const done = (result) => {
+      this.busy = false
       wx.hideLoading()
 
       setTimeout(() => {
         this.applyViewModelResult(result)
       }, TOAST_DELAY)
-    })
-  },
-
-  confirmLogout() {
-    wx.showModal({
-      title: '退出登录',
-      content: '退出后本机学习数据仍会保留，只是不再关联身份。确定退出吗？',
-      confirmText: '退出',
-      confirmColor: '#f04438',
-      success: (res) => {
-        if (res.confirm) {
-          this.applyViewModelResult(this.viewModel.logout())
-        }
-      }
-    })
-  },
-
-  /**
-   * 头像：微信 2022 年那次调整后，getUserProfile / getUserInfo 已废弃，
-   * 唯一合规入口是 <button open-type="chooseAvatar">。
-   */
-  handleChooseAvatar(e) {
-    const tempUrl = e.detail && e.detail.avatarUrl
-
-    if (!tempUrl) {
-      return
     }
 
-    this.persistAvatar(tempUrl)
-  },
-
-  /**
-   * chooseAvatar 返回的是**临时**路径，下次冷启动就失效，
-   * 必须拷进 wx.env.USER_DATA_PATH 才能长期显示。
-   * 拷不进去（模拟器 / 权限问题）就退回临时路径，至少本次会话能看见。
-   */
-  persistAvatar(tempUrl) {
-    const userDir = wx.env && wx.env.USER_DATA_PATH
-    const fs = typeof wx.getFileSystemManager === 'function' ? wx.getFileSystemManager() : null
-
-    if (!userDir || !fs) {
-      this.applyViewModelResult(this.viewModel.setAvatar(tempUrl))
-      return
-    }
-
-    let saved = ''
+    let pending = null
 
     try {
-      saved = fs.saveFileSync(tempUrl, `${userDir}/qanda-avatar.png`)
+      pending = factory()
     } catch (error) {
-      saved = ''
+      pending = Promise.reject(error)
     }
 
-    this.applyViewModelResult(this.viewModel.setAvatar(saved || tempUrl))
+    Promise.resolve(pending).then(done, () => {
+      done({
+        data: this.viewModel.buildData(),
+        command: {
+          type: 'toast',
+          title: '网络异常，请稍后重试'
+        }
+      })
+    })
   },
 
-  /** 昵称同样只在失焦时保存：bindinput 每敲一个字写一次 storage 没必要 */
-  handleNicknameBlur(e) {
-    this.applyViewModelResult(this.viewModel.setNickname(e.detail.value))
+  handleForgotTap() {
+    wx.navigateTo({
+      url: '/page/forgot-password/index'
+    })
+  },
+
+  handleRegisterTap() {
+    wx.navigateTo({
+      url: '/page/register/index'
+    })
   },
 
   applyViewModelResult(result) {
@@ -118,17 +127,63 @@ Page(wrapTaps({
       this.setData(result.data)
     }
 
-    if (result.command && result.command.type === 'toast') {
+    const command = result.command
+
+    if (!command) {
+      return
+    }
+
+    if (command.type === 'toast') {
       wx.showToast({
-        title: result.command.title || '操作完成',
+        title: command.title || '操作完成',
         icon: 'none',
         duration: 1800
       })
+      return
     }
 
-    if (result.command && result.command.type === 'navigate' && result.command.url) {
-      wx.navigateTo({
-        url: result.command.url
+    if (command.type === 'back') {
+      this.finishBack(command.title)
+      return
+    }
+
+    if (command.type === 'navigate' && command.url) {
+      const go = command.mode === 'redirect' ? wx.redirectTo : wx.navigateTo
+
+      go({
+        url: command.url,
+        fail: () => wx.reLaunch({ url: command.url })
+      })
+
+      if (command.title) {
+        wx.showToast({
+          title: command.title,
+          icon: 'none',
+          duration: 1800
+        })
+      }
+    }
+  },
+
+  /**
+   * 登录成功后回到来处。
+   * 直接进登录页（没有上一页）时 navigateBack 会失败，退回首页兜底，
+   * 否则用户点完登录会停在原地，看起来像没生效。
+   */
+  finishBack(title) {
+    wx.navigateBack({
+      fail: () => {
+        wx.reLaunch({
+          url: '/page/subject-list/index'
+        })
+      }
+    })
+
+    if (title) {
+      wx.showToast({
+        title,
+        icon: 'none',
+        duration: 1800
       })
     }
   }

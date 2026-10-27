@@ -2,10 +2,13 @@
  * 自定义 tabBar 尺寸（2026-10-25 真机反馈后放大并抬高）：
  *   胶囊高 120rpx，中央圆钮 118rpx，整体占位 232rpx。
  *
- *   真机反馈两件事：
+ *   真机反馈三件事：
  *     1. 「不太醒目」→ 胶囊 108→120，图标 44→50，标签 19→21；
  *     2. 「位置太低了」→ 胶囊离底 20→40rpx，并且整条底栏要躲开 iPhone 的
- *        Home 指示条（截图里那条黑杠），靠 env(safe-area-inset-bottom) 上移。
+ *        Home 指示条（截图里那条黑杠），靠 env(safe-area-inset-bottom) 上移；
+ *     3. 「太高了，往下走一点」→ 整条下移 24rpx（胶囊 40→16、圆钮 102→78、
+ *        标签 58→34）。⚠️ 三者必须一起减：只改胶囊会让圆钮和「继续答题」
+ *        跟胶囊脱节，圆钮反而悬在胶囊外面。
  *
  *   ⚠️ 四页的底部留白都按 272rpx 预留，改这里的尺寸要同步改
  *      page/{stats,my}/index.wxss、page/bank-detail/index.wxss、首页 .sheet。
@@ -33,7 +36,10 @@
   position: absolute;
   left: 32rpx;
   right: 32rpx;
-  bottom: 40rpx;
+  bottom: 16rpx;
+  /* 左右各留 24rpx：首尾图标不贴胶囊边缘，四个 tab 与中央圆钮的距离才是对称的 */
+  padding: 0 24rpx;
+  box-sizing: border-box;
   height: 120rpx;
   display: flex;
   align-items: center;
@@ -68,13 +74,14 @@
  * 中央按钮的让位边距加在**第 2 个 tab 之后**，不是第 3 个之后。
  *
  * 加在第 3 个之后（margin-right）时，前 3 个 tab 平分左半侧，
- * 第 3 个（统计）刚好被推到屏幕正中，整个压在圆钮底下 —— 用户看到的就是
- * 「统计隐藏在继续答题的下方」。
- * 加在第 2 个之后，才是「首页/题库 | 空档 | 统计/我的」左右各二。
+ * 第 3 个（复盘）刚好被推到屏幕正中，整个压在圆钮底下 —— 用户看到的就是
+ * 「复盘隐藏在继续答题的下方」。
+ * 加在第 2 个之后，才是「首页/题库 | 空档 | 复盘/我的」左右各二。
  *
- * 数值：胶囊宽 = 750 - 32×2 = 686rpx；圆钮直径 118rpx 居中于 343rpx，
- * 占 [284, 402]。让位 140rpx 时每格 136.5rpx，第 2 格止于 273、第 3 格起于 413，
- * 两侧各留 11rpx 不压边。
+ * 数值（含 .tabbar 的 padding: 0 24rpx）：
+ *   胶囊内宽 = 686 - 24×2 = 638rpx，让位 140rpx → 每格 (638-140)/4 = 124.5rpx
+ *   tab 依次占 [56,180.5] [180.5,305] …空档… [445,569.5] [569.5,694]
+ *   距胶囊左右内边缘都是 24rpx，四个图标的中心到屏幕中线距离完全相等 → 对称
  */
 .tab-item:nth-child(2) {
   margin-right: 140rpx;
@@ -84,6 +91,7 @@
   opacity: 0.5;
 }
 
+/* 四个图标同一个盒子、同一描边，避免「有的显大有的显小」 */
 .tab-icon {
   width: 50rpx;
   height: 50rpx;
@@ -103,7 +111,7 @@
 .continue-btn {
   position: absolute;
   left: 50%;
-  bottom: 102rpx;
+  bottom: 78rpx;
   width: 118rpx;
   height: 118rpx;
   margin-left: -59rpx;
@@ -133,17 +141,20 @@
 }
 
 /**
- * 「继续答题」四个字：留在白色胶囊里，与左右四个 tab 的标签同一条基线。
+ * ⚠️ 「继续答题」这四个字**绝不能 left:0 + right:0 铺满整条底栏**。
  *
- * 基线怎么对齐的：tab-item 高 120rpx，内容 = 图标 50 + 间距 4 + 文字 29 ≈ 83rpx，
- * 垂直居中后文字占据 58.5 ~ 87.5rpx（从胶囊底往上量）。
- * 这里 bottom: 58rpx 正好落在同一区间。
+ * 它和四个 tab 的标签在同一高度（bottom 34rpx、高 30rpx），一旦铺满，
+ * 这一条横向 30rpx 的带子就压在所有 tab 文字上方，并且因为它是绝对定位、
+ * 在 DOM 里又排在 tab 之后，命中检测全部落到它身上 ——
+ * 用户点「统计」两个字，实际触发的是 handleContinueTap，页面直接跳去答题。
+ * 所以宽度只给中央圆钮那一格（130rpx），左右都不越界。
  */
 .continue-label {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 58rpx;
+  left: 50%;
+  width: 130rpx;
+  margin-left: -65rpx;
+  bottom: 34rpx;
   height: 30rpx;
   line-height: 30rpx;
   text-align: center;

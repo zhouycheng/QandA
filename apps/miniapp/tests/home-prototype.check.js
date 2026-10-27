@@ -145,7 +145,8 @@ function checkStructure() {
     /\.hero\s*\{[^}]*linear-gradient\(180deg,\s*#4a7bfb/.test(homeWxss))
 
   // ---------- 蓝色倒计时卡：配图 + 金句 ----------
-  assert('卡片 - 有封面图', /<image class="exam-cover" src="\/assets\/home\/exam-cover\.jpg"/.test(homeWxml))
+  assert('卡片 - 封面图由时段决定（早/中/晚三张）',
+    /<image class="exam-cover" src="\{\{home\.coverImage\}\}"/.test(homeWxml))
   assert('卡片 - 封面图使用 aspectFill（避免拉伸变形）',
     /exam-cover"[\s\S]{0,120}?mode="aspectFill"/.test(homeWxml))
   assert('卡片 - 有压暗层（否则白字压在插画上读不清）',
@@ -157,31 +158,85 @@ function checkStructure() {
     homeWxml.indexOf('examName}} 考试还有') < 0,
     '名称常自带「考试」，拼上去会变成「距离 期末考试 考试还有」')
 
-  // 封面图必须真实存在且足够小：主包只剩约 300KB 余量
-  const coverPath = path.join(MINIPROGRAM, 'assets/home/exam-cover.jpg')
-  assert('卡片 - 封面图文件存在', fs.existsSync(coverPath))
+  // ---------- 早 / 中 / 晚三张封面 ----------
+  const { COVER_BY_DAY_PART, getDayPart } = require(path.join(MINIPROGRAM, 'utils/home-content.js'))
+  const dayParts = ['morning', 'noon', 'evening']
 
-  if (fs.existsSync(coverPath)) {
+  assert('封面 - 三个时段都有映射', dayParts.every((key) => !!COVER_BY_DAY_PART[key]),
+    JSON.stringify(COVER_BY_DAY_PART))
+  assert('封面 - 三张路径互不相同',
+    new Set(dayParts.map((key) => COVER_BY_DAY_PART[key])).size === 3)
+
+  // 时段边界必须首尾相接、不留缝：漏一小时就会落到别的图
+  const hourToPart = (hour) => getDayPart(new Date(2026, 9, 27, hour, 30, 0).getTime())
+
+  assert('封面 - 05~11 点用清晨图', [5, 7, 10].every((h) => hourToPart(h) === 'morning'),
+    [5, 7, 10].map((h) => `${h}→${hourToPart(h)}`).join(' '))
+  assert('封面 - 11~18 点用正午图', [11, 13, 17].every((h) => hourToPart(h) === 'noon'),
+    [11, 13, 17].map((h) => `${h}→${hourToPart(h)}`).join(' '))
+  assert('封面 - 18~次日 5 点用黄昏图', [18, 21, 23, 0, 3, 4].every((h) => hourToPart(h) === 'evening'),
+    [18, 21, 23, 0, 3, 4].map((h) => `${h}→${hourToPart(h)}`).join(' '))
+
+  // 问候语与封面图必须同时段切换，不能「说晚上好、却显示正午图」
+  const { buildHomeContent } = require(path.join(MINIPROGRAM, 'utils/home-content.js'))
+  const contentPairs = [
+    { hour: 7, part: 'morning', greeting: '早上好' },
+    { hour: 12, part: 'noon', greeting: '中午好' },
+    { hour: 15, part: 'noon', greeting: '下午好' },
+    { hour: 20, part: 'evening', greeting: '晚上好' },
+    { hour: 2, part: 'evening', greeting: '夜深了' }
+  ]
+
+  contentPairs.forEach((item) => {
+    const content = buildHomeContent({}, new Date(2026, 9, 27, item.hour, 0, 0).getTime())
+
+    assert(`封面 - ${item.hour} 点问候语与封面同为「${item.part}」`,
+      content.greeting === item.greeting && content.dayPart === item.part,
+      `${content.greeting} / ${content.dayPart}`)
+  })
+
+  // 三张图必须真实存在、体积可控、比例与卡片一致
+  const sheetPadding = homeWxss.match(/\.sheet\s*\{[^}]*padding:\s*(\d+)rpx\s+(\d+)rpx/)
+  const cardHeight = Number((homeWxss.match(/\.exam-card\s*\{[^}]*?height:\s*(\d+)rpx/) || [])[1] || 0)
+  const cardWidth = sheetPadding ? 750 - Number(sheetPadding[2]) * 2 : 0
+  let coverTotal = 0
+
+  dayParts.forEach((key) => {
+    const coverPath = path.join(MINIPROGRAM, COVER_BY_DAY_PART[key].replace(/^\//, ''))
+
+    assert(`封面 - ${key} 图不存在`, fs.existsSync(coverPath), coverPath)
+
+    if (!fs.existsSync(coverPath)) {
+      return
+    }
+
     const coverSize = fs.statSync(coverPath).size
-    assert('卡片 - 封面图不超过 120KB', coverSize <= 120 * 1024, `实际 ${Math.round(coverSize / 1024)}KB`)
+    coverTotal += coverSize
+
+    // 主包只剩约 300KB 余量，三张合计必须压住
+    assert(`封面 - ${key} 图不超过 90KB`, coverSize <= 90 * 1024, `实际 ${Math.round(coverSize / 1024)}KB`)
 
     // 比例必须和卡片完全一致：不一致时 aspectFill 会裁边，右边缘的时钟会被切掉半个
     const size = readJpegSize(coverPath)
-    const sheetPadding = homeWxss.match(/\.sheet\s*\{[^}]*padding:\s*(\d+)rpx\s+(\d+)rpx/)
-    const cardHeight = Number((homeWxss.match(/\.exam-card\s*\{[^}]*?height:\s*(\d+)rpx/) || [])[1] || 0)
-    const cardWidth = sheetPadding ? 750 - Number(sheetPadding[2]) * 2 : 0
 
-    assert('卡片 - 封面图可读出尺寸', !!size)
+    assert(`封面 - ${key} 图可读出尺寸`, !!size)
 
     if (size && cardHeight && cardWidth) {
       const imageRatio = size.width / size.height
       const cardRatio = cardWidth / cardHeight
 
-      assert('卡片 - 封面图比例与卡片一致（否则 aspectFill 会裁边）',
+      assert(`封面 - ${key} 图比例与卡片一致（否则 aspectFill 会裁边）`,
         Math.abs(imageRatio - cardRatio) < 0.02,
         `图 ${imageRatio.toFixed(3)} vs 卡 ${cardRatio.toFixed(3)}（图片 ${size.width}x${size.height}，卡片 ${cardWidth}x${cardHeight}rpx）`)
     }
-  }
+  })
+
+  // 主包 2MB 上限、当前约 1.8MB：三张写实插画合计必须压在 230KB 内
+  assert('封面 - 三张合计不超过 230KB', coverTotal <= 230 * 1024, `实际 ${Math.round(coverTotal / 1024)}KB`)
+
+  // 旧单张封面必须退场：留着会让人误以为可以改回去
+  assert('封面 - 旧的单张 exam-cover.jpg 已移除',
+    !fs.existsSync(path.join(MINIPROGRAM, 'assets/home/exam-cover.jpg')))
 
   // 旧原型（插画横幅 + 学习数据卡 + 公告条）必须彻底退场，避免两套卡片并存
   const legacy = ['banner-study.png', 'data-card', 'metric-grid', 'tip-bar', 'continue-card']
