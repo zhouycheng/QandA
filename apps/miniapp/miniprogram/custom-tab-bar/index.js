@@ -4,11 +4,15 @@ const { createWxStorageAdapter } = require('../utils/wx-storage.js')
 /**
  * tab 索引 → 页面路径。
  * 顺序必须与 app.json 的 tabBar.list 一致，自检 tests/custom-tabbar.check.js 会比对。
+ *
+ * 第 3 个 tab 的路由仍是 page/stats/index（改路由要动 app.json、测试和所有深链，
+ * 收益为零），但产品名已改为「复盘」：这一页现在讲的是「这段时间练得怎么样」，
+ * 不再是以前那张成绩统计表。
  */
 const TAB_ROUTES = [
   { pagePath: '/page/subject-list/index', key: 'home' },
   { pagePath: '/page/bank-detail/index', key: 'bank' },
-  { pagePath: '/page/stats/index', key: 'stats' },
+  { pagePath: '/page/stats/index', key: 'review' },
   { pagePath: '/page/my/index', key: 'my' }
 ]
 
@@ -67,7 +71,7 @@ Component({
     tabs: [
       { key: 'home', text: '首页', icon: '/assets/tabbar/home.png', activeIcon: '/assets/tabbar/home-active.png' },
       { key: 'bank', text: '题库', icon: '/assets/tabbar/bank.png', activeIcon: '/assets/tabbar/bank-active.png' },
-      { key: 'stats', text: '统计', icon: '/assets/tabbar/stats.png', activeIcon: '/assets/tabbar/stats-active.png' },
+      { key: 'review', text: '复盘', icon: '/assets/tabbar/review.png', activeIcon: '/assets/tabbar/review-active.png' },
       { key: 'my', text: '我的', icon: '/assets/tabbar/my.png', activeIcon: '/assets/tabbar/my-active.png' }
     ]
   },

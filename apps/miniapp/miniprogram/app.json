@@ -7,8 +7,12 @@
     "page/question-detail/index",
     "page/my/index",
     "page/login/index",
+    "page/register/index",
+    "page/forgot-password/index",
     "page/wrong-book/index",
     "page/settings/index",
+    "page/account/index",
+    "page/reminder/index",
     "page/import-bank/index",
     "page/playground/index"
   ],
@@ -40,9 +44,9 @@
       },
       {
         "pagePath": "page/stats/index",
-        "text": "统计",
-        "iconPath": "assets/tabbar/stats.png",
-        "selectedIconPath": "assets/tabbar/stats-active.png"
+        "text": "复盘",
+        "iconPath": "assets/tabbar/review.png",
+        "selectedIconPath": "assets/tabbar/review-active.png"
       },
       {
         "pagePath": "page/my/index",
