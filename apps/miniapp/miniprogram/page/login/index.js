@@ -1,11 +1,9 @@
 const { LoginViewModel } = require('../../viewmodels/login-viewmodel.js')
 const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
-const { wrapTaps } = require('../../utils/tap-trace.js')
-
 // hideLoading 之后立刻 showToast 会被吞掉，留一帧再弹
 const TOAST_DELAY = 120
 
-Page(wrapTaps({
+Page({
   data: LoginViewModel.getInitialData(),
 
   onLoad() {
@@ -187,4 +185,4 @@ Page(wrapTaps({
       })
     }
   }
-}, 'login'))
+})

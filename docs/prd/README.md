@@ -1,41 +1,22 @@
-# QandA MVP PRD
+# QandA 产品需求与架构
 
-当前目录保存 QandA 第一阶段 Independent MVP 的产品需求与范围基线。
+本目录记录各端的需求基线和架构建议。实际实现状态以代码与对应应用文档为准。
 
-## 第一阶段开发模型
+## 当前实现状态
 
-```text
-Independent MVP
-      ↓
-Contract Freeze
-      ↓
-Integration
-      ↓
-E2E
-```
-
-第一阶段要求四个端先独立完成自身闭环：
-
-| 端 | Independent MVP 核心闭环 |
+| 部分 | 当前实现 |
 | --- | --- |
-| 微信小程序 | 选择题库 → PracticeSession → 本地持久化 / 恢复 → Mock 提交 → PracticeResult |
-| 用户 Web | 选择题库 → PracticeSession → 浏览器持久化 / 恢复 → Mock 提交 → PracticeResult |
-| 管理端 | 科目 → 题库 → 题目 CRUD，通过 Playground / Mock Gateway 完成交互闭环 |
-| API | Subject → QuestionBank → Question → PracticeSession → Submission → PracticeResult，通过 Swagger / HTTP Client / Integration Test 独立验证 |
+| 微信小程序 | 题库与学习记录使用本地存储；身份适配层支持 HTTP 请求与本地降级，练习业务仍待整体联调 |
+| 管理端 | React 管理界面使用浏览器本地 Mock 数据，尚未接入统一 API |
+| API | Kotlin / Spring Boot / PostgreSQL；101 个操作合同中 76 个已实现，25 个为 Draft |
+| 用户 Web | 当前没有实现；保留 Web MVP PRD 作为未来产品范围 |
 
-前端 MVP 不依赖真实 Spring Boot 接口。Mock 与真实 HTTP 必须通过统一 Gateway / Adapter 边界切换，联调阶段只替换基础设施实现，不重写已经验证过的页面和业务流程。
-
-API MVP 不 Mock 自身核心业务与数据库，使用真实 PostgreSQL 或 Testcontainers PostgreSQL 完成闭环。
+前端与 API 的联调尚未完成。API 合同位于 apps/api/contracts，实现情况见 [apps/api/README.md](../../apps/api/README.md)。
 
 ## 文档
 
-- [MVP 功能范围基线](mvp-functions.md)
-- [微信小程序端 MVP PRD](miniapp-mvp.md)
-- [用户 Web 端 MVP PRD](web-mvp.md)
+- [微信小程序 MVP PRD](miniapp-mvp.md)
+- [用户 Web MVP PRD](web-mvp.md)
 - [管理端 MVP PRD](admin-mvp.md)
-- [后端 API MVP PRD](api-mvp.md)
-- [学生自主复习平台架构报告](student-platform-architecture.md)：依据学生自主注册、自主选择课程的产品定位，提出共享内容、推荐范围、后台架构及后续调整建议；新增能力尚未实现。
-
-## 当前目录原则
-
-当前是第一阶段，因此 PRD 不再按开发阶段拆分子目录。后续只有在确实进入新的产品阶段并产生独立需求基线时，再增加阶段级组织。
+- [API MVP PRD](api-mvp.md)
+- [学生自主复习平台架构报告](student-platform-architecture.md)：产品定位、共享内容、推荐范围、后台架构与后续建议。

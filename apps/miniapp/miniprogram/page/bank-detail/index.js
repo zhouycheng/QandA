@@ -1,10 +1,8 @@
 const { BankDetailViewModel } = require('../../viewmodels/bank-detail-viewmodel.js')
 const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
-const { wrapTaps } = require('../../utils/tap-trace.js')
-
 const ROUTE_LOADING_DELAY = 240
 
-Page(wrapTaps({
+Page({
   data: BankDetailViewModel.getInitialData(),
 
   isOpeningPractice: false,
@@ -268,4 +266,4 @@ Page(wrapTaps({
       })
     }, ROUTE_LOADING_DELAY)
   }
-}, 'bank-detail'))
+})

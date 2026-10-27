@@ -1,8 +1,6 @@
 const { QuestionDetailViewModel } = require('../../viewmodels/question-detail-viewmodel.js')
 const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
-const { wrapTaps } = require('../../utils/tap-trace.js')
-
-Page(wrapTaps({
+Page({
   data: QuestionDetailViewModel.getInitialData(),
 
   onLoad(options) {
@@ -25,4 +23,4 @@ Page(wrapTaps({
       this.setData(result.data)
     }
   }
-}, 'question-detail'))
+})

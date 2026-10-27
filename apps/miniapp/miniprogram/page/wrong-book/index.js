@@ -1,13 +1,11 @@
 const { WrongBookViewModel } = require('../../viewmodels/wrong-book-viewmodel.js')
 const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
-const { wrapTaps } = require('../../utils/tap-trace.js')
-
 /**
  * 错题本 / 收藏本（设计稿两张画板）。
  * 路由仍是 page/wrong-book/index，靠 `?type=wrong|favorite` 区分两种模式 ——
  * 复盘页的两张入口卡分别带着这两个参数进来。
  */
-Page(wrapTaps({
+Page({
   data: WrongBookViewModel.getInitialData(),
 
   onLoad(options) {
@@ -145,4 +143,4 @@ Page(wrapTaps({
       wx.navigateTo({ url: result.command.url })
     }
   }
-}, 'wrong-book'))
+})

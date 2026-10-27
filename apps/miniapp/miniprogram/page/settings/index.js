@@ -1,7 +1,5 @@
 const { SettingsViewModel } = require('../../viewmodels/settings-viewmodel.js')
 const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
-const { wrapTaps } = require('../../utils/tap-trace.js')
-
 const SECTION_IDS = {
   practice: 'section-practice',
   layout: 'choice-answerLayout',
@@ -14,7 +12,7 @@ const SECTION_IDS = {
 const VERSION_UNLOCK_TAPS = 5
 const VERSION_TAP_WINDOW = 1500
 
-Page(wrapTaps({
+Page({
   data: Object.assign(SettingsViewModel.getInitialData(), {
     // 版本号由页面从全局配置读取，ViewModel 不参与，避免被初始值覆盖
     version: '',
@@ -152,4 +150,4 @@ Page(wrapTaps({
       })
     }
   }
-}, 'settings'))
+})

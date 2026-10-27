@@ -1,6 +1,4 @@
-const { wrapComponentMethods } = require('../../utils/tap-trace.js')
-
-Component(wrapComponentMethods({
+Component({
   properties: {
     visible: {
       type: Boolean,
@@ -63,4 +61,4 @@ Component(wrapComponentMethods({
       return false
     }
   }
-}), 'question-overview-sheet')
+})

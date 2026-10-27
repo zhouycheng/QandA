@@ -13,7 +13,6 @@ const MINIPROGRAM = path.resolve(__dirname, '../miniprogram')
 const base64Utils = require(path.join(MINIPROGRAM, 'utils/base64.js'))
 const preferenceUtils = require(path.join(MINIPROGRAM, 'utils/preferences.js'))
 const dailyLogUtils = require(path.join(MINIPROGRAM, 'utils/daily-log.js'))
-const insightUtils = require(path.join(MINIPROGRAM, 'utils/study-insight.js'))
 const chartSvg = require(path.join(MINIPROGRAM, 'utils/chart-svg.js'))
 const { SettingsViewModel } = require(path.join(MINIPROGRAM, 'viewmodels/settings-viewmodel.js'))
 const { StatsViewModel } = require(path.join(MINIPROGRAM, 'viewmodels/stats-viewmodel.js'))
@@ -195,119 +194,43 @@ function checkDailyLog() {
     Object.keys(pruned).join(','))
 }
 
-// ---------- 四、雷达维度与趋势序列 ----------
-function checkInsight() {
-  const axes = insightUtils.buildRadarAxes({
-    progressPercent: 62,
-    accuracy: 78,
-    masteredCount: 4,
-    pendingWrongCount: 6,
-    recentAnswered: 50,
-    recentActiveDays: 4,
-    studyMinutes: 95
-  })
-
-  assert('雷达 - 六维', axes.length === 6, `实际 ${axes.length}`)
-  assert('雷达 - 完成度等于原始百分比',
-    axes[0].value === 62 && axes[0].valueText === '62%', JSON.stringify(axes[0]))
-  assert('雷达 - 错题攻克按已攻克/总量',
-    axes[2].value === 40 && axes[2].valueText === '4/10', JSON.stringify(axes[2]))
-  assert('雷达 - 刷题量按目标 140 归一',
-    axes[3].value === 36, JSON.stringify(axes[3]))
-  assert('雷达 - 坚持度按 7 天归一',
-    axes[4].value === 57, JSON.stringify(axes[4]))
-
-  const overflow = insightUtils.buildRadarAxes({
-    progressPercent: 100,
-    accuracy: 100,
-    masteredCount: 500,
-    pendingWrongCount: 0,
-    recentAnswered: 9999,
-    recentActiveDays: 99,
-    studyMinutes: 99999
-  })
-
-  assert('雷达 - 上限封顶 100', overflow.every((axis) => axis.value === 100),
-    JSON.stringify(overflow.map((axis) => axis.value)))
-
-  const empty = insightUtils.buildRadarAxes(null)
-
-  assert('雷达 - 空数据不报错且全 0', empty.every((axis) => axis.value === 0))
-  assert('雷达 - 空数据均分为 0', insightUtils.calcRadarScore(empty) === 0)
-  assert('雷达 - 均分取六维平均', insightUtils.calcRadarScore(axes) === 48,
-    `实际 ${insightUtils.calcRadarScore(axes)}`)
-
-  const zeroSeries = insightUtils.buildTrendSeries(dailyLogUtils.getRecentDays(null, 7, TODAY))
-
-  assert('趋势 - 纵轴下限为 5，避免空的图看着像有数据',
-    zeroSeries.maxValue === 5, `实际 ${zeroSeries.maxValue}`)
-  assert('趋势 - 无数据标记', zeroSeries.hasData === false)
-
-  const series = insightUtils.buildTrendSeries(dailyLogUtils.getRecentDays(
-    dailyLogUtils.addDailyResult(null, { answered: 12, correct: 9 }, TODAY),
-    7,
-    TODAY
-  ))
-
-  assert('趋势 - 有数据时纵轴跟随峰值', series.maxValue === 12 && series.hasData === true,
-    JSON.stringify(series.maxValue))
-}
-
-// ---------- 五、图表 SVG ----------
+// ---------- 四、图表 SVG ----------
 function checkChartSvg() {
-  const axes = insightUtils.buildRadarAxes({
-    progressPercent: 62, accuracy: 78, masteredCount: 4, pendingWrongCount: 6,
-    recentAnswered: 50, recentActiveDays: 4, studyMinutes: 95
-  })
-  const radar = chartSvg.buildRadarSvg(axes)
-
-  assert('图表 - 雷达图输出合法 SVG',
-    radar.indexOf('<svg') === 0 && radar.indexOf('</svg>') === radar.length - 6,
-    radar.slice(0, 60))
-  assert('图表 - 雷达图含六个维度标签',
-    axes.every((axis) => radar.indexOf(axis.label) >= 0))
-  assert('图表 - 维度不足 3 个不画雷达', chartSvg.buildRadarSvg(axes.slice(0, 2)) === '')
-
-  const series = insightUtils.buildTrendSeries(dailyLogUtils.getRecentDays(
-    dailyLogUtils.addDailyResult(null, { answered: 12, correct: 9 }, TODAY),
-    7,
-    TODAY
-  ))
-  const trend = chartSvg.buildTrendSvg(series)
+  const points = [
+    { value: 2, label: '周一' },
+    { value: 5, label: '周二' },
+    { value: 1, label: '周三' }
+  ]
+  const trend = chartSvg.buildAreaTrendSvg(points)
 
   assert('图表 - 趋势图输出合法 SVG',
     trend.indexOf('<svg') === 0 && trend.indexOf('</svg>') === trend.length - 6)
-  assert('图表 - 趋势图含七日标签',
-    series.points.every((point) => trend.indexOf(`>${point.label}<`) >= 0))
+  assert('图表 - 趋势图显示日期标签',
+    points.every((point) => trend.indexOf(point.label) >= 0))
+  assert('图表 - 趋势图少于两点不出图',
+    chartSvg.buildAreaTrendSvg([]) === '' && chartSvg.buildAreaTrendSvg([{ value: 3 }]) === '')
 
-  const emptyTrend = chartSvg.buildTrendSvg(
-    insightUtils.buildTrendSeries(dailyLogUtils.getRecentDays(null, 7, TODAY))
-  )
-
-  assert('图表 - 空数据趋势图带说明文案', emptyTrend.indexOf('还没有练习记录') > 0)
-  assert('图表 - 点数不足不画趋势图',
-    chartSvg.buildTrendSvg(insightUtils.buildTrendSeries([{ isToday: true, answered: 1 }])) === '')
-
-  const ring = chartSvg.buildRingSvg({ percent: 62, size: 240 })
-
-  assert('图表 - 环形图输出合法 SVG',
-    ring.indexOf('<svg') === 0 && ring.indexOf('</svg>') === ring.length - 6)
-  assert('图表 - 环形图显示百分比', ring.indexOf('62%') > 0)
-
-  const zeroRing = chartSvg.buildRingSvg({ percent: 0 })
-
-  assert('图表 - 0% 不画弧只留轨道', zeroRing.indexOf('stroke-dasharray') === -1)
-
-  const uri = chartSvg.toDataUri(radar)
+  const uri = chartSvg.toDataUri(trend)
 
   assert('图表 - dataURI 前缀正确', uri.indexOf('data:image/svg+xml;base64,') === 0)
-  assert('图表 - dataURI 可被还原成原 SVG',
-    Buffer.from(uri.slice('data:image/svg+xml;base64,'.length), 'base64').toString('utf8') === radar)
+  assert('图表 - dataURI 可还原为原 SVG',
+    Buffer.from(uri.slice('data:image/svg+xml;base64,'.length), 'base64').toString('utf8') === trend)
   assert('图表 - XML 特殊字符被转义',
     chartSvg.escapeXml('a<b&"c') === 'a&lt;b&amp;&quot;c')
+
+  const heat = chartSvg.buildHeatmapSvg({
+    columns: [[{ level: 0 }, { level: 4 }, null, null, null, null, null]],
+    months: [{ col: 0, text: '10月' }]
+  })
+
+  assert('图表 - 热力图输出 SVG 且带月份标签',
+    heat.indexOf('<svg') === 0 && heat.indexOf('10月') > 0)
+  assert('图表 - 热力图忽略未来空格子',
+    (heat.match(/<rect /g) || []).length === 2)
+  assert('图表 - 空热力图不出图', chartSvg.buildHeatmapSvg({ columns: [] }) === '')
 }
 
-// ---------- 六、设置页 ViewModel ----------
+// ---------- 五、设置页 ViewModel ----------
 function checkSettingsViewModel() {
   const storage = createMemoryStorage()
   const vm = new SettingsViewModel({ storage })
@@ -367,7 +290,7 @@ function checkSettingsViewModel() {
     Array.isArray(cleared.data.choices) && cleared.data.choices.length > 0)
 }
 
-// ---------- 七、统计页 ViewModel ----------
+// ---------- 六、统计页 ViewModel ----------
 function seedPractice(storage, options) {
   const config = options || {}
   const vm = new PracticeViewModel({ storage })
@@ -496,7 +419,7 @@ function checkStatsViewModel() {
 }
 
 
-// ---------- 八、偏好是否真的改变了答题行为 ----------
+// ---------- 七、偏好是否真的改变了答题行为 ----------
 function checkPreferenceEffects() {
   // 1) 关闭「答题后自动显示解析」
   const noExplanation = createMemoryStorage({
@@ -611,7 +534,6 @@ function checkPreferenceEffects() {
 checkBase64()
 checkPreferences()
 checkDailyLog()
-checkInsight()
 checkChartSvg()
 checkSettingsViewModel()
 checkStatsViewModel()

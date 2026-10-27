@@ -1,8 +1,6 @@
 const { ReminderViewModel } = require('../../viewmodels/reminder-viewmodel.js')
 const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
-const { wrapTaps } = require('../../utils/tap-trace.js')
-
-Page(wrapTaps({
+Page({
   data: ReminderViewModel.getInitialData(),
 
   onLoad() {
@@ -119,4 +117,4 @@ Page(wrapTaps({
       })
     }
   }
-}, 'reminder'))
+})

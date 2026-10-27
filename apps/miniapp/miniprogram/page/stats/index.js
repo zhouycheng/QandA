@@ -1,12 +1,10 @@
 const { StatsViewModel } = require('../../viewmodels/stats-viewmodel.js')
 const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
-const { wrapTaps } = require('../../utils/tap-trace.js')
-
 /**
  * 复盘页（路由仍是 page/stats/index，tabBar 文案叫「复盘」）。
  * 只读汇总，不产生任何写副作用。
  */
-Page(wrapTaps({
+Page({
   data: StatsViewModel.getInitialData(),
 
   onLoad() {
@@ -112,4 +110,4 @@ Page(wrapTaps({
       })
     }
   }
-}, 'stats'))
+})

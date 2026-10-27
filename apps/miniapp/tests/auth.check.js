@@ -470,8 +470,7 @@ function checkStaticContract() {
   assert('页面 - 微信登录处理函数已定义', loginJs.indexOf('handleWechatTap()') >= 0)
   assert('页面 - 注册入口处理函数已定义', loginJs.indexOf('handleRegisterTap()') >= 0)
   assert('页面 - 忘记密码处理函数已定义', loginJs.indexOf('handleForgotTap()') >= 0)
-  assert('页面 - 点击探针接入且页名正确',
-    /Page\(\s*wrapTaps\(\{/.test(loginJs) && /\},\s*'login'\s*\)\s*\)/.test(loginJs))
+  assert('页面 - 登录页注册原生 Page 配置', /Page\(\s*\{/.test(loginJs))
 
   // 输入框不再做受控回写：回写 value 会让真机光标跳到末尾
   assert('页面 - 输入不反写 value', loginJs.indexOf('value:') < 0)

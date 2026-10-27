@@ -1,12 +1,11 @@
 const { ForgotPasswordViewModel } = require('../../viewmodels/forgot-password-viewmodel.js')
 const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
-const { wrapTaps } = require('../../utils/tap-trace.js')
 const cooldown = require('../../utils/cooldown.js')
 
 const TOAST_DELAY = 120
 
 // cooldown 字段的初始值由 cooldown 模块给出，与注册页同一套处理
-Page(wrapTaps({
+Page({
   data: Object.assign(ForgotPasswordViewModel.getInitialData(), cooldown.getInitialCooldownData()),
 
   onLoad() {
@@ -176,4 +175,4 @@ Page(wrapTaps({
       }
     })
   }
-}, 'forgotPassword'))
+})

@@ -1,11 +1,9 @@
 const { ImportBankViewModel } = require('../../viewmodels/import-bank-viewmodel.js')
 const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
-const { wrapTaps } = require('../../utils/tap-trace.js')
-
 // 超过这个体积的文件先提示，读进来也没法解析（真要导大题库请用开发者脚本）
 const MAX_FILE_BYTES = 2 * 1024 * 1024
 
-Page(wrapTaps({
+Page({
   data: ImportBankViewModel.getInitialData(),
 
   onLoad() {
@@ -159,4 +157,4 @@ Page(wrapTaps({
       wx.navigateTo({ url: result.command.url })
     }
   }
-}, 'import-bank'))
+})

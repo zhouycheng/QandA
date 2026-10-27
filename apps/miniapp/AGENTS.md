@@ -10,7 +10,9 @@ Run everything from `apps/miniapp/`.
 
 ```sh
 # 1) Offline self-checks (24 suites, plain Node, no devtools needed)
-for f in tests/*.check.js; do node "$f" || echo "FAILED: $f"; done
+for f in tests/*.check.js; do
+  node "$f" || exit 1
+done
 
 # 2) The real compiler (fixed path on Windows + Git Bash)
 WCC="/d/Program Files x86/微信web开发者工具/resources/app.asar.unpacked/node_modules/wcc-exec"

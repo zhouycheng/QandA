@@ -1,6 +1,4 @@
-const { wrapComponentMethods } = require('../../utils/tap-trace.js')
-
-Component(wrapComponentMethods({
+Component({
   properties: {
     /**
      * 章节行数据，由题库页的 ViewModel 组装：
@@ -20,4 +18,4 @@ Component(wrapComponentMethods({
       })
     }
   }
-}), 'bank-list-item')
+})

@@ -1,8 +1,6 @@
 const { PlaygroundViewModel } = require('../../viewmodels/playground-viewmodel.js')
 const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
-const { wrapTaps } = require('../../utils/tap-trace.js')
-
-Page(wrapTaps({
+Page({
   data: PlaygroundViewModel.getInitialData(),
 
   onLoad() {
@@ -55,4 +53,4 @@ Page(wrapTaps({
       })
     }
   }
-}, 'playground'))
+})

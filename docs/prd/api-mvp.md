@@ -4,6 +4,8 @@
 
 本文档定义 QandA Spring Boot + Kotlin 后端的独立 MVP 范围、API 自身业务闭环、测试入口和技术架构。
 
+当前实现与合同状态见 [后端 README](../../apps/api/README.md)：101 个操作合同中 76 个已实现，25 个为 Draft。本文保留原始产品范围与技术目标。
+
 与 MiniApp / Web / Admin 不同：
 
 > 后端自身就是业务事实中心，因此 API MVP 不应该使用 Mock 数据库替代核心业务。
@@ -447,7 +449,7 @@ dev seed
 
 ## 17. OpenAPI Contract
 
-API Independent MVP 的重要交付物之一就是：
+当前 OpenAPI 合同由模块 YAML 汇总维护，入口为 `apps/api/contracts/openapi.yaml`，覆盖 101 个操作。合同重建依据、实现比例与校验方式见 [API 验收说明](../../apps/api/acceptance/README.md)。原计划的 Springdoc 自动生成流程仍是后续目标：
 
 ```text
 openapi.json
@@ -463,14 +465,14 @@ TypeScript
 
 的契约中心。
 
-流程：
+目标流程：
 
 ```mermaid
 flowchart LR
     A[Spring Boot API] --> B[springdoc-openapi]
     B --> C[openapi.json]
     C --> D[TS Generator]
-    D --> E[packages/contracts]
+    D --> E[apps/api/contracts]
     E --> F[MiniApp]
     E --> G[Web]
     E --> H[Admin]
@@ -622,7 +624,7 @@ WechatAuthProvider
 
 ```text
 Contract Freeze
-→ 生成 packages/contracts
+→ 维护 apps/api/contracts
 → 前端替换 Mock Gateway
 → Integration
 → E2E

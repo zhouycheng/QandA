@@ -59,4 +59,3 @@ pnpm build
 
 - [学生自主复习平台架构报告](../../docs/prd/student-platform-architecture.md)
 - [管理端学生平台改造说明](../../docs/admin-student-platform-implementation.md)
-- [管理端 Figma 原型历史实现说明](../../docs/admin-figma-implementation.md)
