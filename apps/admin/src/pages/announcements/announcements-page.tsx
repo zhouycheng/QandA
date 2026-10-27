@@ -55,7 +55,7 @@ export function AnnouncementsPage() {
     <>
       <PageTitle
         title="公告管理"
-        description="管理小程序与用户 Web 端展示的公告"
+        description="管理公告内容、发布状态和展示范围"
         action={
           <Button type="primary" onClick={() => navigate('/announcements/new')}>
             新建公告
