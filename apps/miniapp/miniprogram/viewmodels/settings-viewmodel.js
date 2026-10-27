@@ -1,56 +1,16 @@
 const practiceRepository = require('../repositories/practice-repository.js')
 const { PREFERENCE_CHOICES, buildPreferenceView } = require('../utils/preferences.js')
-const { GUEST_NAME, describeAuth, getAuthHint } = require('../utils/auth-session.js')
 const { buildExamCountdown, toDateKey, validateExamInput } = require('../utils/exam-countdown.js')
 
 /**
- * 账户安全项。
+ * 设置页 = 答题偏好页。
  *
- * 登录已经落地（微信登录 + 本地身份降级），所以这里分成两类：
- *   - 已可用：微信登录、退出登录
- *   - 待接入：修改密码、更换邮箱（后端账号接口还没有）
- *
- * 仍标 available: false 的项只回一句说明，不静默无反应。
+ * 账号相关的操作在改版后归「我的 · 账号管理」（设计稿 781:2123），
+ * 这里不再放一份——同一个开关两处都能改，迟早改出两种文案和两种状态。
+ * 关于 / Playground 仍留在这里，「我的」的「关于QandA」行直接跳到本页锚点。
  */
-const ACCOUNT_ACTIONS = [
-  {
-    key: 'wechat',
-    icon: 'shield',
-    title: '微信登录',
-    description: '使用微信身份登录，后端未接入时自动使用本地身份',
-    available: true
-  },
-  {
-    key: 'password',
-    icon: 'lock',
-    title: '修改密码',
-    description: '登录密码 6-20 位，修改后需要重新登录',
-    available: false
-  },
-  {
-    key: 'email',
-    icon: 'mail',
-    title: '更换邮箱',
-    description: '用于找回密码与接收重要通知',
-    available: false
-  },
-  {
-    key: 'logout',
-    icon: 'logout',
-    title: '退出登录',
-    description: '退出后本机学习数据仍会保留',
-    available: true
-  }
-]
 
 const PLAYGROUND_URL = '/page/playground/index'
-const LOGIN_URL = '/page/login/index'
-
-const ACCOUNT_MESSAGES = {
-  password: '账号体系尚未接入，暂时不能修改密码',
-  email: '账号体系尚未接入，暂时不能更换邮箱',
-  logout: '当前没有登录状态'
-}
 
 function createNullStorage() {
   return {
@@ -69,23 +29,10 @@ function createNullStorage() {
  */
 const FONT_PREVIEW_TEXT = '预览：下列关于我国根本政治制度的表述，正确的一项是？'
 
-function createGuestAuthView() {
-  return {
-    loggedIn: false,
-    displayName: GUEST_NAME,
-    avatarUrl: '',
-    accountTag: GUEST_NAME,
-    providerLabel: '',
-    hint: ''
-  }
-}
-
 function getInitialSettingsViewData() {
   return {
     switches: [],
     choices: [],
-    accountActions: ACCOUNT_ACTIONS,
-    auth: createGuestAuthView(),
     fontSize: 'normal',
     fontPreviewText: FONT_PREVIEW_TEXT,
     // 考试倒计时：首页卡片的数据源，未设置时 configured=false
@@ -122,7 +69,6 @@ class SettingsViewModel {
   buildData() {
     const preferences = this.repository.getPreferences(this.storage)
     const preferenceView = buildPreferenceView(preferences)
-    const auth = this.readAuthView()
 
     return Object.assign({}, getInitialSettingsViewData(), {
       switches: preferenceView.switches,
@@ -130,31 +76,10 @@ class SettingsViewModel {
       fontSize: preferences.fontSize || 'normal',
       exam: buildExamCountdown({ examName: preferences.examName, examDate: preferences.examDate }),
       // 考试名称 / 日期：填齐才算设置成功，先存已填的一半并提示补齐
-    examDraftName: preferences.examName || '',
-      accountActions: buildAccountActions(auth),
-      auth,
+      examDraftName: preferences.examName || '',
       playgroundEnabled: this.repository.isPlaygroundEnabled(),
       catalog: this.repository.getCatalogStats()
     })
-  }
-
-  /** 读身份失败不能让设置页白屏，退化成未登录视图 */
-  readAuthView() {
-    try {
-      const auth = this.repository.getAuth(this.storage)
-      const view = describeAuth(auth)
-
-      return {
-        loggedIn: view.loggedIn,
-        displayName: view.displayName,
-        avatarUrl: view.avatarUrl,
-        accountTag: view.accountTag,
-        providerLabel: view.providerLabel,
-        hint: getAuthHint(auth)
-      }
-    } catch (error) {
-      return createGuestAuthView()
-    }
   }
 
   /** 开关型偏好：直接落盘并回传最新视图 */
@@ -344,82 +269,24 @@ class SettingsViewModel {
   }
 
   /**
-   * 账户项。
-   * 微信登录进登录页（已登录时在里面改资料 / 退出），退出登录就地执行，
-   * 未接入的两项只给说明——点了要给反馈，不能静默。
+   * 清空本机学习数据。
+   * 改版后「我的」页只放导航，危险操作收到设置页底部；
+   * 具体清哪些交给仓储层的一份实现（与页面身份无关）。
    */
-  openAccountAction(key) {
-    const auth = this.readAuthView()
-
-    if (key === 'wechat') {
-      return {
-        command: {
-          type: 'navigate',
-          url: LOGIN_URL
-        }
-      }
-    }
-
-    if (key === 'logout') {
-      if (!auth.loggedIn) {
-        return {
-          command: {
-            type: 'toast',
-            title: ACCOUNT_MESSAGES.logout
-          }
-        }
-      }
-
-      this.repository.logout(this.storage)
-
-      return {
-        data: this.buildData(),
-        command: {
-          type: 'toast',
-          title: '已退出登录'
-        }
-      }
-    }
-
-    const message = ACCOUNT_MESSAGES[key]
-
-    if (!message) {
-      return null
-    }
+  clearRecords() {
+    this.repository.clearLearningData(this.storage)
 
     return {
+      data: this.buildData(),
       command: {
         type: 'toast',
-        title: message
+        title: '已清空本机学习数据'
       }
     }
   }
 }
 
-/** 账户菜单按登录态裁剪：没登录就不给「退出登录」，登录项的文案随状态变 */
-function buildAccountActions(auth) {
-  const state = auth || createGuestAuthView()
-
-  return ACCOUNT_ACTIONS.filter((item) => item.key !== 'logout' || state.loggedIn).map((item) => {
-    if (item.key === 'wechat') {
-      return Object.assign({}, item, {
-        title: state.loggedIn ? '微信账号' : '微信登录',
-        description: state.loggedIn ? '已登录，可修改头像昵称或退出登录' : item.description,
-        tag: state.loggedIn ? state.accountTag : '去登录'
-      })
-    }
-
-    return Object.assign({}, item, {
-      tag: item.available ? '' : '待接入'
-    })
-  })
-}
-
 module.exports = {
-  ACCOUNT_ACTIONS,
-  ACCOUNT_MESSAGES,
   FONT_PREVIEW_TEXT,
-  LOGIN_URL,
-  SettingsViewModel,
-  buildAccountActions
+  SettingsViewModel
 }

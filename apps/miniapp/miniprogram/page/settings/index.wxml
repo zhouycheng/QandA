@@ -32,7 +32,7 @@
       </view>
 
       <view class="menu card choice-card">
-        <view class="choice-row" wx:for="{{choices}}" wx:key="key">
+        <view class="choice-row" id="choice-{{item.key}}" wx:for="{{choices}}" wx:key="key">
           <view class="choice-head">
             <text class="menu-title">{{item.label}}</text>
             <text class="choice-badge" wx:if="{{!item.available}}">即将支持</text>
@@ -107,46 +107,24 @@
       </view>
     </view>
 
-    <!-- 账户与安全 -->
-    <view id="section-account" class="section anim-fade-up">
+    <!-- 数据管理 -->
+    <view id="section-data" class="section anim-fade-up">
       <view class="section-head">
-        <text class="section-title">账户与安全</text>
-        <text class="section-note">{{auth.accountTag}}</text>
-      </view>
-
-      <view class="account-identity" wx:if="{{auth.loggedIn}}">
-        <image class="account-avatar" src="{{auth.avatarUrl}}" mode="aspectFill" wx:if="{{auth.avatarUrl}}"></image>
-        <view class="account-avatar account-avatar-fallback" wx:else>
-          <view class="mi-icon mi-user"></view>
-        </view>
-        <view class="account-identity-main">
-          <text class="account-name">{{auth.displayName}}</text>
-          <text class="account-provider">{{auth.providerLabel}}</text>
-        </view>
-      </view>
-
-      <view class="account-hint">
-        <text>{{auth.hint}}</text>
+        <text class="section-title">数据</text>
       </view>
 
       <view class="menu card">
         <view
           class="menu-row"
-          wx:for="{{accountActions}}"
-          wx:key="key"
-          data-key="{{item.key}}"
-          bindtap="handleAccountTap"
+          bindtap="handleClearRecords"
           hover-class="row-hover"
-          hover-start-time="0" hover-stay-time="200"
+          hover-start-time="0"
+          hover-stay-time="240"
         >
-          <view class="mi-tile mi-tile-{{item.icon}}">
-            <view class="mi-icon mi-{{item.icon}}"></view>
-          </view>
           <view class="menu-main">
-            <text class="menu-title">{{item.title}}</text>
-            <text class="menu-desc">{{item.description}}</text>
+            <text class="menu-title">清空本机学习数据</text>
+            <text class="menu-desc">进度、错题、收藏、时长一并清除；偏好与登录态保留</text>
           </view>
-          <text class="menu-tag" wx:if="{{item.tag}}">{{item.tag}}</text>
           <text class="menu-arrow">›</text>
         </view>
       </view>

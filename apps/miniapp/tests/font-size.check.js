@@ -125,7 +125,8 @@ function checkPracticeScale() {
 
   assert('答题页 - 根节点带 font-* 类', wxml.indexOf('font-{{preferences.fontSize}}') >= 0)
 
-  const targets = ['stem', 'option-text', 'explanation-text', 'review-stem']
+  // 类名随 2026-10-27 设计稿重做改成 pra-* 前缀，断言保护的行为不变
+  const targets = ['pra-stem', 'pra-option-text', 'pra-explanation-text', 'res-item-stem']
 
   targets.forEach((target) => {
     const small = pickFontSize(wxss, 'small', target)

@@ -3,24 +3,18 @@ const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
 const { wrapTaps } = require('../../utils/tap-trace.js')
 
 Page(wrapTaps({
-  data: Object.assign(MyViewModel.getInitialData(), {
-    // 版本号由页面维护，ViewModel 不参与，避免被初始值覆盖
-    version: ''
-  }),
+  data: MyViewModel.getInitialData(),
 
   onLoad() {
+    const app = getApp()
+    const version = app && app.globalData ? app.globalData.version : ''
+
     this.viewModel = new MyViewModel({
       storage: createWxStorageAdapter()
     })
 
-    // 版本号来自全局配置，不放在 ViewModel 里以免依赖 getApp()
-    const app = getApp()
-    const version = app && app.globalData ? app.globalData.version : ''
-
-    if (version) {
-      this.setData({ version })
-    }
-
+    // 版本号来自全局配置，ViewModel 不依赖 getApp()，由页面注入
+    this.viewModel.setVersion(version)
     this.applyViewModelResult(this.viewModel.load())
   },
 
@@ -30,7 +24,13 @@ Page(wrapTaps({
     }
 
     this.syncTabBar()
+    // 弹层没关就跳走会让底栏永久消失，回页面必须兜底恢复
+    this.setTabBarHidden(false)
     this.applyViewModelResult(this.viewModel.load())
+  },
+
+  onUnload() {
+    this.setTabBarHidden(false)
   },
 
   /** 自定义 tabBar 不会自动跟随页面切换，选中态要由页面主动同步 */
@@ -43,6 +43,19 @@ Page(wrapTaps({
 
     if (tabBar && typeof tabBar.setSelected === 'function') {
       tabBar.setSelected('page/my/index')
+    }
+  },
+
+  /** 自定义 tabBar 永远盖在页面之上，弹层要让它先躲开 */
+  setTabBarHidden(hidden) {
+    if (typeof this.getTabBar !== 'function') {
+      return
+    }
+
+    const tabBar = this.getTabBar()
+
+    if (tabBar && typeof tabBar.setHidden === 'function') {
+      tabBar.setHidden(hidden)
     }
   },
 
@@ -60,34 +73,49 @@ Page(wrapTaps({
     }, 400)
   },
 
-  /** 学习偏好 / 账户与安全 / 关于 都在设置页，用 focus 指定滚动到的分组 */
-  handleOpenSettings(e) {
-    const focus = e.currentTarget.dataset.focus || ''
-
-    wx.navigateTo({
-      url: focus ? `/page/settings/index?focus=${focus}` : '/page/settings/index'
-    })
+  /** 资料头：未登录去登录页，已登录进账号管理 */
+  handleProfileTap() {
+    this.applyViewModelResult(this.viewModel.tapRow('profile'))
   },
 
-  /** 资料卡整体是登录入口：未登录用它登录，已登录进去改资料 / 退出 */
-  handleOpenLogin() {
-    wx.navigateTo({
-      url: '/page/login/index'
-    })
+  handleAccountTap() {
+    this.applyViewModelResult(this.viewModel.tapRow('account'))
   },
 
-  handleClearRecords() {
+  /**
+   * 列表行。
+   * 退出登录要二次确认——它是不可逆的身份操作，误触后要重新走登录流程。
+   */
+  handleRowTap(e) {
+    const key = e.currentTarget.dataset.key
+
+    if (key === 'logout') {
+      this.confirmLogout()
+      return
+    }
+
+    this.applyViewModelResult(this.viewModel.tapRow(key))
+  },
+
+  confirmLogout() {
     wx.showModal({
-      title: '清空学习数据',
-      content: '将清空本机的做题进度、错题本、收藏、学习时长与历史最佳成绩，且无法恢复。学习偏好不属于学习数据，会保留。确定继续吗？',
-      confirmText: '清空',
-      confirmColor: '#f04438',
+      title: '退出登录',
+      content: '退出后本机的做题进度、错题与收藏都会保留，下次登录还能接着做。',
+      confirmText: '退出',
       success: (res) => {
         if (res.confirm) {
-          this.applyViewModelResult(this.viewModel.clearRecords())
+          this.applyViewModelResult(this.viewModel.logout())
         }
       }
     })
+  },
+
+  handleSheetClose() {
+    this.applyViewModelResult(this.viewModel.closeSheet())
+  },
+
+  handlePlaygroundTap() {
+    this.applyViewModelResult(this.viewModel.openPlayground())
   },
 
   applyViewModelResult(result) {
@@ -97,12 +125,25 @@ Page(wrapTaps({
 
     if (result.data) {
       this.setData(result.data)
+      // setData 之后 this.data 已同步，弹层开着就把底栏藏起来
+      this.setTabBarHidden(!!this.data.sheet)
     }
 
-    if (result.command && result.command.type === 'toast') {
+    if (!result.command) {
+      return
+    }
+
+    if (result.command.type === 'toast') {
       wx.showToast({
         title: result.command.title || '操作完成',
         icon: 'none'
+      })
+      return
+    }
+
+    if (result.command.type === 'navigate' && result.command.url) {
+      wx.navigateTo({
+        url: result.command.url
       })
     }
   }

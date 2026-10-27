@@ -15,6 +15,16 @@ const FONT_SIZE_OPTIONS = [
 ]
 
 /**
+ * 题干与选项的先后顺序。
+ * 平板 / 横屏或习惯先看选项的人可以反过来，答题页按这个值调整 flex order，
+ * 不改 DOM 顺序（改顺序会重排滚动容器，滚动位置会跳）。
+ */
+const ANSWER_LAYOUT_OPTIONS = [
+  { value: 'below', label: '选项在下' },
+  { value: 'above', label: '选项在上' }
+]
+
+/**
  * 发音音色：题库当前没有音频内容，先把选项与存储位留好，
  * 接入音频后只需在答题页读取取值，界面不用再改。
  */
@@ -39,6 +49,8 @@ const DEFAULT_PREFERENCES = {
   vibrateOnAnswer: false,
   fontSize: 'normal',
   voice: 'standard',
+  // 题干与选项的顺序：below = 题干在上、选项在下（默认），above = 反过来
+  answerLayout: 'below',
   // 考试倒计时：首页卡片用。空字符串 = 未设置，卡片退化成「去设置」引导
   examName: '',
   examDate: ''
@@ -83,6 +95,13 @@ const PREFERENCE_CHOICES = [
     available: true
   },
   {
+    key: 'answerLayout',
+    label: '自定义布局',
+    description: '先看题干还是先看选项，答题页即时生效',
+    options: ANSWER_LAYOUT_OPTIONS,
+    available: true
+  },
+  {
     key: 'voice',
     label: '发音音色',
     description: '朗读题目与选项的音色，接入音频后生效',
@@ -118,6 +137,11 @@ function normalizePreferences(rawPreferences) {
 
     if (key === 'fontSize') {
       next[key] = pickOptionValue(FONT_SIZE_OPTIONS, value, DEFAULT_PREFERENCES[key])
+      return
+    }
+
+    if (key === 'answerLayout') {
+      next[key] = pickOptionValue(ANSWER_LAYOUT_OPTIONS, value, DEFAULT_PREFERENCES[key])
       return
     }
 
@@ -206,7 +230,26 @@ function buildPreferenceView(preferences) {
   }
 }
 
+/**
+ * 取某个选择型偏好的当前文案。
+ * 「我的」页右侧的摘要（即时答案 / 选项在下）用它，避免页面自己写死一套标签，
+ * 否则选项一改，摘要还停在旧文案上。
+ */
+function describeChoiceLabel(preferences, key) {
+  const current = normalizePreferences(preferences)
+  const definition = PREFERENCE_CHOICES.find((item) => item.key === key)
+
+  if (!definition) {
+    return ''
+  }
+
+  const matched = (definition.options || []).find((option) => option.value === current[key])
+
+  return matched ? matched.label : ''
+}
+
 module.exports = {
+  ANSWER_LAYOUT_OPTIONS,
   DEFAULT_PREFERENCES,
   FONT_SIZE_OPTIONS,
   PREFERENCE_CHOICES,
@@ -216,6 +259,7 @@ module.exports = {
   VOICE_OPTIONS,
   buildPreferenceView,
   cloneDefaultPreferences,
+  describeChoiceLabel,
   normalizePreferences,
   setPreferenceChoice,
   setPreferenceSwitch,
