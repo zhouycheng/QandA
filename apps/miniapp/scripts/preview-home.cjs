@@ -34,9 +34,14 @@ const iconUri = (name, active) =>
     .readFileSync(path.join(MP, `assets/tabbar/${name}${active ? '-active' : ''}.png`))
     .toString('base64')}`
 
+// 封面按时段取图：直接读真实工具函数，避免这里写死某一张、改天又对不上
+const { COVER_BY_DAY_PART, getDayPart, getGreetingText } = require(
+  path.join(MP, 'utils/home-content.js')
+)
 const coverUri = `data:image/jpeg;base64,${fs
-  .readFileSync(path.join(MP, 'assets/home/exam-cover.jpg'))
+  .readFileSync(path.join(MP, COVER_BY_DAY_PART[getDayPart(Date.now())].replace(/^\//, '')))
   .toString('base64')}`
+const liveGreeting = getGreetingText(Date.now())
 
 /** 从页面 wxss 里取四宫格图标的 data URI（和线上用的是同一份） */
 const homeCss = read('page/subject-list/index.wxss')
@@ -65,7 +70,8 @@ const entryHtml = ENTRIES.map(
 const TABS = [
   ['home', '首页', true],
   ['bank', '题库', false],
-  ['stats', '统计', false],
+  // 第 3 个 tab 的文案与图标都已改成「复盘」（路由仍是 /page/stats/index）
+  ['review', '复盘', false],
   ['my', '我的', false]
 ]
 
@@ -188,7 +194,7 @@ ${combineCss()}
         <div class="exam-veil"></div>
         <div class="exam-body">
           <div class="exam-head">
-            <span class="exam-greeting">夜深了</span>
+            <span class="exam-greeting">${liveGreeting}</span>
             <span class="exam-date">10 月 25 日 周日</span>
           </div>
           ${MAIN_BLOCK}

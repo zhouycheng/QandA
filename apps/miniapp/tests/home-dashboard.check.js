@@ -422,9 +422,10 @@ function checkClearRecords() {
     homeVm.load().data.home.studyTimeText !== '尚未开始',
     homeVm.load().data.home.studyTimeText)
 
-  const { MyViewModel } = require(path.join(MINIPROGRAM, 'viewmodels/my-viewmodel.js'))
-  const myVm = new MyViewModel({ storage })
-  const result = myVm.clearRecords()
+  // 清空入口改到设置页（改版后「我的」只放导航），实现下沉到仓储层，语义不变
+  const { SettingsViewModel } = require(path.join(MINIPROGRAM, 'viewmodels/settings-viewmodel.js'))
+  const settingsVm = new SettingsViewModel({ storage })
+  const result = settingsVm.clearRecords()
 
   assert('清除 - 返回提示', result.command && result.command.type === 'toast', JSON.stringify(result.command))
 
