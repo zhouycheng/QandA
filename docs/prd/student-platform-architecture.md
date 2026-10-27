@@ -266,16 +266,16 @@ flowchart LR
 | 层次 | 当前情况 | 建议 |
 | --- | --- | --- |
 | 管理端 | React、TypeScript、Vite、Arco Design、TanStack Query、Zustand | 复用组件、表单、查询缓存与 `AdminContentGateway` |
-| 用户 Web | 已有课程选择、题库、练习与结果类型及 Gateway | 扩展我的课程、推荐、章节、反馈，保留练习流程 |
+| 用户 Web | 当前没有实现；Web MVP PRD 保留未来产品范围 | 恢复实现时再沿用本文的课程、题库与练习边界 |
 | 微信小程序 | 已有页面、ViewModel、Repository 与练习逻辑 | 经现有适配边界接入统一接口 |
-| 后端 API | `apps/api` 目前只有目录骨架 | 沿用现有 PRD 的 Kotlin、Spring Boot 方向建设模块化单体 |
-| 数据与契约 | `packages/contracts` 尚为骨架；暂无真实数据库实现 | 按后端 PRD 使用 PostgreSQL、Flyway，逐步形成 OpenAPI 契约 |
+| 后端 API | Kotlin、Spring Boot 与 PostgreSQL 已运行；101 个操作中 76 个已实现，25 个为 Draft | 补齐 Draft 范围，并按产品需要持续演进模块化单体 |
+| 数据与契约 | PostgreSQL 与 Flyway 已使用；101 个 OpenAPI 操作合同位于 `apps/api/contracts/openapi.yaml` | 维护 OpenAPI 合同，并分阶段接入尚未联调的客户端 |
 
-架构中的后端、数据库、注册服务及权限校验均为待建设能力。现有管理端本地 Mock 和浏览器存储用于演示与验证，不能承担全校用户的数据共享和生产身份校验。
+API 与数据库已实现部分核心能力；管理端仍使用本地 Mock，小程序的题库与练习数据仍保存在本地。客户端业务联调、跨端数据共享及端到端生产流程仍待完成。
 
 ```mermaid
 flowchart TB
-    Web[用户 Web] --> API[统一 HTTP API]
+    Web[用户 Web（未来实现）] --> API[统一 HTTP API]
     Mini[微信小程序] --> API
     Admin[管理端] --> API
     API --> Auth[账号与资料模块]
@@ -437,8 +437,8 @@ flowchart TB
 - [管理端数据类型](../../apps/admin/src/types/admin.ts)
 - [管理端运营与可见性类型](../../apps/admin/src/types/operations.ts)
 - [管理端 Gateway](../../apps/admin/src/gateways/admin-content-gateway.ts)
-- [用户 Web 练习类型](../../apps/web/src/types/practice.ts)
-- [管理端 Figma 原型实现说明](../admin-figma-implementation.md)
+- [API 实现与合同说明](../../apps/api/README.md)
+- [OpenAPI 合同](../../apps/api/contracts/openapi.yaml)
 - [后端 API MVP PRD](api-mvp.md)
 
-本文定义架构与实施建议，具体已交付范围以[管理端学生平台改造说明](../admin-student-platform-implementation.md)为准；真实 API、数据库与学生端接入仍需后续建设。
+本文定义架构与实施建议，具体已交付范围以[管理端学生平台改造说明](../admin-student-platform-implementation.md)和 [API 实现说明](../../apps/api/README.md) 为准；前端 API 联调及其余 Draft 操作仍待推进。

@@ -4,6 +4,8 @@
 
 本文档定义 QandA 用户 Web 端的独立 MVP 范围、浏览器内业务闭环、Playground / Mock 机制和 React 技术架构。
 
+当前实现状态：用户 Web 实现目录已移除；本文保留为未来产品范围，文中的路由与目录均为设计目标。
+
 本阶段不依赖真实 Spring Boot 后端。
 
 目标是先证明：
@@ -179,11 +181,7 @@ flowchart LR
 /playground
 ```
 
-或独立入口：
-
-```text
-apps/web/playground/
-```
+或仅开发环境开放的独立 Playground 入口。
 
 提供场景按钮：
 
