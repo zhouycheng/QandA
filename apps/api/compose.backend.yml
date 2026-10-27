@@ -1,0 +1,23 @@
+name: qanda-backend
+services:
+  postgres:
+    image: postgres:17.6-alpine
+    environment:
+      POSTGRES_DB: qanda_backend
+      POSTGRES_USER: qanda_backend
+      POSTGRES_PASSWORD: ${BACKEND_DB_PASSWORD:?run backend.mjs init}
+      TZ: UTC
+      PGTZ: UTC
+    ports: ["127.0.0.1:56432:5432"]
+    volumes: ["backend_pg:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qanda_backend -d qanda_backend"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+  mailpit:
+    image: axllent/mailpit:v1.32.0
+    profiles: ["local-capture"]
+    ports: ["127.0.0.1:51025:1025", "127.0.0.1:58025:8025"]
+volumes:
+  backend_pg:

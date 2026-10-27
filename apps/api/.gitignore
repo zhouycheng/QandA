@@ -1,0 +1,14 @@
+.gradle/
+.gradle-user-home/
+.kotlin/
+.tooling/
+build/
+.runtime/
+.scope-before.json
+client/.state/
+client/reports/
+.env
+.env.backend
+.env.backend.local
+.backend-runtime/
+__pycache__/

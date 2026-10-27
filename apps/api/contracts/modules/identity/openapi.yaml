@@ -1,0 +1,2543 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "QandA identity API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8083"
+    }
+  ],
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "paths": {
+    "/auth/email-challenges": {
+      "post": {
+        "operationId": "identityRequestPublicEmailChallenge",
+        "summary": "identityRequestPublicEmailChallenge",
+        "tags": [
+          "identity"
+        ],
+        "responses": {
+          "201": {
+            "description": "Observed response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "challengeId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "expiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "nextSendAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "challengeId",
+                    "expiresAt",
+                    "nextSendAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          }
+        },
+        "x-implementation-status": "IMPLEMENTED",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  },
+                  "purpose": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "email",
+                  "purpose"
+                ],
+                "example": {
+                  "purpose": "REGISTER",
+                  "email": "{{email}}"
+                }
+              }
+            }
+          }
+        },
+        "parameters": []
+      }
+    },
+    "/auth/email-registrations": {
+      "post": {
+        "operationId": "identityRegisterEmail",
+        "summary": "identityRegisterEmail",
+        "tags": [
+          "identity"
+        ],
+        "responses": {
+          "201": {
+            "description": "Observed response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Idempotency-Key": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "accountCode": {
+                      "type": "string"
+                    },
+                    "accountId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "version": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "accountCode",
+                    "accountId",
+                    "version"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Observed response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Idempotency-Key": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fieldErrors": {
+                      "type": "array",
+                      "items": {}
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "requestId": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fieldErrors",
+                    "message",
+                    "requestId"
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Observed response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Idempotency-Key": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fieldErrors": {
+                      "type": "array",
+                      "items": {}
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "requestId": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fieldErrors",
+                    "message",
+                    "requestId"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Observed response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Idempotency-Key": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fieldErrors": {
+                      "type": "array",
+                      "items": {}
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "requestId": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fieldErrors",
+                    "message",
+                    "requestId"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "x-implementation-status": "IMPLEMENTED",
+        "security": [],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "challengeId": {
+                    "type": "string"
+                  },
+                  "code": {
+                    "type": "string"
+                  },
+                  "collegeId": {
+                    "type": "string"
+                  },
+                  "majorId": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "challengeId",
+                  "code",
+                  "collegeId",
+                  "majorId",
+                  "password"
+                ],
+                "example": {
+                  "challengeId": "{{challengeId}}",
+                  "code": "{{emailCode}}",
+                  "password": "{{password}}",
+                  "collegeId": "{{collegeId}}",
+                  "majorId": "{{majorId}}"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/wechat-registrations": {
+      "post": {
+        "operationId": "identityRegisterWechat",
+        "summary": "identityRegisterWechat",
+        "tags": [
+          "identity"
+        ],
+        "responses": {
+          "201": {
+            "description": "Observed response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Idempotency-Key": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "accountCode": {
+                      "type": "string"
+                    },
+                    "accountId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "version": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "accountCode",
+                    "accountId",
+                    "version"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          }
+        },
+        "x-implementation-status": "IMPLEMENTED",
+        "security": [],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "collegeId": {
+                    "type": "string"
+                  },
+                  "majorId": {
+                    "type": "string"
+                  },
+                  "registrationToken": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "collegeId",
+                  "majorId",
+                  "registrationToken"
+                ],
+                "example": {
+                  "registrationToken": "{{registrationToken}}",
+                  "collegeId": "{{collegeId}}",
+                  "majorId": "{{majorId}}"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/sessions": {
+      "post": {
+        "operationId": "identityCreateEmailSession",
+        "summary": "identityCreateEmailSession",
+        "tags": [
+          "identity"
+        ],
+        "responses": {
+          "201": {
+            "description": "Observed response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "accessToken": {
+                      "type": "string"
+                    },
+                    "accountId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "expiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "kind": {
+                      "type": "string"
+                    },
+                    "sessionId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "tokenType": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "accessToken",
+                    "accountId",
+                    "expiresAt",
+                    "kind",
+                    "sessionId",
+                    "tokenType"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          }
+        },
+        "x-implementation-status": "IMPLEMENTED",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "clientType": {
+                    "type": "string"
+                  },
+                  "deviceId": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "clientType",
+                  "deviceId",
+                  "email",
+                  "password"
+                ],
+                "example": {
+                  "email": "{{loginEmail}}",
+                  "password": "{{password}}",
+                  "clientType": "WEB",
+                  "deviceId": "{{deviceId}}"
+                }
+              }
+            }
+          }
+        },
+        "parameters": []
+      }
+    },
+    "/auth/wechat-sessions": {
+      "post": {
+        "operationId": "identityCreateWechatSession",
+        "summary": "identityCreateWechatSession",
+        "tags": [
+          "identity"
+        ],
+        "responses": {
+          "200": {
+            "description": "Observed response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "accessToken": {
+                      "type": "string"
+                    },
+                    "accountId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "expiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "kind": {
+                      "type": "string"
+                    },
+                    "registrationToken": {
+                      "type": "string"
+                    },
+                    "sessionId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "tokenType": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "expiresAt",
+                    "kind"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          }
+        },
+        "x-implementation-status": "IMPLEMENTED",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "clientType": {
+                    "type": "string"
+                  },
+                  "code": {
+                    "type": "string"
+                  },
+                  "deviceId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "clientType",
+                  "code",
+                  "deviceId"
+                ],
+                "example": {
+                  "code": "{{wechatCode}}",
+                  "clientType": "MINI_PROGRAM",
+                  "deviceId": "{{deviceId}}"
+                }
+              }
+            }
+          }
+        },
+        "parameters": []
+      }
+    },
+    "/auth/password-resets": {
+      "post": {
+        "operationId": "identityResetPassword",
+        "summary": "identityResetPassword",
+        "tags": [
+          "identity"
+        ],
+        "responses": {
+          "204": {
+            "description": "Observed response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Idempotency-Key": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          }
+        },
+        "x-implementation-status": "IMPLEMENTED",
+        "security": [],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "challengeId": {
+                    "type": "string"
+                  },
+                  "code": {
+                    "type": "string"
+                  },
+                  "newPassword": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "challengeId",
+                  "code",
+                  "newPassword"
+                ],
+                "example": {
+                  "challengeId": "{{challengeId}}",
+                  "code": "{{emailCode}}",
+                  "newPassword": "{{newPassword}}"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/sessions/current": {
+      "delete": {
+        "operationId": "identityLogout",
+        "summary": "identityLogout",
+        "tags": [
+          "identity"
+        ],
+        "responses": {
+          "204": {
+            "description": "Observed response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          }
+        },
+        "x-implementation-status": "IMPLEMENTED",
+        "parameters": []
+      }
+    },
+    "/me": {
+      "get": {
+        "operationId": "identityGetMe",
+        "summary": "identityGetMe",
+        "tags": [
+          "identity"
+        ],
+        "responses": {
+          "200": {
+            "description": "Observed response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "adminEligible": {
+                      "type": "boolean"
+                    },
+                    "profile": {
+                      "type": "object",
+                      "properties": {
+                        "accountCode": {
+                          "type": "string"
+                        },
+                        "accountId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "email": {
+                          "type": [
+                            "null",
+                            "string",
+                            "null"
+                          ],
+                          "format": "email"
+                        },
+                        "emailVerifiedAt": {
+                          "type": [
+                            "null",
+                            "string",
+                            "null"
+                          ],
+                          "format": "date-time"
+                        },
+                        "nickname": {
+                          "type": "string"
+                        },
+                        "passwordSet": {
+                          "type": "boolean"
+                        },
+                        "status": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "version": {
+                          "type": "integer"
+                        },
+                        "wechatBound": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "accountCode",
+                        "accountId",
+                        "createdAt",
+                        "email",
+                        "emailVerifiedAt",
+                        "nickname",
+                        "passwordSet",
+                        "status",
+                        "updatedAt",
+                        "version",
+                        "wechatBound"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "adminEligible",
+                    "profile"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Observed response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fieldErrors": {
+                      "type": "array",
+                      "items": {}
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "requestId": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fieldErrors",
+                    "message",
+                    "requestId"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Observed response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fieldErrors": {
+                      "type": "array",
+                      "items": {}
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "requestId": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fieldErrors",
+                    "message",
+                    "requestId"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "x-implementation-status": "IMPLEMENTED",
+        "parameters": []
+      }
+    },
+    "/me/profile": {
+      "patch": {
+        "operationId": "identityUpdateProfile",
+        "summary": "identityUpdateProfile",
+        "tags": [
+          "identity"
+        ],
+        "responses": {
+          "200": {
+            "description": "Observed response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Idempotency-Key": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "accountId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "version": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "accountId",
+                    "version"
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Observed response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Idempotency-Key": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fieldErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "code": {
+                            "type": "string"
+                          },
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "field",
+                          "message"
+                        ]
+                      }
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "requestId": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fieldErrors",
+                    "message",
+                    "requestId"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Observed response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fieldErrors": {
+                      "type": "array",
+                      "items": {}
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "requestId": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fieldErrors",
+                    "message",
+                    "requestId"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Observed response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Idempotency-Key": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fieldErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "code": {
+                            "type": "string"
+                          },
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "field",
+                          "message"
+                        ]
+                      }
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "requestId": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fieldErrors",
+                    "message",
+                    "requestId"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "x-implementation-status": "IMPLEMENTED",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "expectedVersion": {
+                    "type": [
+                      "integer",
+                      "string"
+                    ]
+                  },
+                  "nickname": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "expectedVersion",
+                  "nickname"
+                ],
+                "example": {
+                  "expectedVersion": "{{expectedVersion}}",
+                  "nickname": "样例"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me/email-challenges": {
+      "post": {
+        "operationId": "identityRequestOwnEmailChallenge",
+        "summary": "identityRequestOwnEmailChallenge",
+        "tags": [
+          "identity"
+        ],
+        "responses": {
+          "201": {
+            "description": "Observed response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "challengeId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "expiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "nextSendAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "challengeId",
+                    "expiresAt",
+                    "nextSendAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          }
+        },
+        "x-implementation-status": "IMPLEMENTED",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  },
+                  "purpose": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "purpose"
+                ],
+                "example": {
+                  "purpose": "BIND_EMAIL",
+                  "email": "{{email}}"
+                }
+              }
+            }
+          }
+        },
+        "parameters": []
+      }
+    },
+    "/me/email-binding": {
+      "put": {
+        "operationId": "identityBindEmail",
+        "summary": "identityBindEmail",
+        "tags": [
+          "identity"
+        ],
+        "responses": {
+          "204": {
+            "description": "Observed response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Idempotency-Key": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          }
+        },
+        "x-implementation-status": "IMPLEMENTED",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "challengeId": {
+                    "type": "string"
+                  },
+                  "code": {
+                    "type": "string"
+                  },
+                  "expectedVersion": {
+                    "type": [
+                      "integer",
+                      "string"
+                    ]
+                  }
+                },
+                "required": [
+                  "challengeId",
+                  "code",
+                  "expectedVersion"
+                ],
+                "example": {
+                  "challengeId": "{{challengeId}}",
+                  "code": "{{emailCode}}",
+                  "expectedVersion": "{{expectedVersion}}"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me/password": {
+      "put": {
+        "operationId": "identityChangePassword",
+        "summary": "identityChangePassword",
+        "tags": [
+          "identity"
+        ],
+        "responses": {
+          "204": {
+            "description": "Observed response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Idempotency-Key": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          }
+        },
+        "x-implementation-status": "IMPLEMENTED",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "challengeId": {
+                    "type": "string"
+                  },
+                  "code": {
+                    "type": "string"
+                  },
+                  "expectedVersion": {
+                    "type": [
+                      "integer",
+                      "string"
+                    ]
+                  },
+                  "newPassword": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "challengeId",
+                  "code",
+                  "expectedVersion",
+                  "newPassword"
+                ],
+                "example": {
+                  "challengeId": "{{challengeId}}",
+                  "code": "{{emailCode}}",
+                  "newPassword": "{{newPassword}}",
+                  "expectedVersion": "{{expectedVersion}}"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me/email-changes": {
+      "post": {
+        "operationId": "identityRequestEmailChange",
+        "summary": "identityRequestEmailChange",
+        "tags": [
+          "identity"
+        ],
+        "responses": {
+          "201": {
+            "description": "Observed response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Idempotency-Key": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "emailChangeId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "expectedVersion": {
+                      "type": "integer"
+                    },
+                    "expiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "newChallengeId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "newEmailMasked": {
+                      "type": "string",
+                      "format": "email"
+                    },
+                    "nextSendAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "oldChallengeId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "oldEmailMasked": {
+                      "type": "string",
+                      "format": "email"
+                    }
+                  },
+                  "required": [
+                    "emailChangeId",
+                    "expectedVersion",
+                    "expiresAt",
+                    "newChallengeId",
+                    "newEmailMasked",
+                    "nextSendAt",
+                    "oldChallengeId",
+                    "oldEmailMasked"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          }
+        },
+        "x-implementation-status": "IMPLEMENTED",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "expectedVersion": {
+                    "type": [
+                      "integer",
+                      "string"
+                    ]
+                  },
+                  "newEmail": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                },
+                "required": [
+                  "expectedVersion",
+                  "newEmail"
+                ],
+                "example": {
+                  "newEmail": "qa-example@example.test",
+                  "expectedVersion": "{{expectedVersion}}"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me/email-changes/{emailChangeId}/confirmations": {
+      "post": {
+        "operationId": "identityConfirmEmailChange",
+        "summary": "identityConfirmEmailChange",
+        "tags": [
+          "identity"
+        ],
+        "responses": {
+          "204": {
+            "description": "Observed response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Idempotency-Key": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          }
+        },
+        "x-implementation-status": "IMPLEMENTED",
+        "parameters": [
+          {
+            "name": "emailChangeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "expectedVersion": {
+                    "type": [
+                      "integer",
+                      "string"
+                    ]
+                  },
+                  "newCode": {
+                    "type": "string"
+                  },
+                  "oldCode": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "expectedVersion",
+                  "newCode",
+                  "oldCode"
+                ],
+                "example": {
+                  "oldCode": "{{oldCode}}",
+                  "newCode": "{{newCode}}",
+                  "expectedVersion": "{{expectedVersion}}"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me/wechat-binding": {
+      "put": {
+        "operationId": "identityBindWechat",
+        "summary": "identityBindWechat",
+        "tags": [
+          "identity"
+        ],
+        "responses": {
+          "204": {
+            "description": "Observed response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Idempotency-Key": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          }
+        },
+        "x-implementation-status": "IMPLEMENTED",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string"
+                  },
+                  "expectedVersion": {
+                    "type": [
+                      "integer",
+                      "string"
+                    ]
+                  }
+                },
+                "required": [
+                  "code",
+                  "expectedVersion"
+                ],
+                "example": {
+                  "code": "{{wechatCode}}",
+                  "expectedVersion": "{{expectedVersion}}"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me/sessions": {
+      "get": {
+        "operationId": "identityListSessions",
+        "summary": "identityListSessions",
+        "tags": [
+          "identity"
+        ],
+        "responses": {
+          "200": {
+            "description": "Observed response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "clientType": {
+                            "type": "string"
+                          },
+                          "current": {
+                            "type": "boolean"
+                          },
+                          "deviceId": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "expiresAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "issuedAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "lastSeenAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "sessionId": {
+                            "type": "string",
+                            "format": "uuid"
+                          }
+                        },
+                        "required": [
+                          "clientType",
+                          "current",
+                          "deviceId",
+                          "expiresAt",
+                          "issuedAt",
+                          "lastSeenAt",
+                          "sessionId"
+                        ]
+                      }
+                    },
+                    "page": {
+                      "type": "integer"
+                    },
+                    "pageSize": {
+                      "type": "integer"
+                    },
+                    "totalItems": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "page",
+                    "pageSize",
+                    "totalItems"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          }
+        },
+        "x-implementation-status": "IMPLEMENTED",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ]
+      }
+    },
+    "/me/sessions/{sessionId}": {
+      "delete": {
+        "operationId": "identityRevokeSession",
+        "summary": "identityRevokeSession",
+        "tags": [
+          "identity"
+        ],
+        "responses": {
+          "204": {
+            "description": "Observed response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          }
+        },
+        "x-implementation-status": "IMPLEMENTED",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/accounts/by-code/{accountCode}": {
+      "get": {
+        "operationId": "identityResolveShareRecipient",
+        "summary": "identityResolveShareRecipient",
+        "tags": [
+          "identity"
+        ],
+        "responses": {
+          "200": {
+            "description": "Observed response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "accountCode": {
+                      "type": "string"
+                    },
+                    "accountId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "nickname": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "accountCode",
+                    "accountId",
+                    "nickname"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          }
+        },
+        "x-implementation-status": "IMPLEMENTED",
+        "parameters": [
+          {
+            "name": "accountCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {}
+  }
+}
