@@ -2,17 +2,8 @@
      逻辑一律不放这里：改 UI 只动本文件与 index.wxss，处理函数名保持不变。 -->
 <view class="page practice-page font-{{preferences.fontSize}}">
   <block wx:if="{{!isCompleted}}">
-    <!-- ① 页内标题：返回 + 题库名 + 模式副标题（系统导航标题留空，见 index.json） -->
+    <!-- ① 页内标题：题库名 + 模式副标题（返回走系统导航栏，页内不再自绘返回钮，避免双层返回栏） -->
     <view class="pra-head">
-      <view
-        class="pra-back"
-        bindtap="returnBankDetail"
-        hover-class="ghost-flat-hover"
-        hover-start-time="0"
-        hover-stay-time="240"
-      >
-        <view class="pra-back-arrow"></view>
-      </view>
       <view class="pra-head-text">
         <text class="pra-head-title">{{practiceTitle}}</text>
         <text class="pra-head-sub">{{practiceSubtitle}}</text>
@@ -170,15 +161,6 @@
   <block wx:else>
     <scroll-view class="pra-result" scroll-y enhanced bounces show-scrollbar="{{false}}">
       <view class="pra-head pra-head-result">
-        <view
-          class="pra-back"
-          bindtap="returnBankDetail"
-          hover-class="ghost-flat-hover"
-          hover-start-time="0"
-          hover-stay-time="240"
-        >
-          <view class="pra-back-arrow"></view>
-        </view>
         <view class="pra-head-text">
           <text class="pra-head-title">练习结果</text>
           <text class="pra-head-sub">{{practiceTitle}} · {{practiceSubtitle}}</text>

@@ -1,17 +1,9 @@
 <!-- 错题本 / 收藏本｜设计稿「错题本」「收藏本」两张画板
      同一份结构承载两种模式：type=wrong 进错题本，type=favorite 进收藏本（由 ViewModel 决定文案与口径）。
-     系统导航标题留空，页内自绘「返回 + 居中标题 + 管理」。 -->
+     返回用系统导航栏的返回钮（页内不再自绘，避免双层返回栏）；页内只留「居中标题 + 管理」。 -->
 <view class="list-page wb-page">
   <view class="wb-head">
-    <view
-      class="wb-back"
-      bindtap="handleBack"
-      hover-class="wb-back-hover"
-      hover-start-time="0"
-      hover-stay-time="240"
-    >
-      <view class="wb-back-arrow"></view>
-    </view>
+    <view class="wb-head-spacer"></view>
     <text class="wb-title">{{title}}</text>
     <view
       class="wb-manage {{manage ? 'is-on' : ''}}"

@@ -37,30 +37,6 @@
   height: 128rpx;
 }
 
-.pra-back {
-  flex: none;
-  width: 64rpx;
-  height: 64rpx;
-  margin-left: -12rpx;
-  margin-right: 4rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: opacity 100ms ease;
-}
-
-/* 返回箭头用两条边框拼：左 + 下各一条再旋 45°，不额外引一张图 */
-.pra-back-arrow {
-  width: 20rpx;
-  height: 20rpx;
-  margin-left: 6rpx;
-  border-left: 4rpx solid #141820;
-  border-bottom: 4rpx solid #141820;
-  border-radius: 2rpx;
-  transform: rotate(45deg);
-}
-
 .pra-head-text {
   flex: 1;
   min-width: 0;

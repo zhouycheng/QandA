@@ -38,14 +38,6 @@ Page(wrapTaps({
     }, 400)
   },
 
-  handleBack() {
-    wx.navigateBack({
-      fail: () => {
-        wx.switchTab({ url: '/page/stats/index' })
-      }
-    })
-  },
-
   handleManageTap() {
     this.applyViewModelResult(this.viewModel.toggleManage())
   },

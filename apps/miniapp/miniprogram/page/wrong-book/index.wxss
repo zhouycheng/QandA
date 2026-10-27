@@ -13,7 +13,7 @@
   padding-bottom: calc(200rpx + env(safe-area-inset-bottom));
 }
 
-/* ---------- 页头：返回 + 居中标题 + 管理 ---------- */
+/* ---------- 页头：居中标题 + 管理（返回走系统导航栏，页内不再自绘返回钮） ---------- */
 
 .wb-head {
   display: flex;
@@ -23,31 +23,12 @@
   padding: 0 41rpx;
 }
 
-.wb-back {
+/* 左侧占位：与「管理」同宽，标题才真居中 */
+.wb-head-spacer {
   flex: none;
-  width: 56rpx;
+  min-width: 56rpx;
   height: 56rpx;
   margin-left: -12rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: opacity 100ms ease;
-}
-
-.wb-back-hover {
-  opacity: 0.55;
-}
-
-/* 返回箭头：左 + 下两条边框旋 45°，不额外引图 */
-.wb-back-arrow {
-  width: 18rpx;
-  height: 18rpx;
-  margin-left: 6rpx;
-  border-left: 4rpx solid #141820;
-  border-bottom: 4rpx solid #141820;
-  border-radius: 2rpx;
-  transform: rotate(45deg);
 }
 
 .wb-title {
