@@ -2,6 +2,11 @@ const { WrongBookViewModel } = require('../../viewmodels/wrong-book-viewmodel.js
 const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
 const { wrapTaps } = require('../../utils/tap-trace.js')
 
+/**
+ * 错题本 / 收藏本（设计稿两张画板）。
+ * 路由仍是 page/wrong-book/index，靠 `?type=wrong|favorite` 区分两种模式 ——
+ * 复盘页的两张入口卡分别带着这两个参数进来。
+ */
 Page(wrapTaps({
   data: WrongBookViewModel.getInitialData(),
 
@@ -12,6 +17,7 @@ Page(wrapTaps({
     this.applyViewModelResult(this.viewModel.load(options))
   },
 
+  // 从题目详情返回时重新读一遍：可能刚取消过收藏
   onShow() {
     if (!this.viewModel) {
       return
@@ -20,7 +26,6 @@ Page(wrapTaps({
     this.applyViewModelResult(this.viewModel.refresh({}))
   },
 
-  // 下拉刷新：保持当前 tab 与筛选，只重读数据
   onPullDownRefresh() {
     if (!this.viewModel) {
       wx.stopPullDownRefresh()
@@ -33,39 +38,87 @@ Page(wrapTaps({
     }, 400)
   },
 
-  onTabChange(e) {
-    const tabKey = e.currentTarget.dataset.tab
-    this.applyViewModelResult(this.viewModel.switchTab(tabKey))
+  handleBack() {
+    wx.navigateBack({
+      fail: () => {
+        wx.switchTab({ url: '/page/stats/index' })
+      }
+    })
   },
 
-  onFilterChange(e) {
-    const filterKey = e.currentTarget.dataset.filter
-    this.applyViewModelResult(this.viewModel.switchFilter(filterKey))
+  handleManageTap() {
+    this.applyViewModelResult(this.viewModel.toggleManage())
   },
 
-  onRemove(e) {
+  handleSubjectMenuTap() {
+    this.applyViewModelResult(this.viewModel.toggleSubjectMenu())
+  },
+
+  handleSubjectPick(e) {
+    this.applyViewModelResult(this.viewModel.setSubject(e.currentTarget.dataset.id))
+  },
+
+  // 排序只有两种口径，点一下就能换，不值得做成下拉
+  handleSortTap() {
+    this.applyViewModelResult(this.viewModel.toggleSort())
+  },
+
+  handleChipTap(e) {
+    this.applyViewModelResult(this.viewModel.setChip(e.currentTarget.dataset.key))
+  },
+
+  handlePrevPage() {
+    this.applyViewModelResult(this.viewModel.goPrevPage())
+  },
+
+  handleNextPage() {
+    this.applyViewModelResult(this.viewModel.goNextPage())
+  },
+
+  handleItemTap(e) {
     const questionId = e.currentTarget.dataset.id
-    this.applyViewModelResult(this.viewModel.removeItem(questionId))
+
+    if (!questionId) {
+      return
+    }
+
+    wx.navigateTo({
+      url: `/page/question-detail/index?id=${encodeURIComponent(questionId)}`
+    })
   },
 
-  onToggleFavorite(e) {
+  handleRemoveTap(e) {
     const questionId = e.currentTarget.dataset.id
-    this.applyViewModelResult(this.viewModel.toggleFavorite(questionId))
-  },
-
-  handlePractice() {
-    this.applyViewModelResult(this.viewModel.createPracticeCommand())
-  },
-
-  handleClear() {
-    const isWrongTab = this.data.activeTab === 'wrong'
+    const isWrong = this.data.type === 'wrong'
 
     wx.showModal({
-      title: isWrongTab ? '移除错题' : '清空收藏',
-      content: isWrongTab ? '将移除当前列表中的错题记录，确定继续吗？' : '将清空全部收藏，确定继续吗？',
+      title: isWrong ? '移出错题本' : '取消收藏',
+      content: isWrong ? '移出后这道题不再出现在错题本里，确定继续吗？' : '确定取消收藏这道题吗？',
       success: (res) => {
         if (res.confirm) {
-          this.applyViewModelResult(this.viewModel.clearCurrent())
+          this.applyViewModelResult(this.viewModel.removeItem(questionId))
+        }
+      }
+    })
+  },
+
+  // 管理态下主按钮是「清空」，非管理态是「开始练习」
+  handleFooterTap() {
+    if (!this.data.manage) {
+      this.applyViewModelResult(this.viewModel.createPracticeCommand())
+      return
+    }
+
+    const isWrong = this.data.type === 'wrong'
+
+    wx.showModal({
+      title: isWrong ? '清空错题本' : '清空收藏',
+      content: isWrong
+        ? `将移除全部 ${this.data.totalCount} 道错题记录，确定继续吗？`
+        : `将清空全部 ${this.data.totalCount} 道收藏，确定继续吗？`,
+      success: (res) => {
+        if (res.confirm) {
+          this.applyViewModelResult(this.viewModel.clearAll())
         }
       }
     })
@@ -76,29 +129,11 @@ Page(wrapTaps({
       return
     }
 
-    const runEffects = () => {
-      this.applyViewModelEffects(result)
-    }
-
     if (result.data) {
-      this.setData(result.data, () => {
-        this.syncNavigationTitle(result.data.activeTab)
-        runEffects()
-      })
-      return
+      this.setData(result.data)
     }
 
-    runEffects()
-  },
-
-  syncNavigationTitle(activeTab) {
-    if (!activeTab) {
-      return
-    }
-
-    wx.setNavigationBarTitle({
-      title: activeTab === 'favorite' ? '我的收藏' : '错题本'
-    })
+    this.applyViewModelEffects(result)
   },
 
   applyViewModelEffects(result) {
@@ -115,9 +150,7 @@ Page(wrapTaps({
     }
 
     if (result.command.type === 'navigate' && result.command.url) {
-      wx.navigateTo({
-        url: result.command.url
-      })
+      wx.navigateTo({ url: result.command.url })
     }
   }
 }, 'wrong-book'))

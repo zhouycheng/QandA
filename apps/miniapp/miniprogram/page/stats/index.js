@@ -2,6 +2,10 @@ const { StatsViewModel } = require('../../viewmodels/stats-viewmodel.js')
 const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
 const { wrapTaps } = require('../../utils/tap-trace.js')
 
+/**
+ * 复盘页（路由仍是 page/stats/index，tabBar 文案叫「复盘」）。
+ * 只读汇总，不产生任何写副作用。
+ */
 Page(wrapTaps({
   data: StatsViewModel.getInitialData(),
 
@@ -18,6 +22,8 @@ Page(wrapTaps({
     }
 
     this.syncTabBar()
+    // 底栏是四个 tab 共用的一条实例：别的页开着弹层切过来时可能还是隐藏态，这里兜底恢复
+    this.setTabBarHidden(false)
     this.applyViewModelResult(this.viewModel.load())
   },
 
@@ -32,6 +38,41 @@ Page(wrapTaps({
     if (tabBar && typeof tabBar.setSelected === 'function') {
       tabBar.setSelected('page/stats/index')
     }
+  },
+
+  setTabBarHidden(hidden) {
+    if (typeof this.getTabBar !== 'function') {
+      return
+    }
+
+    const tabBar = this.getTabBar()
+
+    if (tabBar && typeof tabBar.setHidden === 'function') {
+      tabBar.setHidden(hidden)
+    }
+  },
+
+  /** 切换区间：只重算三个数字与趋势图，热力图和身份不重算 */
+  handleRangeTap(e) {
+    if (!this.viewModel) {
+      return
+    }
+
+    this.applyViewModelResult(this.viewModel.setRange(e.currentTarget.dataset.value))
+  },
+
+  /**
+   * 错题本 / 收藏本：各是一个独立页面，带 type 参数进去。
+   * 复盘页是 tab 页，navigateTo 会让底栏留在下面 —— 那两个页面不是 tab，这样才符合层级。
+   */
+  handleEntryTap(e) {
+    const url = e.currentTarget.dataset.url
+
+    if (!url) {
+      return
+    }
+
+    wx.navigateTo({ url })
   },
 
   // 下拉刷新：重新汇总一遍本地数据
@@ -53,14 +94,6 @@ Page(wrapTaps({
     setTimeout(() => {
       wx.stopPullDownRefresh()
     }, 400)
-  },
-
-  handleOpenWrongBook(e) {
-    const tab = e.currentTarget.dataset.tab === 'favorite' ? 'favorite' : 'wrong'
-
-    wx.navigateTo({
-      url: `/page/wrong-book/index?tab=${tab}`
-    })
   },
 
   applyViewModelResult(result) {
