@@ -1,15 +1,14 @@
 /**
  * 交互静态审计：把「点不动 / 点了没反馈」能离线查出来的都查一遍。
  *
- * 查七件事：
+ * 查六件事：
  *   1. WXML 里每个 bindtap / bind:xxx / catchtap 的处理函数，在对应 JS 里是否真的定义了
  *   2. WXML 里每个 hover-class 的类名，在同页面可达的 WXSS 里是否有定义
  *      （app.wxss 全局 + 页面自己的 wxss + 该页声明的组件 wxss）
  *   3. 带 bindtap 的元素是否被 wx:if 挡住（提示性，不算失败）
  *   4. 是否存在「隐藏但仍占位」的全屏浮层（opacity:0 / visibility 而非 wx:if）——这类会吃掉全部点击
- *   5. 点击探针（wrapTaps）是否都接上了、页名是否传对
- *   6. scroll-view 内的按压反馈是否只改可插值属性（含 transform 就会让滚动区抖动）
- *   7. 自定义组件的样式隔离：组件 wxml 用到的类名必须在组件自己的 wxss 里
+ *   5. scroll-view 内的按压反馈是否只改可插值属性（含 transform 就会让滚动区抖动）
+ *   6. 自定义组件的样式隔离：组件 wxml 用到的类名必须在组件自己的 wxss 里
  *      （app.wxss / 页面样式对组件无效，漏了就是「点了毫无反应」，编译也不报错）
  */
 const fs = require('fs')
@@ -155,29 +154,12 @@ for (const name of ['bottom-sheet', 'route-loading', 'question-overview-sheet'])
 console.log('\n=== 附）带条件渲染的点击元素（非失败，供排查参考）===')
 zeroGuard.forEach((l) => console.log(`      · ${l}`))
 
-console.log('\n=== 5) 点击链路探针接入是否正确 ===\n')
-// 起因：用脚本把 `Page({...})` 改成 `Page(wrapTaps({...}, '页名'))` 时，
-// 很容易把收尾写成 `}), '页名')` —— 那样 '页名' 是传给 Page 的第二个参数，
-// wrapTaps 根本收不到，日志里所有页面都会显示成默认的 `page`，
-// 而语法完全合法、页面也能跑，属于「静默失效」。
-const probeProblems = []
-for (const f of all.filter((p) => p.endsWith('index.js') && p.includes(path.sep + 'page' + path.sep))) {
-  const js = fs.readFileSync(f, 'utf8')
-  if (!js.includes('wrapTaps(')) { probeProblems.push(`${rel(f)} 没接入 wrapTaps`); continue }
-  if (!/Page\(\s*wrapTaps\(\{/.test(js)) probeProblems.push(`${rel(f)} 的 Page(wrapTaps({ 写法不对`)
-  if (!/\},\s*'[^']+'\s*\)\s*\)/.test(js)) {
-    probeProblems.push(`${rel(f)} 的页名没传给 wrapTaps（应为 Page(wrapTaps({...}, '页名')) ）`)
-  }
-}
-if (probeProblems.length === 0) ok('7 个页面的点击探针接入正确，页名都传给了 wrapTaps')
-else bad(`${probeProblems.length} 处探针接入有问题`, probeProblems.join('\n      '))
-
-// --- 6) scroll-view 内的 hover 类不得带 transform --------------------------
+// --- 5) scroll-view 内的 hover 类不得带 transform --------------------------
 // 起因：给全宽卡片 / 滚动区域内的元素加 scale 后，用户反馈「整个画面在抖动」——
 // 一张接近满屏宽的卡片缩 3.5%，等于半屏内容同时位移；在 scroll-view 里
 // 还会被基础库当成内容尺寸变化，滚动位置跟着跳。
 // 这类反馈必须改用「背景色 + inset 描边」，几何上完全不动。
-console.log('\n=== 6) scroll-view 内的按压反馈是否会产生位移 ===')
+console.log('\n=== 5) scroll-view 内的按压反馈是否会产生位移 ===')
 const shaking = []
 for (const f of wxmls) {
   const src = fs.readFileSync(f, 'utf8')
@@ -223,13 +205,13 @@ if (shaking.length === 0) {
 }
 
 // ---------------------------------------------------------------------------
-// 5) 组件样式隔离：组件 wxml 里用到的类名，必须在组件自己的 wxss 里有定义。
+// 6) 组件样式隔离：组件 wxml 里用到的类名，必须在组件自己的 wxss 里有定义。
 //    官方文档原文：「除继承样式外，app.wxss 中的样式、组件所在页面的样式对自定义组件无效」。
 //    所以组件里写 hover-class="card-hover"（只定义在 app.wxss）＝真机上点了毫无反馈，
 //    而且编译、页面级审计全都查不出来 —— 这条专门堵这个洞。
 //    （实测漏网：bank-list-item 的卡片按压、question-overview-sheet 的 .panel-btn.primary）
 
-console.log('\n=== 7) 组件内的类名是否都在组件自己的 wxss 里 ===\n')
+console.log('\n=== 6) 组件内的类名是否都在组件自己的 wxss 里 ===\n')
 
 const isolatedLeaks = []
 const componentsDir = path.join(SRC, 'components')

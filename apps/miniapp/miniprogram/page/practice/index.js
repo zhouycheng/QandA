@@ -1,7 +1,5 @@
 const { PracticeViewModel } = require('../../viewmodels/practice-viewmodel.js')
 const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
-const { wrapTaps } = require('../../utils/tap-trace.js')
-
 const HOME_PAGE_URL = '/page/subject-list/index'
 
 // 答对自动翻页的停留时间：需要留出看清「回答正确」与选项变绿的时间，
@@ -11,7 +9,7 @@ const AUTO_ADVANCE_DELAY = 800
 // 超过这个时长还没返回才弹「提交中」：正常提交是微任务级返回，立刻弹只会闪一下
 const SUBMIT_LOADING_DELAY = 250
 
-Page(wrapTaps({
+Page({
   data: Object.assign(PracticeViewModel.getInitialData(), {
     // 长解析默认收起（设计稿「剩下的收起来了」）。纯界面状态，不进 ViewModel：
     // 换题时由 applyViewModelResult 归零，和答题逻辑没有关系
@@ -360,4 +358,4 @@ Page(wrapTaps({
       })
     }
   }
-}, 'practice'))
+})

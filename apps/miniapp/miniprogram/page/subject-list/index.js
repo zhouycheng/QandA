@@ -1,10 +1,8 @@
 const { SubjectListViewModel } = require('../../viewmodels/subject-list-viewmodel.js')
 const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
-const { wrapTaps } = require('../../utils/tap-trace.js')
-
 const ROUTE_LOADING_DELAY = 240
 
-Page(wrapTaps({
+Page({
   data: SubjectListViewModel.getInitialData(),
 
   isNavigating: false,
@@ -251,4 +249,4 @@ Page(wrapTaps({
       })
     }, ROUTE_LOADING_DELAY)
   }
-}, 'subject-list'))
+})

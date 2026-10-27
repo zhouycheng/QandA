@@ -1,8 +1,6 @@
 const { AccountViewModel } = require('../../viewmodels/account-viewmodel.js')
 const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
-const { wrapTaps } = require('../../utils/tap-trace.js')
-
-Page(wrapTaps({
+Page({
   data: AccountViewModel.getInitialData(),
 
   onLoad() {
@@ -107,4 +105,4 @@ Page(wrapTaps({
       })
     }
   }
-}, 'account'))
+})
