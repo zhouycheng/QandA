@@ -1,4 +1,6 @@
 import type {
+  BankPublicationStatus,
+  Chapter,
   College,
   CollegeQuery,
   CreateCollegeInput,
@@ -21,8 +23,47 @@ import type {
   UpdateQuestionInput,
   UpdateSubjectInput,
 } from '../types/admin'
+import type {
+  StudentFeedback,
+  UserCourse,
+  UserStatus,
+  ActivityQuery,
+  ActivitySummary,
+  AdminAccount,
+  AdminAccountInput,
+  Announcement,
+  AnnouncementInput,
+  ImportQuestionsInput,
+  LogQuery,
+  ManagedUser,
+  OperationLog,
+  SecuritySettings,
+  UserQuery,
+} from '../types/operations'
 
 export interface AdminContentGateway {
+  listChapters(questionBankId?: string): Promise<Chapter[]>
+  saveChapter(id: string | undefined, input: Omit<Chapter, 'id'>): Promise<Chapter>
+  deleteChapter(id: string): Promise<void>
+  reorderChapters(questionBankId: string, ids: string[]): Promise<void>
+  setBankPublication(id: string, status: BankPublicationStatus): Promise<QuestionBank>
+  listFeedback(): Promise<StudentFeedback[]>
+  updateFeedback(id: string, input: Pick<StudentFeedback, 'status' | 'response'>): Promise<StudentFeedback>
+  listUserCourses(userId?: string): Promise<UserCourse[]>
+  setUserStatus(id: string, status: UserStatus): Promise<ManagedUser>
+  listUsers(query?: UserQuery): Promise<ManagedUser[]>
+  listAdminAccounts(): Promise<AdminAccount[]>
+  saveAdminAccount(id: string | undefined, input: AdminAccountInput): Promise<AdminAccount>
+  deleteAdminAccount(id: string): Promise<void>
+  loginAdmin(username: string, password: string): Promise<AdminAccount>
+  listAnnouncements(): Promise<Announcement[]>
+  saveAnnouncement(id: string | undefined, input: AnnouncementInput): Promise<Announcement>
+  deleteAnnouncement(id: string): Promise<void>
+  getSecuritySettings(): Promise<SecuritySettings>
+  saveSecuritySettings(input: SecuritySettings): Promise<SecuritySettings>
+  listOperationLogs(query?: LogQuery): Promise<OperationLog[]>
+  getActivity(query: ActivityQuery): Promise<ActivitySummary>
+  importQuestions(input: ImportQuestionsInput): Promise<number>
   getDashboardSummary(): Promise<DashboardSummary>
 
   listColleges(query?: CollegeQuery): Promise<College[]>

@@ -1,5 +1,19 @@
 export type ContentStatus = 'ACTIVE' | 'INACTIVE'
 export type QuestionType = 'SINGLE_CHOICE' | 'MULTIPLE_CHOICE' | 'TRUE_FALSE'
+export type BankPublicationStatus = 'DRAFT' | 'PUBLISHED' | 'UNPUBLISHED' | 'ARCHIVED'
+
+export interface BankAudience {
+  collegeId?: string
+  majorId?: string
+  enrollmentYear?: number
+}
+
+export interface Chapter {
+  id: string
+  questionBankId: string
+  name: string
+  sortOrder: number
+}
 
 export interface College {
   id: string
@@ -36,6 +50,12 @@ export interface QuestionBank {
   description: string
   status: ContentStatus
   questionCount: number
+  activeQuestionCount?: number
+  textbook: string
+  owner: string
+  publicationStatus: BankPublicationStatus
+  scopeType: 'ALL' | 'TARGETED'
+  audiences: BankAudience[]
   createdAt: string
   updatedAt: string
 }
@@ -48,6 +68,8 @@ export interface QuestionOption {
 export interface Question {
   id: string
   questionBankId: string
+  chapterId?: string
+  revision?: number
   stem: string
   type: QuestionType
   options: QuestionOption[]
@@ -65,21 +87,13 @@ export type UpdateCollegeInput = CreateCollegeInput
 export type CreateMajorInput = Pick<Major, 'collegeId' | 'name' | 'code' | 'status'>
 export type UpdateMajorInput = CreateMajorInput
 
-export type CreateQuestionBankInput = Pick<
-  QuestionBank,
-  'subjectId' | 'name' | 'description' | 'status'
->
+export type CreateQuestionBankInput = Pick<QuestionBank, 'subjectId' | 'name' | 'description' | 'status'> &
+  Partial<Pick<QuestionBank, 'textbook' | 'owner' | 'scopeType' | 'audiences'>>
 export type UpdateQuestionBankInput = CreateQuestionBankInput
 
 export type CreateQuestionInput = Pick<
   Question,
-  | 'questionBankId'
-  | 'stem'
-  | 'type'
-  | 'options'
-  | 'correctAnswer'
-  | 'explanation'
-  | 'status'
+  'questionBankId' | 'chapterId' | 'stem' | 'type' | 'options' | 'correctAnswer' | 'explanation' | 'status'
 >
 export type UpdateQuestionInput = CreateQuestionInput
 
@@ -105,6 +119,7 @@ export interface QuestionBankQuery {
 export interface QuestionQuery {
   keyword?: string
   questionBankId?: string
+  chapterId?: string
   type?: QuestionType
   status?: ContentStatus
 }
@@ -114,4 +129,8 @@ export interface DashboardSummary {
   subjectCount: number
   questionBankCount: number
   questionCount: number
+  userCount: number
+  answeredCount: number
+  choiceCount: number
+  trueFalseCount: number
 }

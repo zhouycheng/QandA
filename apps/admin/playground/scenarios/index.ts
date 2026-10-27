@@ -4,6 +4,14 @@ import { majorFixtures } from '../fixtures/majors'
 import { questionBankFixtures } from '../fixtures/question-banks'
 import { questionFixtures } from '../fixtures/questions'
 import { subjectFixtures } from '../fixtures/subjects'
+import { chapterFixtures, feedbackFixtures, userCourseFixtures } from '../fixtures/platform'
+import {
+  adminAccountFixtures,
+  announcementFixtures,
+  createActivityFixtures,
+  defaultSecurity,
+  userFixtures,
+} from '../fixtures/operations'
 
 export type PlaygroundScenario = 'normal' | 'empty' | 'error' | 'write-error' | 'slow' | 'large-data'
 
@@ -44,18 +52,43 @@ function createLargeQuestion(index: number): Question {
 }
 
 export function getScenarioData(scenario: PlaygroundScenario) {
+  const baseQuestions = structuredClone(questionFixtures).map((q) => ({
+    ...q,
+    revision: 1,
+    chapterId:
+      q.id === 'question-single'
+        ? 'chapter-derivatives'
+        : q.id === 'question-multiple'
+          ? 'chapter-limits'
+          : 'chapter-tense',
+  }))
+  const operations = {
+    adminAccounts: structuredClone(adminAccountFixtures),
+    security: structuredClone(defaultSecurity),
+    users: scenario === 'empty' ? [] : structuredClone(userFixtures),
+    announcements: scenario === 'empty' ? [] : structuredClone(announcementFixtures),
+    activityRecords: scenario === 'empty' ? [] : createActivityFixtures(),
+    operationLogs: [] as import('../../src/types/operations').OperationLog[],
+    chapters: scenario === 'empty' ? [] : structuredClone(chapterFixtures),
+    feedback: scenario === 'empty' ? [] : structuredClone(feedbackFixtures),
+    userCourses: scenario === 'empty' ? [] : structuredClone(userCourseFixtures),
+  }
   if (scenario === 'empty') {
-    return { colleges: [], majors: [], subjects: [], questionBanks: [], questions: [] }
+    return { colleges: [], majors: [], subjects: [], questionBanks: [], questions: [], ...operations }
   }
 
   return {
+    ...operations,
     colleges: structuredClone(collegeFixtures),
     majors: structuredClone(majorFixtures),
     subjects: structuredClone(subjectFixtures),
     questionBanks: structuredClone(questionBankFixtures),
     questions:
       scenario === 'large-data'
-        ? Array.from({ length: 1000 }, (_, index) => createLargeQuestion(index))
-        : structuredClone(questionFixtures),
+        ? [
+            ...baseQuestions,
+            ...Array.from({ length: 1000 - baseQuestions.length }, (_, index) => createLargeQuestion(index)),
+          ]
+        : baseQuestions,
   }
 }

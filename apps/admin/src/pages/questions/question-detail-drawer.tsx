@@ -24,7 +24,14 @@ export function QuestionDetailDrawer({
 
   const question = detail.data
   return (
-    <Drawer width={560} title="题目详情" visible={Boolean(questionId)} onCancel={onClose} footer={null} unmountOnExit>
+    <Drawer
+      width={560}
+      title="题目详情"
+      visible={Boolean(questionId)}
+      onCancel={onClose}
+      footer={null}
+      unmountOnExit
+    >
       {detail.isLoading ? (
         <Skeleton text={{ rows: 8 }} animation />
       ) : detail.isError ? (
@@ -41,6 +48,7 @@ export function QuestionDetailDrawer({
                 value: questionBanks.find((bank) => bank.id === question.questionBankId)?.name ?? '未知题库',
               },
               { label: '状态', value: <StatusTag status={question.status} /> },
+              { label: '内容版本', value: `v${question.revision ?? 1}` },
             ]}
           />
           <section>
@@ -51,8 +59,13 @@ export function QuestionDetailDrawer({
             <Typography.Title heading={6}>选项</Typography.Title>
             <Space direction="vertical" style={{ width: '100%' }}>
               {question.options.map((option) => (
-                <div className={`detail-option ${question.correctAnswer.includes(option.key) ? 'detail-option-correct' : ''}`} key={option.key}>
-                  <Tag color={question.correctAnswer.includes(option.key) ? 'green' : 'gray'}>{option.key}</Tag>
+                <div
+                  className={`detail-option ${question.correctAnswer.includes(option.key) ? 'detail-option-correct' : ''}`}
+                  key={option.key}
+                >
+                  <Tag color={question.correctAnswer.includes(option.key) ? 'green' : 'gray'}>
+                    {option.key}
+                  </Tag>
                   <span>{option.content}</span>
                 </div>
               ))}
@@ -60,7 +73,7 @@ export function QuestionDetailDrawer({
           </section>
           <section>
             <Typography.Title heading={6}>答案解析</Typography.Title>
-            <Typography.Paragraph>{question.explanation}</Typography.Paragraph>
+            <Typography.Paragraph>{question.explanation || '暂无解析，发布前请补充。'}</Typography.Paragraph>
           </section>
         </Space>
       ) : null}

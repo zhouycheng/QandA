@@ -49,6 +49,7 @@ export function CollegesPage() {
     mutationFn: (values: CollegeFormValues) =>
       editing ? gateway.updateCollege(editing.id, values) : gateway.createCollege(values),
     onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['logs'] })
       Message.success(editing ? '学院已更新' : '学院已创建')
       setDrawerVisible(false)
       void queryClient.invalidateQueries({ queryKey: ['colleges'] })
@@ -58,12 +59,14 @@ export function CollegesPage() {
   })
 
   const toggleStatus = useMutation({
-    mutationFn: (college: College) => gateway.updateCollege(college.id, {
-      name: college.name,
-      code: college.code,
-      status: college.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE',
-    }),
+    mutationFn: (college: College) =>
+      gateway.updateCollege(college.id, {
+        name: college.name,
+        code: college.code,
+        status: college.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE',
+      }),
     onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['logs'] })
       Message.success('学院状态已更新')
       void queryClient.invalidateQueries({ queryKey: ['colleges'] })
     },
@@ -73,6 +76,7 @@ export function CollegesPage() {
   const deleteCollege = useMutation({
     mutationFn: (id: string) => gateway.deleteCollege(id),
     onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['logs'] })
       Message.success('学院已删除')
       void queryClient.invalidateQueries({ queryKey: ['colleges'] })
       void queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] })
@@ -93,14 +97,21 @@ export function CollegesPage() {
     setDrawerVisible(true)
   }
 
-  const getMajorCount = (collegeId: string) => majors.data?.filter((major) => major.collegeId === collegeId).length ?? 0
+  const getMajorCount = (collegeId: string) =>
+    majors.data?.filter((major) => major.collegeId === collegeId).length ?? 0
+
+  const queryError = colleges.error ?? majors.error
 
   return (
     <>
       <PageTitle
         title="学院管理"
-        description="维护当前大学下的学院及其可用状态。"
-        action={<Button type="primary" icon={<IconPlus />} onClick={openCreate}>新增学院</Button>}
+        description="维护用于学生自填资料和题库推荐的学院目录，课程内容独立共享。"
+        action={
+          <Button type="primary" icon={<IconPlus />} onClick={openCreate}>
+            新增学院
+          </Button>
+        }
       />
       <Card bordered={false}>
         <div className="toolbar">
@@ -114,8 +125,14 @@ export function CollegesPage() {
           />
           <Typography.Text type="secondary">共 {colleges.data?.length ?? 0} 个学院</Typography.Text>
         </div>
-        {colleges.isError ? (
-          <ErrorState message={colleges.error.message} onRetry={() => void colleges.refetch()} />
+        {queryError ? (
+          <ErrorState
+            message={queryError.message}
+            onRetry={() => {
+              void colleges.refetch()
+              void majors.refetch()
+            }}
+          />
         ) : (
           <Table
             rowKey="id"
@@ -135,14 +152,26 @@ export function CollegesPage() {
                   </Button>
                 ),
               },
-              { title: '状态', dataIndex: 'status', width: 120, render: (_, record) => <StatusTag status={record.status} /> },
-              { title: '更新时间', dataIndex: 'updatedAt', width: 190, render: (value) => new Date(value).toLocaleString('zh-CN') },
+              {
+                title: '状态',
+                dataIndex: 'status',
+                width: 120,
+                render: (_, record) => <StatusTag status={record.status} />,
+              },
+              {
+                title: '更新时间',
+                dataIndex: 'updatedAt',
+                width: 190,
+                render: (value) => new Date(value).toLocaleString('zh-CN'),
+              },
               {
                 title: '操作',
                 width: 280,
                 render: (_, record) => (
                   <Space>
-                    <Button type="text" icon={<IconEdit />} onClick={() => openEdit(record)}>编辑</Button>
+                    <Button type="text" icon={<IconEdit />} onClick={() => openEdit(record)}>
+                      编辑
+                    </Button>
                     <Popconfirm
                       title={`确认${record.status === 'ACTIVE' ? '停用' : '启用'}该学院？`}
                       onOk={() => toggleStatus.mutate(record)}
@@ -153,11 +182,20 @@ export function CollegesPage() {
                     </Popconfirm>
                     {getMajorCount(record.id) > 0 ? (
                       <Tooltip content={`包含 ${getMajorCount(record.id)} 个专业，请先处理专业`}>
-                        <span><Button type="text" status="danger" icon={<IconDelete />} disabled>删除</Button></span>
+                        <span>
+                          <Button type="text" status="danger" icon={<IconDelete />} disabled>
+                            删除
+                          </Button>
+                        </span>
                       </Tooltip>
                     ) : (
-                      <Popconfirm title="删除后不可恢复，确认删除？" onOk={() => deleteCollege.mutate(record.id)}>
-                        <Button type="text" status="danger" icon={<IconDelete />}>删除</Button>
+                      <Popconfirm
+                        title="删除后不可恢复，确认删除？"
+                        onOk={() => deleteCollege.mutate(record.id)}
+                      >
+                        <Button type="text" status="danger" icon={<IconDelete />}>
+                          删除
+                        </Button>
                       </Popconfirm>
                     )}
                   </Space>
@@ -175,12 +213,21 @@ export function CollegesPage() {
         footer={
           <Space>
             <Button onClick={() => setDrawerVisible(false)}>取消</Button>
-            <Button type="primary" loading={saveCollege.isPending} onClick={() => form.submit()}>保存</Button>
+            <Button type="primary" loading={saveCollege.isPending} onClick={() => form.submit()}>
+              保存
+            </Button>
           </Space>
         }
       >
         <Form form={form} layout="vertical" onSubmit={(values) => saveCollege.mutate(values)}>
-          <Form.Item field="name" label="学院名称" rules={[{ required: true, message: '请输入学院名称' }, { maxLength: 50, message: '名称不能超过 50 个字符' }]}>
+          <Form.Item
+            field="name"
+            label="学院名称"
+            rules={[
+              { required: true, message: '请输入学院名称' },
+              { maxLength: 50, message: '名称不能超过 50 个字符' },
+            ]}
+          >
             <Input placeholder="例如：计算机学院" maxLength={50} showWordLimit />
           </Form.Item>
           <Form.Item

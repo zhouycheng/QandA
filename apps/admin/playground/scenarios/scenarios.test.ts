@@ -2,6 +2,30 @@ import { describe, expect, it } from 'vitest'
 import { getScenarioData } from './index'
 
 describe('Playground 场景数据', () => {
+  it('正常和千题场景的章节、反馈与学生自选课程没有孤立关联', () => {
+    for (const scenario of ['normal', 'large-data'] as const) {
+      const data = getScenarioData(scenario)
+      expect(
+        data.questions.every(
+          (q) =>
+            !q.chapterId ||
+            data.chapters.some((c) => c.id === q.chapterId && c.questionBankId === q.questionBankId),
+        ),
+      ).toBe(true)
+      expect(
+        data.feedback.every((f) => !f.questionId || data.questions.some((q) => q.id === f.questionId)),
+      ).toBe(true)
+      expect(
+        data.userCourses.every(
+          (c) =>
+            data.users.some((u) => u.id === c.userId) &&
+            data.subjects.some((s) => s.id === c.subjectId) &&
+            (!c.preferredBankId ||
+              data.questionBanks.some((b) => b.id === c.preferredBankId && b.subjectId === c.subjectId)),
+        ),
+      ).toBe(true)
+    }
+  })
   it('空数据场景不包含任何内容', () => {
     const data = getScenarioData('empty')
     expect(data.colleges).toHaveLength(0)
@@ -34,7 +58,9 @@ describe('Playground 场景数据', () => {
     const majorIds = new Set(data.majors.map((major) => major.id))
     expect(data.majors.every((major) => collegeIds.has(major.collegeId))).toBe(true)
     expect(data.subjects.every((subject) => subject.majorIds.length > 0)).toBe(true)
-    expect(data.subjects.every((subject) => subject.majorIds.every((majorId) => majorIds.has(majorId)))).toBe(true)
+    expect(data.subjects.every((subject) => subject.majorIds.every((majorId) => majorIds.has(majorId)))).toBe(
+      true,
+    )
     expect(data.subjects.some((subject) => subject.majorIds.length > 1)).toBe(true)
   })
 })

@@ -1,5 +1,7 @@
 # QandA 管理端 Independent MVP PRD
 
+> 2026-10-26 范围修订：本文以下保留早期 MVP 基线，其中“学院 → 专业 → 科目”的强制内容链及专业关联规则已过时。当前产品依据[学生自主复习平台架构报告](student-platform-architecture.md)，当前管理端实现与验收范围见[管理端学生平台改造说明](../admin-student-platform-implementation.md)。后续开发不得再以旧专业可见性作为学生访问限制。
+
 ## 1. 文档目标
 
 本文档定义 QandA React 管理端的独立 MVP 范围、内容管理交互闭环、Admin Playground / Mock 数据机制和技术架构。

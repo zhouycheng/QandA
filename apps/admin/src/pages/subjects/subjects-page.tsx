@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
   Button,
   Card,
@@ -9,189 +9,159 @@ import {
   Message,
   Popconfirm,
   Radio,
-  Select,
   Space,
   Table,
   Tag,
-  Typography,
 } from '@arco-design/web-react'
-import { IconDelete, IconEdit, IconPlus, IconSearch } from '@arco-design/web-react/icon'
+import { IconPlus } from '@arco-design/web-react/icon'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useSearchParams } from 'react-router-dom'
-import { ErrorState } from '../../components/error-state'
+import { Link } from 'react-router-dom'
 import { PageTitle } from '../../components/page-title'
+import { ErrorState } from '../../components/error-state'
 import { StatusTag } from '../../components/status-tag'
 import { useAdminGateway } from '../../gateways/gateway-context'
-import { getErrorMessage } from '../../lib/errors'
-import type { ContentStatus, Subject } from '../../types/admin'
-
-interface SubjectFormValues {
-  majorIds: string[]
-  name: string
-  status: ContentStatus
-}
+import type { CreateSubjectInput, Subject } from '../../types/admin'
 
 export function SubjectsPage() {
   const gateway = useAdminGateway()
-  const queryClient = useQueryClient()
-  const [searchParams, setSearchParams] = useSearchParams()
+  const client = useQueryClient()
   const [keyword, setKeyword] = useState('')
-  const [majorId, setMajorId] = useState<string | undefined>(searchParams.get('majorId') ?? undefined)
-  const [drawerVisible, setDrawerVisible] = useState(false)
-  const [editing, setEditing] = useState<Subject | null>(null)
-  const [form] = Form.useForm<SubjectFormValues>()
-
-  useEffect(() => {
-    setMajorId(searchParams.get('majorId') ?? undefined)
-  }, [searchParams])
-
-  const majors = useQuery({ queryKey: ['majors', 'all'], queryFn: () => gateway.listMajors() })
-  const colleges = useQuery({ queryKey: ['colleges', 'all'], queryFn: () => gateway.listColleges() })
-  const subjects = useQuery({
-    queryKey: ['subjects', keyword, majorId],
-    queryFn: () => gateway.listSubjects({ keyword, majorId }),
-  })
-
-  const saveSubject = useMutation({
-    mutationFn: (values: SubjectFormValues) =>
-      editing ? gateway.updateSubject(editing.id, values) : gateway.createSubject(values),
+  const [editing, setEditing] = useState<Subject | null | undefined>()
+  const [form] = Form.useForm<CreateSubjectInput>()
+  const subjects = useQuery({ queryKey: ['subjects', 'all'], queryFn: () => gateway.listSubjects() })
+  const banks = useQuery({ queryKey: ['question-banks', 'all'], queryFn: () => gateway.listQuestionBanks() })
+  const save = useMutation({
+    mutationFn: (input: CreateSubjectInput) =>
+      editing
+        ? gateway.updateSubject(editing.id, { ...input, majorIds: editing.majorIds })
+        : gateway.createSubject({ ...input, majorIds: [] }),
     onSuccess: () => {
-      Message.success(editing ? '科目已更新' : '科目已创建')
-      setDrawerVisible(false)
-      void queryClient.invalidateQueries({ queryKey: ['subjects'] })
-      void queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] })
+      setEditing(undefined)
+      void client.invalidateQueries()
+      Message.success('课程已保存')
     },
-    onError: (error) => Message.error(getErrorMessage(error)),
+    onError: (e) => Message.error(e.message),
   })
-
-  const toggleStatus = useMutation({
-    mutationFn: (subject: Subject) =>
-      gateway.updateSubject(subject.id, {
-        majorIds: subject.majorIds,
-        name: subject.name,
-        status: subject.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE',
-      }),
-    onSuccess: () => {
-      Message.success('科目状态已更新')
-      void queryClient.invalidateQueries({ queryKey: ['subjects'] })
-    },
-    onError: (error) => Message.error(getErrorMessage(error)),
-  })
-
-  const deleteSubject = useMutation({
+  const remove = useMutation({
     mutationFn: (id: string) => gateway.deleteSubject(id),
     onSuccess: () => {
-      Message.success('科目已删除')
-      void queryClient.invalidateQueries({ queryKey: ['subjects'] })
-      void queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] })
+      void client.invalidateQueries()
+      Message.success('课程已删除')
     },
-    onError: (error) => Message.error(getErrorMessage(error)),
+    onError: (e) => Message.error(e.message),
   })
-
-  const openCreate = () => {
-    setEditing(null)
-    form.resetFields()
-    form.setFieldsValue({ majorIds: majorId ? [majorId] : [], status: 'ACTIVE' })
-    setDrawerVisible(true)
-  }
-
-  const openEdit = (subject: Subject) => {
+  const open = (subject: Subject | null) => {
     setEditing(subject)
-    form.setFieldsValue({ majorIds: subject.majorIds, name: subject.name, status: subject.status })
-    setDrawerVisible(true)
+    form.resetFields()
+    form.setFieldsValue(subject ?? { name: '', status: 'ACTIVE', majorIds: [] })
   }
-
-  const getMajorLabel = (id: string) => {
-    const major = majors.data?.find((item) => item.id === id)
-    const college = colleges.data?.find((item) => item.id === major?.collegeId)
-    return major ? `${major.name}${college ? `（${college.name}）` : ''}` : '未知专业'
-  }
-  const selectedMajor = majors.data?.find((major) => major.id === majorId)
-  const isMajorAvailable = (id: string) => {
-    const major = majors.data?.find((item) => item.id === id)
-    const college = colleges.data?.find((item) => item.id === major?.collegeId)
-    return major?.status === 'ACTIVE' && college?.status === 'ACTIVE'
-  }
-
-  const changeMajor = (value?: string) => {
-    setMajorId(value)
-    const next = new URLSearchParams(searchParams)
-    if (value) next.set('majorId', value)
-    else next.delete('majorId')
-    setSearchParams(next, { replace: true })
-  }
-
+  const error = subjects.error ?? banks.error
   return (
     <>
       <PageTitle
-        title={selectedMajor ? `${selectedMajor.name} · 科目管理` : '科目管理'}
-        description={selectedMajor ? '当前显示该专业关联的科目，共用科目仍只维护一份。' : '维护科目库及其适用专业，一个科目可以被多个专业共用。'}
-        action={<Button type="primary" icon={<IconPlus />} onClick={openCreate} disabled={!majors.data?.length}>新增科目</Button>}
+        title="课程目录"
+        description="课程是全校共享的内容入口。不同教材或复习范围放在课程下的题库中维护。"
+        action={
+          <Button type="primary" icon={<IconPlus />} onClick={() => open(null)}>
+            新建课程
+          </Button>
+        }
       />
       <Card bordered={false}>
-        <div className="toolbar toolbar-wrap">
-          <Space wrap>
-            <Input.Search
-              allowClear
-              prefix={<IconSearch />}
-              placeholder="搜索科目名称"
-              style={{ width: 280 }}
-              searchButton
-              onSearch={setKeyword}
-            />
-            <Select allowClear placeholder="按专业筛选" style={{ width: 260 }} value={majorId} onChange={changeMajor}>
-              {majors.data?.map((major) => <Select.Option key={major.id} value={major.id}>{getMajorLabel(major.id)}</Select.Option>)}
-            </Select>
-          </Space>
-          <Typography.Text type="secondary">共 {subjects.data?.length ?? 0} 个科目</Typography.Text>
+        <div className="toolbar">
+          <Input.Search
+            allowClear
+            style={{ width: 300 }}
+            aria-label="搜索课程"
+            placeholder="搜索课程名称"
+            onChange={setKeyword}
+          />
+          <span className="muted">适用范围在题库中设置，课程可独立创建</span>
         </div>
-        {subjects.isError ? (
-          <ErrorState message={subjects.error.message} onRetry={() => void subjects.refetch()} />
+        {error ? (
+          <ErrorState
+            message={error.message}
+            onRetry={() => {
+              void subjects.refetch()
+              void banks.refetch()
+            }}
+          />
         ) : (
           <Table
             rowKey="id"
-            loading={subjects.isLoading || majors.isLoading || colleges.isLoading}
-            data={subjects.data ?? []}
-            noDataElement={<Empty description={majors.data?.length ? '没有符合条件的科目' : '请先新增专业'} />}
+            loading={subjects.isLoading || banks.isLoading}
+            data={
+              subjects.data?.filter((s) => s.name.toLowerCase().includes(keyword.trim().toLowerCase())) ?? []
+            }
+            scroll={{ x: 820 }}
+            noDataElement={<Empty description="先创建一门课程，再整理共享题库" />}
             pagination={{ pageSize: 10, showTotal: true }}
             columns={[
-              { title: '科目名称', dataIndex: 'name' },
               {
-                title: '适用专业',
-                dataIndex: 'majorIds',
-                width: 360,
-                render: (values: string[]) => (
-                  <Space wrap>{values.map((id) => <Tag key={id} color="arcoblue">{getMajorLabel(id)}</Tag>)}</Space>
+                title: '课程',
+                dataIndex: 'name',
+                width: 200,
+                render: (name, s) => (
+                  <Link className="entity-link" to={`/question-banks?subjectId=${s.id}`}>
+                    {name}
+                  </Link>
                 ),
               },
               {
-                title: '状态',
+                title: '题库',
+                width: 150,
+                render: (_, s) => {
+                  const items = banks.data?.filter((b) => b.subjectId === s.id) ?? []
+                  return (
+                    <span>
+                      {items.length} 份{' '}
+                      <span className="muted">
+                        / {items.filter((b) => b.publicationStatus === 'PUBLISHED').length} 已发布
+                      </span>
+                    </span>
+                  )
+                },
+              },
+              {
+                title: '资源准备',
+                width: 160,
+                render: (_, s) => (
+                  <Tag
+                    color={
+                      banks.data?.some((b) => b.subjectId === s.id && b.publicationStatus === 'PUBLISHED')
+                        ? 'green'
+                        : 'orange'
+                    }
+                  >
+                    {banks.data?.some((b) => b.subjectId === s.id && b.publicationStatus === 'PUBLISHED')
+                      ? '已有发布内容'
+                      : '待整理题库'}
+                  </Tag>
+                ),
+              },
+              {
+                title: '课程状态',
+                width: 110,
                 dataIndex: 'status',
-                width: 130,
-                render: (_, record) => (
-                  <Space direction="vertical" size="mini">
-                    <StatusTag status={record.status} />
-                    {record.status === 'ACTIVE' && !record.majorIds.some(isMajorAvailable) && <Tag color="orange">上级已停用</Tag>}
-                  </Space>
-                ),
+                render: (value) => <StatusTag status={value} />,
               },
-              { title: '更新时间', dataIndex: 'updatedAt', width: 190, render: (value) => new Date(value).toLocaleString('zh-CN') },
               {
                 title: '操作',
-                width: 300,
-                render: (_, record) => (
-                  <Space>
-                    <Button type="text" icon={<IconEdit />} onClick={() => openEdit(record)}>编辑</Button>
+                width: 220,
+                fixed: 'right',
+                render: (_, s) => (
+                  <Space size="mini">
+                    <Link to={`/question-banks?subjectId=${s.id}`}>查看题库</Link>
+                    <Button type="text" onClick={() => open(s)}>
+                      编辑
+                    </Button>
                     <Popconfirm
-                      title={`确认${record.status === 'ACTIVE' ? '停用' : '启用'}该科目？`}
-                      onOk={() => toggleStatus.mutate(record)}
+                      title="确认删除课程？仍有内容或学生选择的课程无法删除。"
+                      onOk={() => remove.mutate(s.id)}
                     >
-                      <Button type="text" status={record.status === 'ACTIVE' ? 'warning' : 'success'}>
-                        {record.status === 'ACTIVE' ? '停用' : '启用'}
+                      <Button type="text" status="danger">
+                        删除
                       </Button>
-                    </Popconfirm>
-                    <Popconfirm title="删除后不可恢复，确认删除？" onOk={() => deleteSubject.mutate(record.id)}>
-                      <Button type="text" status="danger" icon={<IconDelete />}>删除</Button>
                     </Popconfirm>
                   </Space>
                 ),
@@ -201,32 +171,34 @@ export function SubjectsPage() {
         )}
       </Card>
       <Drawer
-        width={540}
-        title={editing ? '编辑科目' : '新建科目'}
-        visible={drawerVisible}
-        onCancel={() => setDrawerVisible(false)}
+        width={480}
+        title={editing ? '编辑课程' : '新建课程'}
+        visible={editing !== undefined}
+        onCancel={() => {
+          if (!save.isPending) setEditing(undefined)
+        }}
         footer={
           <Space>
-            <Button onClick={() => setDrawerVisible(false)}>取消</Button>
-            <Button type="primary" loading={saveSubject.isPending} onClick={() => form.submit()}>保存</Button>
+            <Button disabled={save.isPending} onClick={() => setEditing(undefined)}>
+              取消
+            </Button>
+            <Button type="primary" loading={save.isPending} onClick={() => form.submit()}>
+              保存课程
+            </Button>
           </Space>
         }
       >
-        <Form form={form} layout="vertical" onSubmit={(values) => saveSubject.mutate(values)}>
-          <Form.Item field="majorIds" label="适用专业" rules={[{ required: true, message: '请至少选择一个适用专业' }]}>
-            <Select mode="multiple" allowClear placeholder="可选择多个专业">
-              {majors.data?.map((major) => <Select.Option key={major.id} value={major.id}>{getMajorLabel(major.id)}</Select.Option>)}
-            </Select>
+        <Form form={form} layout="vertical" onSubmit={(input) => save.mutate(input)}>
+          <Form.Item field="name" label="课程名称" rules={[{ required: true, message: '请输入课程名称' }]}>
+            <Input maxLength={50} placeholder="例如：大学英语" />
           </Form.Item>
-          <Form.Item field="name" label="科目名称" rules={[{ required: true, message: '请输入科目名称' }, { maxLength: 50, message: '名称不能超过 50 个字符' }]}>
-            <Input placeholder="例如：高等数学" maxLength={50} showWordLimit />
-          </Form.Item>
-          <Form.Item field="status" label="状态" rules={[{ required: true, message: '请选择状态' }]}>
+          <Form.Item field="status" label="课程状态">
             <Radio.Group>
               <Radio value="ACTIVE">启用</Radio>
               <Radio value="INACTIVE">停用</Radio>
             </Radio.Group>
           </Form.Item>
+          <p className="muted">停用后，该课程下的题库将退出学生端发现和推荐。保留课程与学习记录的关联。</p>
         </Form>
       </Drawer>
     </>
