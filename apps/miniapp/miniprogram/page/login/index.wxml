@@ -1,60 +1,91 @@
-<view class="page login-page stagger">
-  <view class="login-hero card anim-fade-up">
-    <button
-      class="avatar-btn"
-      open-type="chooseAvatar"
-      bindchooseavatar="handleChooseAvatar"
+<!-- 登录页｜设计稿 Figma 763:567（画板 402x874，系数 750/402） -->
+<view class="auth-page">
+  <view class="brand">
+    <text class="brand-name">QandA</text>
+    <text class="brand-sub">答题系统</text>
+  </view>
+
+  <text class="page-title">登录</text>
+
+  <view class="form login-form">
+    <view class="field">
+      <text class="field-label">邮箱</text>
+      <input
+        class="field-input {{errorField === 'email' ? 'field-input-error' : ''}}"
+        type="text"
+        value="{{email}}"
+        placeholder="请输入邮箱"
+        placeholder-class="field-ph"
+        maxlength="128"
+        confirm-type="next"
+        bindinput="handleEmailInput"
+      />
+    </view>
+
+    <view class="field">
+      <text class="field-label">密码</text>
+      <input
+        class="field-input {{errorField === 'password' ? 'field-input-error' : ''}}"
+        password
+        value="{{password}}"
+        placeholder="请输入密码"
+        placeholder-class="field-ph"
+        maxlength="20"
+        confirm-type="done"
+        bindinput="handlePasswordInput"
+        bindconfirm="handleLoginTap"
+      />
+    </view>
+  </view>
+
+  <view class="agree-row">
+    <view
+      class="agree-left"
+      bindtap="handleToggleAgreed"
       hover-class="ghost-flat-hover"
       hover-start-time="0"
       hover-stay-time="240"
     >
-      <image class="avatar" src="{{avatarUrl}}" mode="aspectFill" wx:if="{{avatarUrl}}"></image>
-      <view class="avatar-fallback" wx:else>
-        <view class="mi-icon mi-user"></view>
+      <view class="checkbox {{agreed ? 'checkbox-on' : ''}} {{errorField === 'agreed' ? 'checkbox-error' : ''}}">
+        <view class="checkbox-tick" wx:if="{{agreed}}"></view>
       </view>
-    </button>
-
-    <text class="login-name">{{displayName}}</text>
-
-    <view class="login-meta">
-      <text class="login-tag {{degraded ? 'tag-dev' : ''}}">{{accountTag}}</text>
-      <text class="login-time" wx:if="{{loginTimeText}}">{{loginTimeText}} 登录</text>
+      <text class="agree-text">已阅读并同意用户协议和隐私政策</text>
     </view>
 
-    <text class="login-hint">{{loginHint}}</text>
+    <text
+      class="forgot-link"
+      bindtap="handleForgotTap"
+      hover-class="text-hover"
+      hover-start-time="0"
+      hover-stay-time="240"
+    >忘记密码？</text>
   </view>
 
-  <view class="section anim-fade-up">
-    <text class="section-title">资料</text>
+  <view
+    class="btn btn-primary login-submit"
+    bindtap="handleLoginTap"
+    hover-class="btn-hover"
+    hover-start-time="0"
+    hover-stay-time="240"
+  >登录</view>
 
-    <input
-      class="nickname-input card"
-      type="nickname"
-      value="{{nickname}}"
-      placeholder="{{canEditProfile ? '点击填写昵称' : '登录后才能设置昵称'}}"
-      disabled="{{!canEditProfile}}"
-      maxlength="32"
-      bindblur="handleNicknameBlur"
-    />
+  <text class="or-text">或</text>
 
-    <text class="field-note">头像与昵称使用微信授权能力获取，登录后才可修改</text>
-  </view>
+  <view
+    class="btn btn-wechat wechat-btn"
+    bindtap="handleWechatTap"
+    hover-class="btn-hover"
+    hover-start-time="0"
+    hover-stay-time="240"
+  >微信登录</view>
 
-  <view class="section anim-fade-up">
-    <view class="login-action">
-      <button
-        class="primary-btn {{loggedIn ? 'btn-danger' : ''}}"
-        bindtap="handlePrimaryTap"
-        hover-class="btn-hover"
-        hover-start-time="0"
-        hover-stay-time="240"
-      >{{primaryText}}</button>
+  <text class="degrade-note" wx:if="{{degradedNote}}">{{degradedNote}}</text>
 
-      <text class="action-desc">{{loggedIn ? '退出后本机学习数据仍会保留' : '使用微信身份登录，后端未接入时自动使用本地身份'}}</text>
-    </view>
-
-    <view class="footer-note">
-      <text>微信登录需由后端用 code 换取 openid。当前后端未接入，登录会自动降级为本地身份，不影响做题。</text>
-    </view>
-  </view>
+  <text
+    class="entry-link"
+    bindtap="handleRegisterTap"
+    hover-class="text-hover"
+    hover-start-time="0"
+    hover-stay-time="240"
+  >没有账号？立即注册</text>
 </view>

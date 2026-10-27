@@ -1,0 +1,94 @@
+<!-- 找回密码｜设计稿 Figma 772:1076（画板 402x874，系数 750/402） -->
+<view class="auth-page">
+  <view class="brand">
+    <text class="brand-name">QandA</text>
+    <text class="brand-sub">答题系统</text>
+  </view>
+
+  <text class="page-title">找回密码</text>
+
+  <view class="form">
+    <view class="field">
+      <text class="field-label">邮箱</text>
+      <input
+        class="field-input {{errorField === 'email' ? 'field-input-error' : ''}}"
+        type="text"
+        value="{{email}}"
+        placeholder="请输入注册邮箱"
+        placeholder-class="field-ph"
+        maxlength="128"
+        bindinput="handleEmailInput"
+      />
+    </view>
+
+    <view class="field">
+      <text class="field-label">邮箱验证码</text>
+      <view class="code-row {{errorField === 'code' ? 'field-input-error' : ''}}">
+        <input
+          class="field-input"
+          type="number"
+          value="{{code}}"
+          placeholder="请输入验证码"
+          placeholder-class="field-ph"
+          maxlength="6"
+          bindinput="handleCodeInput"
+        />
+        <text
+          class="code-btn {{cooldown > 0 ? 'code-btn-off' : ''}}"
+          bindtap="handleSendCode"
+          hover-class="text-hover"
+          hover-start-time="0"
+          hover-stay-time="240"
+        >{{cooldown > 0 ? cooldown + 's 后重发' : '发送验证码'}}</text>
+      </view>
+    </view>
+
+    <view class="field">
+      <text class="field-label">新密码</text>
+      <input
+        class="field-input {{errorField === 'password' ? 'field-input-error' : ''}}"
+        password
+        value="{{password}}"
+        placeholder="请设置 8–20 位字母与数字组合"
+        placeholder-class="field-ph"
+        maxlength="20"
+        bindinput="handlePasswordInput"
+      />
+    </view>
+
+    <view class="field">
+      <text class="field-label">确认密码</text>
+      <input
+        class="field-input {{errorField === 'confirm' ? 'field-input-error' : ''}}"
+        password
+        value="{{confirm}}"
+        placeholder="请再次输入新密码"
+        placeholder-class="field-ph"
+        maxlength="20"
+        bindinput="handleConfirmInput"
+      />
+    </view>
+  </view>
+
+  <text class="hint-line">重置成功后，请使用新密码登录</text>
+
+  <view
+    class="btn btn-primary"
+    bindtap="handleSubmitTap"
+    hover-class="btn-hover"
+    hover-start-time="0"
+    hover-stay-time="240"
+  >重置密码</view>
+
+  <text class="degrade-note" wx:if="{{degradedNote}}">{{degradedNote}}</text>
+
+  <view class="back-row">
+    <text
+      class="back-link"
+      bindtap="handleBackLogin"
+      hover-class="text-hover"
+      hover-start-time="0"
+      hover-stay-time="240"
+    >返回登录</text>
+  </view>
+</view>

@@ -66,6 +66,31 @@ function isConfigured() {
   return !!config.baseUrl
 }
 
+/**
+ * 把后端返回的错误文案挑出来。
+ *
+ * FastAPI 用 `detail`、Express / Nest 用 `message`、Spring 用 `error`，
+ * 端上不猜是哪一家，按常见字段依次取第一个非空字符串即可。
+ * 全都取不到才退回「接口返回 400」——那种话用户既看不懂也没法照着做。
+ */
+function pickServerMessage(payload) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    return ''
+  }
+
+  const keys = ['message', 'msg', 'error', 'detail', 'reason', 'error_description']
+
+  for (let index = 0; index < keys.length; index += 1) {
+    const value = payload[keys[index]]
+
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim()
+    }
+  }
+
+  return ''
+}
+
 /** 统一把 wx.request 的回调包成 Promise；fail 也走 resolve，由调用方按 ok 分支处理 */
 function request(method, path, data) {
   const wxApi = getWx()
@@ -91,12 +116,16 @@ function request(method, path, data) {
       success: (response) => {
         const statusCode = Number(response && response.statusCode) || 0
         const isOk = statusCode >= 200 && statusCode < 300
+        const payload = response && response.data ? response.data : null
 
         resolve({
           ok: isOk,
           statusCode,
-          data: response && response.data ? response.data : null,
-          reason: isOk ? '' : `接口返回 ${statusCode}`
+          data: payload,
+          // statusCode 0 = 压根没连上（未配域名 / 断网 / 超时），上层据此决定能否降级；
+          // 4xx / 5xx 说明后端**明确拒绝了**这次请求，不能当成「没接入」放行
+          unavailable: statusCode === 0,
+          reason: isOk ? '' : pickServerMessage(payload) || `接口返回 ${statusCode}`
         })
       },
       fail: (error) => {
@@ -104,6 +133,7 @@ function request(method, path, data) {
           ok: false,
           statusCode: 0,
           data: null,
+          unavailable: true,
           reason: describeRequestError(error && error.errMsg)
         })
       }
@@ -156,6 +186,7 @@ function login(code) {
     if (!response.ok) {
       return {
         ok: false,
+        unavailable: !!response.unavailable,
         reason: response.reason || '登录接口调用失败'
       }
     }
@@ -178,6 +209,129 @@ function login(code) {
       token: readText(data.token || data.accessToken, 512),
       nickname: readText(data.nickname || data.nickName, 32),
       avatarUrl: readText(data.avatarUrl || data.avatar, 512),
+      reason: ''
+    }
+  })
+}
+
+/**
+ * 邮箱 + 密码登录（API PRD 第 13 节 auth 模块）。
+ *
+ * 与微信登录共用 `/api/auth/login`，靠 body 里的 `type` 区分：
+ * 后端按 type 决定去哪张表校验，端上不必记两个路径。
+ */
+function loginByEmail(email, password) {
+  return request('POST', '/api/auth/login', {
+    type: 'email',
+    email: email || '',
+    password: password || ''
+  }).then((response) => {
+    if (!response.ok) {
+      return {
+        ok: false,
+        unavailable: !!response.unavailable,
+        reason: response.reason || '登录接口调用失败'
+      }
+    }
+
+    const data = response.data || {}
+    const userId = readText(data.userId || data.uid || data.id, 64)
+    const givenEmail = readText(data.email || email, 128)
+
+    if (!userId && !givenEmail) {
+      return {
+        ok: false,
+        reason: '登录接口未返回用户标识'
+      }
+    }
+
+    return {
+      ok: true,
+      userId,
+      email: givenEmail,
+      token: readText(data.token || data.accessToken, 512),
+      nickname: readText(data.nickname || data.nickName, 32),
+      avatarUrl: readText(data.avatarUrl || data.avatar, 512),
+      reason: ''
+    }
+  })
+}
+
+/** 注册：POST /api/auth/register { email, code, password } */
+function register(input) {
+  const payload = input || {}
+
+  return request('POST', '/api/auth/register', {
+    email: payload.email || '',
+    code: payload.code || '',
+    password: payload.password || ''
+  }).then((response) => {
+    if (!response.ok) {
+      return {
+        ok: false,
+        unavailable: !!response.unavailable,
+        reason: response.reason || '注册接口调用失败'
+      }
+    }
+
+    const data = response.data || {}
+
+    return {
+      ok: true,
+      userId: readText(data.userId || data.uid || data.id, 64),
+      email: readText(data.email || payload.email, 128),
+      token: readText(data.token || data.accessToken, 512),
+      reason: ''
+    }
+  })
+}
+
+/** 发送邮箱验证码：POST /api/auth/code { email, purpose } */
+function sendCode(input) {
+  const payload = input || {}
+
+  return request('POST', '/api/auth/code', {
+    email: payload.email || '',
+    purpose: payload.purpose || 'register'
+  }).then((response) => {
+    if (!response.ok) {
+      return {
+        ok: false,
+        unavailable: !!response.unavailable,
+        reason: response.reason || '验证码发送失败'
+      }
+    }
+
+    const data = response.data || {}
+
+    return {
+      ok: true,
+      // 后端若返回剩余秒数就按它倒计时，没返回就由端上用默认值
+      cooldown: Math.max(Number(data.cooldown) || 0, 0),
+      reason: ''
+    }
+  })
+}
+
+/** 重置密码：POST /api/auth/reset-password { email, code, password } */
+function resetPassword(input) {
+  const payload = input || {}
+
+  return request('POST', '/api/auth/reset-password', {
+    email: payload.email || '',
+    code: payload.code || '',
+    password: payload.password || ''
+  }).then((response) => {
+    if (!response.ok) {
+      return {
+        ok: false,
+        unavailable: !!response.unavailable,
+        reason: response.reason || '重置密码失败'
+      }
+    }
+
+    return {
+      ok: true,
       reason: ''
     }
   })
@@ -487,9 +641,13 @@ module.exports = {
   getSubjects,
   isConfigured,
   login,
+  loginByEmail,
   name: 'http',
   normalizeRemoteResult,
   normalizeRemoteSession,
+  register,
+  resetPassword,
   retrySubmit: submitSession,
+  sendCode,
   submitSession
 }

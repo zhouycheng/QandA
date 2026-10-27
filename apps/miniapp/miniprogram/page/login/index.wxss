@@ -1,157 +1,26 @@
-.login-page {
-  padding: 28rpx 28rpx 60rpx;
+@import "../../styles/auth-form.wxss";
+
+/**
+ * 登录页专属差异｜设计稿 763:567
+ * 公共尺寸在 styles/auth-form.wxss，这里只写这张画板不同的行距。
+ */
+
+/* 画板里「登录」标题到邮箱标签是 45px（84rpx），比注册页多 5px */
+.login-form {
+  margin-top: 84rpx;
 }
 
-/* ==================== 资料卡 ==================== */
-.login-hero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 52rpx 32rpx 40rpx;
-  border-radius: 28rpx;
+/* 两个字段之间 24px（45rpx）：比注册页的 12px 松，是这张画板的节奏 */
+.login-form .field + .field {
+  margin-top: 45rpx;
 }
 
-/* button 自带边框与内边距，不清掉会撑出一个方角白块 */
-.avatar-btn {
-  width: 152rpx;
-  height: 152rpx;
-  padding: 0;
-  border-radius: 50%;
-  background: var(--brand-soft);
-  overflow: hidden;
-  line-height: 1;
+/* 协议行到主按钮 30px（56rpx） */
+.login-submit {
+  margin-top: 56rpx;
 }
 
-.avatar-btn::after {
-  border: none;
-}
-
-.avatar {
-  display: block;
-  width: 152rpx;
-  height: 152rpx;
-}
-
-.avatar-fallback {
-  width: 152rpx;
-  height: 152rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.avatar-fallback .mi-icon {
-  width: 78rpx;
-  height: 78rpx;
-  opacity: 0.5;
-}
-
-.login-name {
-  display: block;
-  margin-top: 24rpx;
-  font-size: 36rpx;
-  font-weight: 700;
-  color: var(--text-main);
-}
-
-.login-meta {
-  display: flex;
-  align-items: center;
-  margin-top: 14rpx;
-}
-
-.login-tag {
-  padding: 6rpx 18rpx;
-  border-radius: 999rpx;
-  background: var(--brand-soft);
-  font-size: 21rpx;
-  color: var(--brand-dark);
-}
-
-/* 本地身份要跟真微信登录区分开，否则用户会以为自己登录成功了 */
-.login-tag.tag-dev {
-  background: rgba(247, 144, 9, 0.16);
-  color: #b45309;
-}
-
-.login-time {
-  margin-left: 14rpx;
-  font-size: 21rpx;
-  color: var(--text-muted);
-}
-
-.login-hint {
-  display: block;
-  margin-top: 22rpx;
-  padding: 0 10rpx;
-  font-size: 24rpx;
-  line-height: 1.65;
-  color: var(--text-sub);
-  text-align: center;
-}
-
-/* ==================== 昵称 ==================== */
-.section {
-  margin-top: 32rpx;
-}
-
-.nickname-input {
-  width: 100%;
-  height: 96rpx;
-  padding: 0 28rpx;
-  border-radius: 20rpx;
-  font-size: 29rpx;
-  color: var(--text-main);
-}
-
-.field-note {
-  display: block;
-  margin-top: 14rpx;
-  padding: 0 8rpx;
-  font-size: 22rpx;
-  line-height: 1.6;
-  color: var(--text-muted);
-}
-
-/* ==================== 主按钮 ==================== */
-.login-action {
-  margin-top: 8rpx;
-}
-
-/* 微信绿：登录按钮用品牌蓝会让用户误以为是普通操作按钮 */
-.primary-btn {
-  width: 100%;
-  height: 96rpx;
-  line-height: 96rpx;
-  padding: 0;
-  border-radius: 24rpx;
-  background: #07c160;
-  color: #ffffff;
-  font-size: 31rpx;
-  font-weight: 600;
-}
-
-.primary-btn::after {
-  border: none;
-}
-
-.primary-btn.btn-danger {
-  background: var(--danger);
-}
-
-.action-desc {
-  display: block;
-  margin-top: 18rpx;
-  font-size: 22rpx;
-  color: var(--text-muted);
-  text-align: center;
-}
-
-.footer-note {
-  margin-top: 40rpx;
-  padding: 0 16rpx;
-  font-size: 21rpx;
-  line-height: 1.7;
-  color: var(--text-muted);
-  text-align: center;
+/* 「或」到微信登录按钮 8px（15rpx） */
+.wechat-btn {
+  margin-top: 15rpx;
 }

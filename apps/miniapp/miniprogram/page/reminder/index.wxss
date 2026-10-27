@@ -1,0 +1,55 @@
+@import "../../styles/list-page.wxss";
+
+/* 邮箱提醒｜设计稿 Figma 781:2043（画板 402x874，系数 750/402 ≈ 1.8657）
+   公共行高 / 开关行 / 考试记录 / 勾选在 styles/list-page.wxss，这里只写本页差异。 */
+
+/* 我的考试：列表标题 12px，记录行 50px */
+.exam-title {
+  display: block;
+  margin-top: 22rpx;
+  font-size: 22rpx;
+  line-height: 45rpx;
+  font-weight: 500;
+  color: #141820;
+}
+
+.exam-empty {
+  display: block;
+  padding: 30rpx 0;
+  font-size: 21rpx;
+  line-height: 34rpx;
+  color: #8b8f99;
+}
+
+.advance {
+  margin-top: 22rpx;
+}
+
+.advance-label {
+  display: block;
+  margin-top: 22rpx;
+  font-size: 22rpx;
+  line-height: 45rpx;
+  font-weight: 500;
+  color: #141820;
+}
+
+.checkbox-hover {
+  opacity: 0.7;
+}
+
+/* 弹层里的日期输入：跟输入框同一套外观 */
+.picker-value {
+  height: 86rpx;
+  margin-top: 15rpx;
+  padding: 0 26rpx;
+  border-radius: 15rpx;
+  background: #efefef;
+  font-size: 26rpx;
+  line-height: 86rpx;
+  color: #141820;
+}
+
+.sheet-actions {
+  padding-bottom: 40rpx;
+}

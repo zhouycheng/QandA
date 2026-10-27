@@ -1,0 +1,10 @@
+{
+  "navigationBarTitleText": "邮箱提醒",
+  "navigationBarBackgroundColor": "#FFFFFF",
+  "navigationBarTextStyle": "black",
+  "backgroundColor": "#FFFFFF",
+  "backgroundTextStyle": "dark",
+  "usingComponents": {
+    "bottom-sheet": "/components/bottom-sheet/index"
+  }
+}

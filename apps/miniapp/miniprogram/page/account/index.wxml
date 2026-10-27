@@ -1,0 +1,124 @@
+<!-- 账号管理｜设计稿 Figma 781:2123（画板 402x874，系数 750/402 ≈ 1.8657）
+     个人信息（头像 / 昵称 / 学院）+ 账号信息（邮箱 / 微信 / 密码）+ 保存资料。 -->
+<view class="list-page page-with-bottom-bar">
+  <view class="section">
+    <text class="group-title">个人信息</text>
+
+    <!-- 头像：微信现行唯一可用的头像是 open-type="chooseAvatar"，不能再用 getUserProfile -->
+    <view class="avatar-row">
+      <view class="profile-avatar avatar-sm">
+        <image
+          class="profile-avatar-img"
+          src="{{draft.avatarUrl}}"
+          mode="aspectFill"
+          wx:if="{{draft.avatarUrl}}"
+        ></image>
+        <view class="avatar-icon" wx:else></view>
+      </view>
+      <text class="avatar-label">头像</text>
+      <button
+        class="link-btn"
+        open-type="chooseAvatar"
+        bindchooseavatar="handleChooseAvatar"
+        hover-class="link-btn-hover"
+        hover-start-time="0"
+        hover-stay-time="240"
+      >
+        <text class="info-action">更换头像</text>
+        <view class="chevron"></view>
+      </button>
+    </view>
+
+    <view class="field">
+      <text class="field-label">昵称</text>
+      <input
+        class="field-input"
+        type="nickname"
+        value="{{draft.nickname}}"
+        placeholder="填写昵称，答题记录里会显示"
+        placeholder-class="field-placeholder"
+        maxlength="32"
+        data-key="nickname"
+        bindinput="handleFieldInput"
+        bindblur="handleFieldBlur"
+      />
+    </view>
+
+    <!-- 学院：设计稿「我的」页要显示这一行，所以得有个能填的地方 -->
+    <view class="field">
+      <text class="field-label">学院 / 单位</text>
+      <input
+        class="field-input"
+        type="text"
+        value="{{draft.college}}"
+        placeholder="选填，如：计算机科学与技术学院"
+        placeholder-class="field-placeholder"
+        maxlength="24"
+        data-key="college"
+        bindinput="handleFieldInput"
+        bindblur="handleFieldBlur"
+      />
+    </view>
+  </view>
+
+  <view class="group">
+    <text class="group-title">账号信息</text>
+
+    <view
+      class="info-item"
+      bindtap="handleEmailTap"
+      hover-class="row-hover"
+      hover-start-time="0"
+      hover-stay-time="240"
+    >
+      <text class="info-label">绑定邮箱</text>
+      <view class="info-line">
+        <text class="info-value">{{profile.emailMasked || '未绑定'}}</text>
+        <text class="info-action">更换</text>
+        <view class="chevron"></view>
+      </view>
+    </view>
+
+    <view
+      class="info-item"
+      bindtap="handleWechatTap"
+      hover-class="row-hover"
+      hover-start-time="0"
+      hover-stay-time="240"
+    >
+      <text class="info-label">微信绑定</text>
+      <view class="info-line">
+        <text class="info-value">{{profile.wechatStatus}}</text>
+        <text class="info-action">{{profile.wechatStatus === '已绑定' ? '管理' : '绑定'}}</text>
+        <view class="chevron"></view>
+      </view>
+    </view>
+
+    <view
+      class="info-item"
+      bindtap="handlePasswordTap"
+      hover-class="row-hover"
+      hover-start-time="0"
+      hover-stay-time="240"
+    >
+      <text class="info-label">登录密码</text>
+      <view class="info-line">
+        <text class="info-value">{{profile.passwordStatus}}</text>
+        <text class="info-action">{{profile.passwordStatus === '已设置' ? '修改' : '设置'}}</text>
+        <view class="chevron"></view>
+      </view>
+    </view>
+
+    <text class="section-note">邮箱用于登录、找回密码与接收提醒。</text>
+  </view>
+</view>
+
+<view class="bottom-bar">
+  <view
+    class="bottom-btn {{dirty ? '' : 'bottom-btn-disabled'}}"
+    bindtap="handleSaveTap"
+    hover-class="bottom-btn-hover"
+    hover-start-time="0"
+    hover-stay-time="240"
+  >保存资料</view>
+</view>

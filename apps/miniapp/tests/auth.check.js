@@ -1,13 +1,13 @@
 /**
- * 微信登录 —— Node 自检脚本。
+ * 登录态 —— Node 自检脚本。
  * 运行：node apps/miniapp/tests/auth.check.js
  *
- * 覆盖这次「微信登录 + 本地身份降级」的行为契约：
+ * 覆盖「身份归一化 + 降级 + 真登录 + 三处状态一致 + 页面结构」的行为契约：
  *   1. 身份归一化：脏数据一律判未登录，不能拿着空壳身份显示已登录；
  *   2. 降级是登录成功：拿不到 code / 后端没配 / 接口报错都落到本地身份；
- *   3. 真登录：配了域名且接口返回用户标识时才算微信身份；
+ *   3. 真登录：配了域名且接口返回用户标识时才算真身份；
  *   4. 登录态在「我的 / 设置 / 登录页」三处一致；
- *   5. 头像昵称走现行合规能力（chooseAvatar），不准用已废弃的 getUserProfile。
+ *   5. 登录页是纯认证页（设计稿 763:567），全仓禁用已废弃的 getUserProfile。
  */
 const fs = require('fs')
 const path = require('path')
@@ -18,7 +18,7 @@ const authRepository = require(path.join(MINIPROGRAM, 'repositories/auth-reposit
 const authGateway = require(path.join(MINIPROGRAM, 'repositories/auth-gateway.js'))
 const httpGateway = require(path.join(MINIPROGRAM, 'repositories/http-gateway.js'))
 const { LoginViewModel } = require(path.join(MINIPROGRAM, 'viewmodels/login-viewmodel.js'))
-const { SettingsViewModel, ACCOUNT_ACTIONS, LOGIN_URL } = require(path.join(MINIPROGRAM, 'viewmodels/settings-viewmodel.js'))
+const { SettingsViewModel } = require(path.join(MINIPROGRAM, 'viewmodels/settings-viewmodel.js'))
 const { MyViewModel } = require(path.join(MINIPROGRAM, 'viewmodels/my-viewmodel.js'))
 
 const results = []
@@ -291,53 +291,97 @@ async function checkHttpGateway() {
   }
 }
 
-// ---------- 四、登录页 ViewModel ----------
+// ---------- 四、登录页 ViewModel（设计稿 763:567：邮箱密码为主，微信登录为辅） ----------
 async function checkLoginViewModel() {
   const storage = createMemoryStorage()
   const vm = new LoginViewModel({ storage })
   const initial = vm.load()
 
-  assert('登录页 - 初始未登录', initial.data.loggedIn === false)
-  assert('登录页 - 初始主按钮是微信一键登录', initial.data.primaryText === '微信一键登录',
-    initial.data.primaryText)
-  assert('登录页 - 未登录不能改资料', initial.data.canEditProfile === false)
+  assert('登录页 - 初始字段为空', initial.data.email === '' && initial.data.password === '')
+  assert('登录页 - 初始协议未勾选', initial.data.agreed === false)
 
-  const guestNickname = vm.setNickname('佳乐')
+  // 1) 空表单：拦在邮箱
+  const emptySubmit = await vm.submit()
 
-  assert('登录页 - 未登录改昵称只提示不改数据',
-    guestNickname.command && guestNickname.command.type === 'toast', JSON.stringify(guestNickname))
+  assert('登录页 - 空表单提示填邮箱', emptySubmit.command.title === '请输入邮箱', emptySubmit.command.title)
+  assert('登录页 - 空表单标红邮箱框', emptySubmit.data.errorField === 'email')
 
-  // 降级路径
-  authGateway.setAuthGateway({ name: 'none', login: () => ({ ok: false, reason: '未配置接口域名' }) })
-  const degraded = await vm.login({ codeProvider: (done) => done('code-1') })
+  // 2) 邮箱格式错
+  vm.setField('email', 'curry@')
+  vm.setField('password', 'abc12345')
 
-  assert('登录页 - 降级后界面是已登录', degraded.data.loggedIn === true)
-  assert('登录页 - 降级提示说明用的是本地身份', degraded.command.title.indexOf('本地身份') >= 0,
-    degraded.command.title)
-  assert('登录页 - 降级时明确标注非微信账号', degraded.data.degraded === true && !!degraded.data.degradeNote)
+  const badEmail = await vm.submit()
 
-  // 真登录路径
+  assert('登录页 - 邮箱格式错被拦', badEmail.command.title === '邮箱格式不正确', badEmail.command.title)
+
+  // 3) 密码必须字母+数字
+  vm.setField('email', 'curry@test.com')
+  vm.setField('password', 'abcdefgh')
+
+  const badPassword = await vm.submit()
+
+  assert('登录页 - 纯字母密码被拒', badPassword.command.title.indexOf('字母与数字') >= 0,
+    badPassword.command.title)
+  assert('登录页 - 密码问题标红密码框', badPassword.data.errorField === 'password')
+
+  // 4) 未勾协议：拦在最后，别一上来就挡人
+  vm.setField('password', 'abc12345')
+
+  const noAgree = await vm.submit()
+
+  assert('登录页 - 未勾协议被拦', noAgree.command.title.indexOf('用户协议') >= 0, noAgree.command.title)
+  assert('登录页 - 未勾协议标记勾选栏', noAgree.data.errorField === 'agreed')
+  assert('登录页 - 勾选后红框立即消失', vm.toggleAgreed().data.errorField === '')
+
+  // 5) 后端不可用（没接上）→ 降级，但仍然是登录成功
+  //    unavailable 与「后端明确拒绝」是两件事：只有前者能降级
+  authGateway.setAuthGateway({
+    name: 'none',
+    loginByEmail: () => ({ ok: false, unavailable: true, reason: '未配置接口域名' })
+  })
+
+  const degraded = await vm.submit()
+  const degradedAuth = authRepository.getAuth(storage)
+
+  assert('登录页 - 降级后进入登录态', degradedAuth.loggedIn === true)
+  assert('登录页 - 降级身份来源是邮箱', degradedAuth.provider === 'email', degradedAuth.provider)
+  assert('登录页 - 降级给出说明', degraded.data.degradedNote.length > 0, degraded.data.degradedNote)
+  assert('登录页 - 登录成功回到上一页', degraded.command.type === 'back', JSON.stringify(degraded.command))
+  assert('登录页 - 本地身份 id 由邮箱派生', /^email_/.test(degradedAuth.userId), degradedAuth.userId)
+  assert('登录页 - 密码不写进身份', JSON.stringify(degradedAuth).indexOf('abc12345') < 0)
+  assert('登录页 - storage 里也没有密码', JSON.stringify(storage.raw).indexOf('abc12345') < 0)
+
+  // 6) 真登录
   authGateway.setAuthGateway({
     name: 'fake',
-    login: () => ({ ok: true, userId: 'u-1', openId: 'o-1', nickname: '佳乐' })
+    loginByEmail: () => ({ ok: true, userId: 'u-9', email: 'curry@test.com', token: 'tk-9' })
   })
-  const logged = await vm.login({ codeProvider: (done) => done('code-1') })
 
-  assert('登录页 - 真登录提示微信登录成功', logged.command.title === '微信登录成功', logged.command.title)
-  assert('登录页 - 真登录界面不带降级标记', logged.data.degraded === false)
-  assert('登录页 - 昵称回显到输入框', logged.data.nickname === '佳乐', logged.data.nickname)
-  assert('登录页 - 已登录可以改资料', logged.data.canEditProfile === true)
-  assert('登录页 - 已登录主按钮变退出登录', logged.data.primaryText === '退出登录')
+  const okStorage = createMemoryStorage()
+  const okVm = new LoginViewModel({ storage: okStorage })
 
-  const renamed = vm.setNickname('curry')
+  okVm.setField('email', 'curry@test.com')
+  okVm.setField('password', 'abc12345')
+  okVm.toggleAgreed()
 
-  assert('登录页 - 改昵称直接生效', renamed.data.nickname === 'curry', JSON.stringify(renamed.data))
-  assert('登录页 - 改头像直接生效',
-    vm.setAvatar('wxfile://avatar.png').data.avatarUrl === 'wxfile://avatar.png')
+  const logged = await okVm.submit()
 
-  const logout = vm.logout()
+  assert('登录页 - 真登录提示登录成功', logged.command.title === '登录成功', logged.command.title)
+  assert('登录页 - 真登录不带降级说明', logged.data.degradedNote === '', logged.data.degradedNote)
+  assert('登录页 - 真登录用后端给的 id',
+    authRepository.getAuth(okStorage).userId === 'u-9', authRepository.getAuth(okStorage).userId)
 
-  assert('登录页 - 退出后回到未登录', logout.data.loggedIn === false)
+  // 7) 微信登录通道保留（设计稿里是「或」下面的备选按钮）
+  authGateway.setAuthGateway({ name: 'fake', login: () => ({ ok: true, userId: 'u-1', openId: 'o-1' }) })
+
+  const wechat = await new LoginViewModel({ storage: createMemoryStorage() }).wechatLogin()
+
+  assert('登录页 - 微信登录仍可用', wechat.command.type === 'back', JSON.stringify(wechat.command))
+
+  // 8) 退出
+  const logout = okVm.logout()
+
+  assert('登录页 - 退出后回到未登录', authRepository.getAuth(okStorage).loggedIn === false)
   assert('登录页 - 退出有提示', logout.command.title === '已退出登录')
 
   authGateway.resetAuthGateway()
@@ -347,49 +391,12 @@ async function checkLoginViewModel() {
 async function checkEntryPages() {
   const storage = createMemoryStorage()
   const settings = new SettingsViewModel({ storage })
-  const before = settings.load()
 
-  assert('设置 - 未登录时账户项不含退出登录',
-    before.data.accountActions.every((item) => item.key !== 'logout'),
-    JSON.stringify(before.data.accountActions))
-  assert('设置 - 未登录时登录项标「去登录」',
-    before.data.accountActions.find((item) => item.key === 'wechat').tag === '去登录')
-
-  const wechatNav = settings.openAccountAction('wechat')
-
-  assert('设置 - 点微信登录跳登录页',
-    wechatNav.command.type === 'navigate' && wechatNav.command.url === LOGIN_URL,
-    JSON.stringify(wechatNav))
-  assert('设置 - 未登录点退出登录给提示而非静默',
-    settings.openAccountAction('logout').command.title.indexOf('没有登录状态') >= 0)
-
-  authGateway.setAuthGateway({
-    name: 'fake',
-    login: () => ({ ok: true, userId: 'u-1', openId: 'o-1', nickname: '佳乐' })
-  })
-  await authRepository.login(storage, { codeProvider: (done) => done('code-1') })
-  authGateway.resetAuthGateway()
-
-  const after = settings.load()
-
-  assert('设置 - 登录后账户项出现退出登录',
-    after.data.accountActions.some((item) => item.key === 'logout'),
-    JSON.stringify(after.data.accountActions))
-  assert('设置 - 登录后状态标签是微信登录', after.data.auth.accountTag === '微信登录', after.data.auth.accountTag)
-  assert('设置 - 登录后显示昵称', after.data.auth.displayName === '佳乐')
-  assert('设置 - 身份卡片显示来源', after.data.auth.providerLabel === '微信登录')
-
-  const logout = settings.openAccountAction('logout')
-
-  assert('设置 - 退出登录回传最新视图', logout.data.auth.loggedIn === false)
-  assert('设置 - 退出登录有提示', logout.command.title === '已退出登录')
-
-  assert('设置 - 未开放项仍然待接入',
-    ACCOUNT_ACTIONS.filter((item) => item.key === 'password' || item.key === 'email')
-      .every((item) => item.available === false))
-  assert('设置 - 登录与登出已开放',
-    ACCOUNT_ACTIONS.filter((item) => item.key === 'wechat' || item.key === 'logout')
-      .every((item) => item.available === true))
+  // 改版后账户分组迁到「我的 → 账号管理」（设计稿 781:2123），设置页只留偏好 / 数据 / 关于。
+  // 同一份账号状态不许有两个入口，否则迟早改出两套文案。
+  assert('设置 - 账户分组已迁出（不再有 accountActions）',
+    settings.load().data.accountActions === undefined)
+  assert('设置 - 不再提供账户动作入口', typeof settings.openAccountAction === 'undefined')
 
   // 我的页
   const myStorage = createMemoryStorage()
@@ -398,6 +405,15 @@ async function checkEntryPages() {
   assert('我的 - 未登录时资料卡引导登录', my.load().data.auth.displayName === '点击登录',
     my.load().data.auth.displayName)
   assert('我的 - 未登录标签是未登录', my.load().data.auth.accountTag === '未登录')
+  assert('我的 - 未登录点账号管理去登录页',
+    my.tapRow('account').command.url === '/page/login/index',
+    JSON.stringify(my.tapRow('account')))
+  assert('我的 - 未登录点邮箱提醒先引导登录',
+    my.tapRow('reminder').command.title.indexOf('登录') >= 0,
+    JSON.stringify(my.tapRow('reminder')))
+  assert('我的 - 未登录不给退出登录',
+    my.load().data.otherRows.every((item) => item.key !== 'logout'),
+    JSON.stringify(my.load().data.otherRows))
 
   authGateway.setAuthGateway({
     name: 'fake',
@@ -410,10 +426,29 @@ async function checkEntryPages() {
 
   assert('我的 - 登录后资料卡显示昵称', myAfter.data.auth.displayName === 'curry', myAfter.data.auth.displayName)
   assert('我的 - 登录后标签是微信登录', myAfter.data.auth.accountTag === '微信登录')
-  assert('我的 - 清空学习数据不牵连登录态', (() => {
-    my.clearRecords()
+  assert('我的 - 登录后出现退出登录',
+    myAfter.data.otherRows.some((item) => item.key === 'logout'),
+    JSON.stringify(myAfter.data.otherRows))
+  assert('我的 - 登录后账号管理进账号页',
+    my.tapRow('account').command.url === '/page/account/index',
+    JSON.stringify(my.tapRow('account')))
+  assert('我的 - 登录后邮箱提醒可进入',
+    my.tapRow('reminder').command.url === '/page/reminder/index',
+    JSON.stringify(my.tapRow('reminder')))
+
+  // 清空学习数据的入口改到设置页，但语义不变：只清学习数据，不动身份
+  assert('设置 - 清空学习数据不牵连登录态', (() => {
+    new SettingsViewModel({ storage: myStorage }).clearRecords()
+
     return my.load().data.auth.loggedIn === true
   })())
+
+  const logout = my.logout()
+
+  assert('我的 - 退出登录回传未登录视图', logout.data.auth.loggedIn === false)
+  assert('我的 - 退出登录有提示', logout.command.title === '已退出登录')
+  assert('我的 - 退出后不再给退出登录',
+    my.load().data.otherRows.every((item) => item.key !== 'logout'))
 }
 
 // ---------- 六、页面契约（静态） ----------
@@ -430,14 +465,25 @@ function checkStaticContract() {
   const loginJs = readFile('page/login/index.js')
   const loginWxml = readFile('page/login/index.wxml')
 
-  assert('页面 - 主按钮处理函数已定义', loginJs.indexOf('handlePrimaryTap()') >= 0)
-  assert('页面 - 头像处理函数已定义', loginJs.indexOf('handleChooseAvatar(') >= 0)
-  assert('页面 - 昵称处理函数已定义', loginJs.indexOf('handleNicknameBlur(') >= 0)
+  // 改版后登录页是纯认证页（设计稿 763:567），不再承担头像昵称编辑
+  assert('页面 - 登录按钮处理函数已定义', loginJs.indexOf('handleLoginTap()') >= 0)
+  assert('页面 - 微信登录处理函数已定义', loginJs.indexOf('handleWechatTap()') >= 0)
+  assert('页面 - 注册入口处理函数已定义', loginJs.indexOf('handleRegisterTap()') >= 0)
+  assert('页面 - 忘记密码处理函数已定义', loginJs.indexOf('handleForgotTap()') >= 0)
   assert('页面 - 点击探针接入且页名正确',
     /Page\(\s*wrapTaps\(\{/.test(loginJs) && /\},\s*'login'\s*\)\s*\)/.test(loginJs))
 
-  assert('页面 - 头像用 chooseAvatar（现行合规能力）', loginWxml.indexOf('open-type="chooseAvatar"') >= 0)
-  assert('页面 - 昵称用 nickname 输入', loginWxml.indexOf('type="nickname"') >= 0)
+  // 输入框不再做受控回写：回写 value 会让真机光标跳到末尾
+  assert('页面 - 输入不反写 value', loginJs.indexOf('value:') < 0)
+
+  const registerWxml = readFile('page/register/index.wxml')
+  const forgotWxml = readFile('page/forgot-password/index.wxml')
+
+  assert('页面 - 注册页有验证码发送入口', registerWxml.indexOf('handleSendCode') >= 0)
+  assert('页面 - 注册页有协议勾选', registerWxml.indexOf('checkbox-tick') >= 0)
+  assert('页面 - 找回密码页有确认密码字段', forgotWxml.indexOf('请再次输入新密码') >= 0)
+  assert('页面 - 找回密码页说明重置后要重新登录',
+    forgotWxml.indexOf('重置成功后，请使用新密码登录') >= 0)
 
   const allJs = []
   const walk = (dir) => {
@@ -466,19 +512,34 @@ function checkStaticContract() {
   const myJs = readFile('page/my/index.js')
   const myWxml = readFile('page/my/index.wxml')
 
-  assert('页面 - 我的页资料卡是登录入口', myWxml.indexOf('handleOpenLogin') >= 0)
-  assert('页面 - 我的页登录入口有定义', myJs.indexOf('handleOpenLogin()') >= 0)
+  assert('页面 - 我的页资料头是登录 / 账号入口', myWxml.indexOf('handleProfileTap') >= 0)
+  assert('页面 - 我的页资料头处理函数有定义', myJs.indexOf('handleProfileTap()') >= 0)
   assert('页面 - 我的页状态标签跟随登录态', myWxml.indexOf('{{auth.accountTag}}') >= 0)
+
+  // 账号分组迁到独立页面后，脱敏邮箱与密码状态在这一页
+  const accountWxml = readFile('page/account/index.wxml')
+  const accountJs = readFile('page/account/index.js')
+
+  assert('页面 - 账号管理页显示脱敏邮箱', accountWxml.indexOf('{{profile.emailMasked') >= 0)
+  assert('页面 - 账号管理页可改头像（chooseAvatar）',
+    accountWxml.indexOf('open-type="chooseAvatar"') >= 0)
+  assert('页面 - 账号管理页头像转存后再用',
+    accountJs.indexOf('copyFileSync') >= 0 && accountJs.indexOf('USER_DATA_PATH') >= 0)
+  assert('页面 - 账号管理页保存入口已定义', accountJs.indexOf('handleSaveTap()') >= 0)
 
   const settingsWxml = readFile('page/settings/index.wxml')
 
-  assert('页面 - 设置页显示登录态说明', settingsWxml.indexOf('{{auth.hint}}') >= 0)
-  assert('页面 - 设置页状态标签跟随登录态', settingsWxml.indexOf('{{auth.accountTag}}') >= 0)
-  assert('页面 - 设置页账户标签可为空（已开放项不打标）', settingsWxml.indexOf('wx:if="{{item.tag}}"') >= 0)
+  assert('页面 - 设置页不再放账户分组', settingsWxml.indexOf('accountActions') < 0)
+  assert('页面 - 设置页清空学习数据仍有入口', settingsWxml.indexOf('handleClearRecords') >= 0)
 
   const loginWxss = readFile('page/login/index.wxss')
 
-  assert('页面 - 登录按钮清掉了 button 默认边框', loginWxss.indexOf('.primary-btn::after') >= 0)
+  // 三个认证页必须共用同一份尺寸来源，否则三个页面会慢慢长歪
+  assert('页面 - 登录页引入公用认证样式', loginWxss.indexOf('styles/auth-form.wxss') >= 0)
+  assert('页面 - 注册页引入公用认证样式',
+    readFile('page/register/index.wxss').indexOf('styles/auth-form.wxss') >= 0)
+  assert('页面 - 找回密码页引入公用认证样式',
+    readFile('page/forgot-password/index.wxss').indexOf('styles/auth-form.wxss') >= 0)
 
   // 从登录页返回后，两个入口页都得重新读一次身份，否则标签还停在旧状态
   assert('页面 - 设置页返回时刷新登录态', readFile('page/settings/index.js').indexOf('onShow()') >= 0)

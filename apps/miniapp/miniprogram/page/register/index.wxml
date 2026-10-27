@@ -1,0 +1,108 @@
+<!-- 注册页｜设计稿 Figma 772:1036（画板 402x874，系数 750/402） -->
+<view class="auth-page">
+  <view class="brand">
+    <text class="brand-name">QandA</text>
+    <text class="brand-sub">答题系统</text>
+  </view>
+
+  <text class="page-title">注册</text>
+
+  <view class="form">
+    <view class="field">
+      <text class="field-label">邮箱</text>
+      <input
+        class="field-input {{errorField === 'email' ? 'field-input-error' : ''}}"
+        type="text"
+        value="{{email}}"
+        placeholder="请输入邮箱"
+        placeholder-class="field-ph"
+        maxlength="128"
+        bindinput="handleEmailInput"
+      />
+    </view>
+
+    <view class="field">
+      <text class="field-label">邮箱验证码</text>
+      <view class="code-row {{errorField === 'code' ? 'field-input-error' : ''}}">
+        <input
+          class="field-input"
+          type="number"
+          value="{{code}}"
+          placeholder="请输入验证码"
+          placeholder-class="field-ph"
+          maxlength="6"
+          bindinput="handleCodeInput"
+        />
+        <text
+          class="code-btn {{cooldown > 0 ? 'code-btn-off' : ''}}"
+          bindtap="handleSendCode"
+          hover-class="text-hover"
+          hover-start-time="0"
+          hover-stay-time="240"
+        >{{cooldown > 0 ? cooldown + 's 后重发' : '发送验证码'}}</text>
+      </view>
+    </view>
+
+    <view class="field">
+      <text class="field-label">设置密码</text>
+      <input
+        class="field-input {{errorField === 'password' ? 'field-input-error' : ''}}"
+        password
+        value="{{password}}"
+        placeholder="请设置 8–20 位字母与数字组合"
+        placeholder-class="field-ph"
+        maxlength="20"
+        bindinput="handlePasswordInput"
+      />
+    </view>
+
+    <view class="field">
+      <text class="field-label">确认密码</text>
+      <input
+        class="field-input {{errorField === 'confirm' ? 'field-input-error' : ''}}"
+        password
+        value="{{confirm}}"
+        placeholder="请再次输入密码"
+        placeholder-class="field-ph"
+        maxlength="20"
+        bindinput="handleConfirmInput"
+      />
+    </view>
+  </view>
+
+  <view class="agree-row register-agree">
+    <view
+      class="agree-left"
+      bindtap="handleToggleAgreed"
+      hover-class="ghost-flat-hover"
+      hover-start-time="0"
+      hover-stay-time="240"
+    >
+      <view class="checkbox {{agreed ? 'checkbox-on' : ''}} {{errorField === 'agreed' ? 'checkbox-error' : ''}}">
+        <view class="checkbox-tick" wx:if="{{agreed}}"></view>
+      </view>
+      <text class="agree-text">已阅读并同意用户协议和隐私政策</text>
+    </view>
+  </view>
+
+  <view
+    class="btn btn-primary"
+    bindtap="handleSubmitTap"
+    hover-class="btn-hover"
+    hover-start-time="0"
+    hover-stay-time="240"
+  >注册</view>
+
+  <text class="degrade-note" wx:if="{{degradedNote}}">{{degradedNote}}</text>
+
+  <view class="back-row">
+    <text class="back-tip">已有账号？</text>
+    <text
+      class="back-link"
+      bindtap="handleBackLogin"
+      hover-class="text-hover"
+      hover-start-time="0"
+      hover-stay-time="240"
+    >返回登录</text>
+  </view>
+</view>

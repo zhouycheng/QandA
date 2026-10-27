@@ -2,6 +2,7 @@ const {
   AUTH_STORAGE_KEY,
   applyProfile,
   buildDevAuth,
+  buildEmailAuth,
   buildWechatAuth,
   createEmptyAuth,
   normalizeAuth
@@ -221,12 +222,199 @@ function login(storage, options) {
   })
 }
 
+/* ==================== 邮箱密码通道（设计稿 763:567 / 772:1036 / 772:1076） ==================== */
+
+/**
+ * 把网关调用收成 Promise：同步普通对象、Promise、抛错三种形态统一成
+ * `{ ok, reason, unavailable }`。网关层「没配域名返回普通对象」的快路径就是靠这里抹平的。
+ *
+ * `unavailable` 表示**没接上后端**（网关抛错、未配域名、连不上），
+ * 与「后端明确拒绝」区分开 —— 只有前者才允许降级成本地身份。
+ */
+function callGateway(fn, fallbackReason) {
+  const failure = { ok: false, unavailable: true, reason: fallbackReason || '登录接口异常' }
+
+  return new Promise((resolve) => {
+    let outcome = null
+
+    try {
+      outcome = fn()
+    } catch (error) {
+      resolve(failure)
+      return
+    }
+
+    if (outcome && typeof outcome.then === 'function') {
+      outcome.then(
+        (remote) => resolve(remote || failure),
+        () => resolve(failure)
+      )
+      return
+    }
+
+    resolve(outcome || failure)
+  })
+}
+
+/**
+ * 邮箱身份落库。
+ *
+ * **只存邮箱、id、token，永远不存密码** —— 端上没有任何理由保存密码，
+ * 存了就多一个泄漏面，而且后端接入后也没法校验本地副本。
+ *
+ * 降级只发生在「没接上后端」（`unavailable`）时：这时用邮箱派生的稳定 id
+ * 当本地身份，用户至少能把注册/登录流程走完、数据落在本机。
+ * 后端**明确拒绝**（密码错、邮箱已注册、验证码不对）必须原样报错，
+ * 否则接上后端之后输错密码也会被当成登录成功，那是更严重的错。
+ */
+function settleEmailAuth(storage, remote, fallbackEmail) {
+  const ok = !!(remote && remote.ok)
+  const email = (remote && remote.email) || fallbackEmail || ''
+
+  if (!ok && !(remote && remote.unavailable)) {
+    return {
+      ok: false,
+      degraded: false,
+      provider: '',
+      reason: (remote && remote.reason) || '登录失败，请检查邮箱与密码',
+      auth: getAuth(storage)
+    }
+  }
+
+  const auth = saveAuth(
+    storage,
+    buildEmailAuth({
+      email,
+      userId: ok ? remote.userId : '',
+      token: ok ? remote.token : '',
+      nickname: ok ? remote.nickname : '',
+      avatarUrl: ok ? remote.avatarUrl : ''
+    })
+  )
+
+  return {
+    ok: true,
+    degraded: !ok,
+    provider: auth.provider,
+    // reason 保留网关原话（未配置接口域名 / 请求超时 …）供排查；
+    // note 才是页面上给用户看的那一句，不能把「未配置接口域名」摊给普通用户
+    reason: ok ? '' : (remote && remote.reason) || '登录接口不可用',
+    note: ok ? '' : '后端未接入，已用本地身份登录',
+    auth
+  }
+}
+
+function loginWithEmail(storage, options) {
+  const payload = options || {}
+  const email = typeof payload.email === 'string' ? payload.email.trim() : ''
+
+  if (!email) {
+    return Promise.resolve({
+      ok: false,
+      reason: '请输入邮箱',
+      auth: getAuth(storage)
+    })
+  }
+
+  return callGateway(
+    () => authGateway.loginByEmail(email, payload.password || ''),
+    '登录接口异常'
+  ).then((remote) => settleEmailAuth(storage, remote, email))
+}
+
+/** 注册成功后直接进登录态：让用户注册完还要再登一次是多余的 */
+function register(storage, options) {
+  const payload = options || {}
+  const email = typeof payload.email === 'string' ? payload.email.trim() : ''
+
+  return callGateway(
+    () => authGateway.register({ email, code: payload.code || '', password: payload.password || '' }),
+    '注册接口异常'
+  ).then((remote) => settleEmailAuth(storage, remote, email))
+}
+
+/**
+ * 发送验证码。
+ * 后端未接入时**照样算成功**并说明原因：否则「注册」这条路在联调前完全走不通，
+ * 而验证码本身在本地身份模式下没有校验意义。
+ * 但后端明确报错（邮箱不存在 / 发送过于频繁）不能吞掉，要原样返回。
+ */
+function sendCode(storage, options) {
+  const payload = options || {}
+  const email = typeof payload.email === 'string' ? payload.email.trim() : ''
+  const purpose = payload.purpose === 'reset' ? 'reset' : 'register'
+
+  if (!email) {
+    return Promise.resolve({ ok: false, unavailable: false, degraded: false, reason: '请输入邮箱' })
+  }
+
+  return callGateway(
+    () => authGateway.sendCode({ email, purpose }),
+    '验证码接口异常'
+  ).then((remote) => {
+    const ok = !!(remote && remote.ok)
+
+    if (!ok && !(remote && remote.unavailable)) {
+      return {
+        ok: false,
+        degraded: false,
+        cooldown: 0,
+        reason: (remote && remote.reason) || '验证码发送失败，请稍后重试'
+      }
+    }
+
+    return {
+      ok: true,
+      degraded: !ok,
+      cooldown: Number(remote && remote.cooldown) > 0 ? Number(remote.cooldown) : 60,
+      reason: ok ? '' : '后端未接入，验证码校验已跳过'
+    }
+  })
+}
+
+/**
+ * 重置密码。
+ * 成功与否都不改登录态：设计稿明确写了「重置成功后，请使用新密码登录」。
+ */
+function resetPassword(storage, options) {
+  const payload = options || {}
+
+  return callGateway(
+    () => authGateway.resetPassword({
+      email: payload.email || '',
+      code: payload.code || '',
+      password: payload.password || ''
+    }),
+    '重置接口异常'
+  ).then((remote) => {
+    const ok = !!(remote && remote.ok)
+
+    if (!ok && !(remote && remote.unavailable)) {
+      return {
+        ok: false,
+        degraded: false,
+        reason: (remote && remote.reason) || '重置失败，请检查验证码'
+      }
+    }
+
+    return {
+      ok: true,
+      degraded: !ok,
+      reason: ok ? '' : '后端未接入，密码未实际修改'
+    }
+  })
+}
+
 module.exports = {
   AUTH_STORAGE_KEY,
   clearAuth,
   getAuth,
   login,
+  loginWithEmail,
   logout,
+  register,
+  resetPassword,
   saveAuth,
+  sendCode,
   updateProfile
 }

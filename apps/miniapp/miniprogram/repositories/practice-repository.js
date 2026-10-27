@@ -14,11 +14,15 @@ const playgroundSwitch = require('../utils/playground-switch.js')
 const playgroundScenarios = require('../playground/playground-scenarios.js')
 const userBankRepository = require('./user-bank-repository.js')
 const authRepository = require('./auth-repository.js')
+const reminderRepository = require('./reminder-repository.js')
 
 /**
  * 仓储层：页面与 ViewModel 只依赖这里，不直接依赖 utils。
  * 未来接入服务端接口时，只需替换本文件的实现，上层保持不变。
  */
+
+/** 历史最佳成绩的键前缀（成绩散落在 storage 里，清理时要按前缀扫） */
+const BEST_SCORE_PREFIX = 'qandaBestScore:'
 
 /**
  * 冷启动时把 storage 里的用户题库同步进 catalog 快照。
@@ -28,7 +32,40 @@ function syncUserBanks(storage) {
   return questionBankCatalog.registerUserBanks(userBankRepository.getUserBanks(storage))
 }
 
+/**
+ * 清空本机学习数据。
+ *
+ * 只清历史最佳成绩是不够的：进度、错题本、收藏、自测、学习时长、每日日志
+ * 都是同一个「本机学习数据」的一部分，留一部分会让用户以为没清干净。
+ *
+ * 学习偏好与登录态**刻意不清**：偏好属于设置，登录态属于身份，
+ * 都不该因为「清空成绩」而丢掉。
+ *
+ * 「我的」和「设置」两个入口共用这一份实现，避免两处清出两种结果。
+ */
+function clearLearningData(storage) {
+  const adapter = storage || {}
+  const keys = typeof adapter.keys === 'function' ? adapter.keys() : []
+
+  keys
+    .filter((key) => key.indexOf(BEST_SCORE_PREFIX) === 0)
+    .forEach((key) => {
+      if (typeof adapter.remove === 'function') {
+        adapter.remove(key)
+      }
+    })
+
+  progressRepository.clearProgress(storage)
+  wrongBookRepository.clearWrongBook(storage)
+  favoriteRepository.clearFavorites(storage)
+  customQuizRepository.clearCustomQuiz(storage)
+  studyTimeRepository.clearStudyTime(storage)
+  dailyLogRepository.clearDailyLog(storage)
+}
+
 module.exports = {
+  BEST_SCORE_PREFIX,
+  clearLearningData,
   syncUserBanks,
   getSubjectSummaries: questionBankCatalog.getSubjectSummaries,
   getSubjectDetail: questionBankCatalog.getSubjectDetail,
@@ -122,10 +159,23 @@ module.exports = {
   clearUserBanks: userBankRepository.clearUserBanks,
   parseBankText: userBankRepository.parseBankText,
   buildUserBank: userBankRepository.buildUserBank,
-  // 登录态：微信登录（后端已配时）⇄ 本地身份（降级），页面不感知走哪条路
+  // 登录态：邮箱密码 / 微信登录（后端已配时）⇄ 本地身份（降级），页面不感知走哪条路
   getAuth: authRepository.getAuth,
   login: authRepository.login,
+  loginWithEmail: authRepository.loginWithEmail,
+  registerAccount: authRepository.register,
+  sendAuthCode: authRepository.sendCode,
+  resetPassword: authRepository.resetPassword,
   logout: authRepository.logout,
   updateAuthProfile: authRepository.updateProfile,
-  clearAuth: authRepository.clearAuth
+  clearAuth: authRepository.clearAuth,
+  // 邮箱提醒设置（设计稿 781:2043）：端上只存「想收到什么提醒」，发信在后端
+  getReminder: reminderRepository.getReminder,
+  saveReminder: reminderRepository.saveReminder,
+  updateReminderSwitch: reminderRepository.updateReminderSwitch,
+  updateReminderTime: reminderRepository.updateReminderTime,
+  updateReminderFrequency: reminderRepository.updateReminderFrequency,
+  toggleAdvanceDay: reminderRepository.toggleAdvance,
+  addReminderExam: reminderRepository.addReminderExam,
+  removeReminderExam: reminderRepository.removeReminderExam
 }
