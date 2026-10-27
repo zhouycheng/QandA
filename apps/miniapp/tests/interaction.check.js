@@ -97,7 +97,10 @@ function collectWxssClasses() {
   const files = [
     path.join(MINIPROGRAM_ROOT, 'app.wxss'),
     ...walk(path.join(MINIPROGRAM_ROOT, 'page'), ['.wxss'], []),
-    ...walk(path.join(MINIPROGRAM_ROOT, 'components'), ['.wxss'], [])
+    ...walk(path.join(MINIPROGRAM_ROOT, 'components'), ['.wxss'], []),
+    // 公共尺寸抽到 styles/*.wxss（认证页、我的/账号/提醒三页共用），
+    // 只扫 page/components 会把这些 hover 类判成「未定义」
+    ...walk(path.join(MINIPROGRAM_ROOT, 'styles'), ['.wxss'], [])
   ]
 
   const classes = new Set()

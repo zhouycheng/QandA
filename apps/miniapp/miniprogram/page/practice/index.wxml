@@ -1,75 +1,152 @@
+<!-- 答题页｜设计稿：练习模式 / 即时模式 / 答题卡 / 答题结果
+     逻辑一律不放这里：改 UI 只动本文件与 index.wxss，处理函数名保持不变。 -->
 <view class="page practice-page font-{{preferences.fontSize}}">
   <block wx:if="{{!isCompleted}}">
-    <view class="topbar">
-      <view class="progress">
-        <view class="progress-bar" style="width: {{progressPercent}}%"></view>
+    <!-- ① 页内标题：返回 + 题库名 + 模式副标题（系统导航标题留空，见 index.json） -->
+    <view class="pra-head">
+      <view
+        class="pra-back"
+        bindtap="returnBankDetail"
+        hover-class="ghost-flat-hover"
+        hover-start-time="0"
+        hover-stay-time="240"
+      >
+        <view class="pra-back-arrow"></view>
       </view>
-      <view class="topbar-row">
-        <view class="overview-trigger" wx:if="{{preferences.showOverviewEntry}}" bindtap="openOverview" hover-class="chip-hover" hover-start-time="0" hover-stay-time="200">
-          <view class="icon-grid"></view>
-          <text class="overview-index">{{currentNumber}} / {{total}}</text>
-        </view>
-        <text class="plain-counter" wx:else>{{currentNumber}} / {{total}}</text>
-        <text class="type-tag">{{currentQuestion.typeText}}</text>
-        <view class="topbar-right">
-          <text class="timer" wx:if="{{isTestMode}}">{{timerText}}</text>
-          <view
-            class="icon-star {{isCurrentQuestionFavorite ? 'active' : ''}}"
-            bindtap="toggleFavorite"
-            hover-class="ghost-hover"
-            hover-start-time="0" hover-stay-time="200"
-          ></view>
-        </view>
+      <view class="pra-head-text">
+        <text class="pra-head-title">{{practiceTitle}}</text>
+        <text class="pra-head-sub">{{practiceSubtitle}}</text>
       </view>
     </view>
 
-    <scroll-view class="question-area" scroll-y enhanced bounces show-scrollbar="{{false}}">
-      <view class="stem">{{currentQuestion.stem}}</view>
+    <!-- ② 细进度条：贴着标题下沿，只表示走到了第几题 -->
+    <view class="pra-progress">
+      <view class="pra-progress-fill" style="width: {{progressPercent}}%"></view>
+    </view>
 
-      <view class="options">
-        <view
-          wx:for="{{currentQuestion.options}}"
-          wx:key="key"
-          class="option {{item.selected ? 'selected' : ''}} {{item.isCorrectOption ? 'correct' : ''}} {{item.isWrongOption ? 'wrong' : ''}}"
-          data-index="{{index}}"
-          bindtap="selectOption"
-          hover-class="option-hover"
-          hover-start-time="0"
-          hover-stay-time="240"
-        >
-          <text class="option-key">{{item.label}}</text>
-          <text class="option-text">{{item.text}}</text>
+    <!-- ③ 信息行：题号 / 题型 / 用时。右侧在模拟测试下是倒计时 -->
+    <view class="pra-meta">
+      <text class="pra-meta-index">{{currentNumber}}/{{total}}</text>
+      <text class="pra-meta-type">{{currentQuestion.typeText}}</text>
+      <text class="pra-meta-timer">{{isTestMode ? timerText : elapsedText}}</text>
+    </view>
+
+    <scroll-view class="pra-body" scroll-y enhanced bounces show-scrollbar="{{false}}">
+      <!-- 题干与选项的先后顺序由「自定义布局」决定：只改 flex order，不改 DOM 顺序
+           （重排 scroll-view 的子节点会让滚动位置跳） -->
+      <view class="pra-content {{preferences.answerLayout === 'above' ? 'pra-content-above' : ''}}">
+        <view class="pra-stem">{{currentQuestion.stem}}</view>
+
+        <view class="pra-options">
+          <view
+            wx:for="{{currentQuestion.options}}"
+            wx:key="key"
+            class="pra-option {{item.selected ? 'is-selected' : ''}} {{item.isCorrectOption ? 'is-correct' : ''}} {{item.isWrongOption ? 'is-wrong' : ''}}"
+            data-index="{{index}}"
+            bindtap="selectOption"
+            hover-class="pra-option-hover"
+            hover-start-time="0"
+            hover-stay-time="240"
+          >
+            <text class="pra-option-key">{{item.label}}</text>
+            <text class="pra-option-text">{{item.text}}</text>
+          </view>
         </view>
       </view>
 
-      <view class="analysis" wx:if="{{shouldRevealAnswer}}">
-        <view class="analysis-head">
-          <text class="result-tag {{isCurrentAnswerCorrect ? 'ok' : 'no'}}">{{isCurrentAnswerCorrect ? '回答正确' : '回答错误'}}</text>
-          <text class="correct-text">{{currentCorrectAnswerText}}</text>
+      <!-- 解析：即时模式下展开在选项下方 -->
+      <view class="pra-analysis" wx:if="{{shouldRevealAnswer}}">
+        <view class="pra-analysis-head">
+          <text class="pra-result-tag {{isCurrentAnswerCorrect ? 'ok' : 'no'}}">{{isCurrentAnswerCorrect ? '答对啦' : '答错了'}}</text>
+          <text class="pra-analysis-answer">{{currentCorrectAnswerText}}</text>
         </view>
-        <view class="explanation" wx:if="{{shouldShowExplanation}}">
-          <text class="explanation-title">解析</text>
-          <text class="explanation-text">{{currentExplanation}}</text>
+
+        <view class="pra-explanation {{explanationOpen ? 'is-open' : ''}}" wx:if="{{shouldShowExplanation}}">
+          <text class="pra-side-title">解析</text>
+          <text class="pra-explanation-text">{{currentExplanation}}</text>
+          <!-- 长解析先收起来，和设计稿的「剩下的收起来了」一致：默认只露 5 行 -->
+          <view
+            class="pra-explanation-toggle"
+            bindtap="toggleExplanation"
+            hover-class="chip-flat-hover"
+            hover-start-time="0"
+            hover-stay-time="240"
+          >{{explanationOpen ? '收起解析' : '展开全部解析'}}</view>
         </view>
-        <view class="explanation-muted" wx:else>
+
+        <view class="pra-explanation-muted" wx:else>
           <text>解析已按偏好隐藏，可在「我的 · 学习偏好」中开启自动显示</text>
         </view>
       </view>
+
+      <view class="pra-body-pad"></view>
     </scroll-view>
 
-    <view class="footer">
-      <view class="footer-btn {{currentIndex === 0 ? 'disabled' : ''}}" bindtap="goPrev" hover-class="btn-hover" hover-start-time="0" hover-stay-time="240">上一题</view>
-      <view class="footer-btn primary" bindtap="goNext" hover-class="btn-hover" hover-start-time="0" hover-stay-time="240">{{primaryActionText}}</view>
+    <!-- ④ 底部：工具行（收藏 / 答题卡 / 标记）+ 两个等宽按钮 -->
+    <view class="pra-footer">
+      <view class="pra-tools">
+        <view
+          class="pra-tool {{isCurrentQuestionFavorite ? 'on' : ''}}"
+          bindtap="toggleFavorite"
+          hover-class="chip-flat-hover"
+          hover-start-time="0"
+          hover-stay-time="240"
+        >
+          <view class="pra-tool-icon icon-star {{isCurrentQuestionFavorite ? 'on' : ''}}"></view>
+          <text class="pra-tool-text">收藏</text>
+        </view>
+
+        <view
+          class="pra-tool"
+          wx:if="{{preferences.showOverviewEntry}}"
+          bindtap="openOverview"
+          hover-class="chip-flat-hover"
+          hover-start-time="0"
+          hover-stay-time="240"
+        >
+          <view class="pra-tool-icon icon-grid"></view>
+          <text class="pra-tool-text">答题卡</text>
+        </view>
+
+        <view
+          class="pra-tool {{isCurrentQuestionMarked ? 'marked' : ''}}"
+          bindtap="toggleMark"
+          hover-class="chip-flat-hover"
+          hover-start-time="0"
+          hover-stay-time="240"
+        >
+          <view class="pra-tool-icon icon-pen {{isCurrentQuestionMarked ? 'on' : ''}}"></view>
+          <text class="pra-tool-text">{{isCurrentQuestionMarked ? '已标记' : '标记'}}</text>
+        </view>
+      </view>
+
+      <view class="pra-actions">
+        <view
+          class="pra-btn {{currentIndex === 0 ? 'is-disabled' : ''}}"
+          bindtap="goPrev"
+          hover-class="btn-flat-hover"
+          hover-start-time="0"
+          hover-stay-time="240"
+        >上一题</view>
+        <view
+          class="pra-btn primary"
+          bindtap="goNext"
+          hover-class="btn-flat-hover"
+          hover-start-time="0"
+          hover-stay-time="240"
+        >{{primaryActionText}}</view>
+      </view>
     </view>
 
-    <view class="modal" wx:if="{{showSubmitModal}}">
-      <view class="modal-mask" bindtap="closeSubmitModal"></view>
-      <view class="modal-panel">
-        <text class="modal-title">还有 {{unansweredCount}} 题未作答</text>
-        <text class="modal-desc">未作答的题目将计为错误，确定交卷吗？</text>
-        <view class="modal-actions">
-          <view class="modal-btn" bindtap="closeSubmitModal" hover-class="btn-hover" hover-start-time="0" hover-stay-time="200">继续答题</view>
-          <view class="modal-btn primary" bindtap="forceSubmit" hover-class="btn-hover" hover-start-time="0" hover-stay-time="200">直接交卷</view>
+    <!-- 未答完的二次确认：居中卡片，两个按钮等宽 -->
+    <view class="pra-modal" wx:if="{{showSubmitModal}}">
+      <view class="pra-modal-mask" bindtap="closeSubmitModal"></view>
+      <view class="pra-modal-panel">
+        <text class="pra-modal-title">还有 {{unansweredCount}} 题未作答</text>
+        <text class="pra-modal-desc">未作答的题目将计为错误，确定交卷吗？</text>
+        <view class="pra-modal-actions">
+          <view class="pra-btn" bindtap="closeSubmitModal" hover-class="btn-flat-hover" hover-start-time="0" hover-stay-time="240">继续答题</view>
+          <view class="pra-btn primary" bindtap="forceSubmit" hover-class="btn-flat-hover" hover-start-time="0" hover-stay-time="240">直接交卷</view>
         </view>
       </view>
     </view>
@@ -77,19 +154,41 @@
     <question-overview-sheet
       visible="{{showQuestionOverview}}"
       items="{{overviewItems}}"
-      unansweredCount="{{unansweredCount}}"
-      showStatus="{{!isViewMode}}"
+      unanswered-count="{{unansweredCount}}"
+      marked-count="{{markedCount}}"
+      answered-count="{{total - unansweredCount}}"
+      total="{{total}}"
+      show-status="{{!isViewMode}}"
+      can-submit="{{!isViewMode}}"
       bind:close="closeOverview"
       bind:jump="jumpToQuestion"
+      bind:submit="handleOverviewSubmit"
+      bind:jumpmarked="jumpToFirstMarked"
     />
   </block>
 
   <block wx:else>
-    <scroll-view class="result-area" scroll-y enhanced bounces show-scrollbar="{{false}}">
-      <view wx:if="{{submitError}}" class="submit-error">
-        <text class="submit-error-text">{{submitError}}</text>
+    <scroll-view class="pra-result" scroll-y enhanced bounces show-scrollbar="{{false}}">
+      <view class="pra-head pra-head-result">
         <view
-          class="submit-retry-btn"
+          class="pra-back"
+          bindtap="returnBankDetail"
+          hover-class="ghost-flat-hover"
+          hover-start-time="0"
+          hover-stay-time="240"
+        >
+          <view class="pra-back-arrow"></view>
+        </view>
+        <view class="pra-head-text">
+          <text class="pra-head-title">练习结果</text>
+          <text class="pra-head-sub">{{practiceTitle}} · {{practiceSubtitle}}</text>
+        </view>
+      </view>
+
+      <view wx:if="{{submitError}}" class="pra-submit-error">
+        <text class="pra-submit-error-text">{{submitError}}</text>
+        <view
+          class="pra-submit-retry"
           bindtap="retrySubmit"
           hover-class="btn-flat-hover"
           hover-start-time="0"
@@ -97,108 +196,150 @@
         >重试提交</view>
       </view>
 
-      <view class="result-card card">
-        <text class="result-score">{{score}}</text>
-        <text class="result-score-unit">分</text>
-        <view class="result-meta">
-          <text class="result-meta-item">答对 {{correctCount}} / {{total}}</text>
-          <text class="result-meta-item">历史最佳 {{bestScore}}</text>
+      <!-- 蓝色渐变统计卡：三格数据，白字压在渐变上 -->
+      <view class="res-card">
+        <view class="res-card-cell">
+          <text class="res-card-value">{{elapsedText}}</text>
+          <text class="res-card-label">总用时</text>
         </view>
-        <view class="result-progress">
-          <view class="result-progress-bar" style="width: {{score}}%"></view>
+        <view class="res-card-split"></view>
+        <view class="res-card-cell">
+          <text class="res-card-value">{{total - unansweredCount}}/{{total}}</text>
+          <text class="res-card-label">已答/总题</text>
+        </view>
+        <view class="res-card-split"></view>
+        <view class="res-card-cell">
+          <text class="res-card-value">{{score}}%</text>
+          <text class="res-card-label">正确率</text>
         </view>
       </view>
 
-      <view class="result-actions stagger">
-        <view class="result-btn highlight anim-fade-up" wx:if="{{hasWrongQuestions}}" bindtap="redoWrongQuestions" hover-class="btn-flat-hover" hover-start-time="0" hover-stay-time="200">重练错题 {{wrongCount}} 题</view>
-        <view class="result-btn anim-fade-up" bindtap="restartPractice" hover-class="btn-flat-hover" hover-start-time="0" hover-stay-time="200">再练一次</view>
-        <view class="result-btn anim-fade-up" bindtap="returnBankDetail" hover-class="btn-flat-hover" hover-start-time="0" hover-stay-time="200">返回题库</view>
-        <view class="result-btn outline anim-fade-up" bindtap="returnHome" hover-class="btn-flat-hover" hover-start-time="0" hover-stay-time="200">回到首页</view>
+      <!-- 答题明细：与答题过程中的答题卡同一套配色 -->
+      <view class="res-detail">
+        <view class="res-detail-head">
+          <text class="res-detail-title">答题明细</text>
+          <text class="res-detail-sub">历史最佳 {{bestScore}}</text>
+        </view>
+
+        <view class="res-legend">
+          <view class="res-legend-item"><view class="res-dot dot-correct"></view><text class="res-legend-text">答对</text></view>
+          <view class="res-legend-item"><view class="res-dot dot-wrong"></view><text class="res-legend-text">答错</text></view>
+          <view class="res-legend-item"><view class="res-dot dot-pending"></view><text class="res-legend-text">未答</text></view>
+          <view class="res-legend-item"><view class="res-mark-dot"></view><text class="res-legend-text">标记</text></view>
+        </view>
+
+        <view class="res-grid">
+          <view
+            wx:for="{{overviewItems}}"
+            wx:key="index"
+            class="res-cell {{item.answered ? (item.isCorrect ? 'cell-correct' : 'cell-wrong') : 'cell-pending'}}"
+            data-index="{{item.index}}"
+            bindtap="jumpToQuestion"
+            hover-class="cell-flat-hover"
+            hover-start-time="0"
+            hover-stay-time="240"
+          >
+            <text class="res-cell-number">{{item.number}}</text>
+            <view class="res-cell-mark" wx:if="{{item.isMarked}}"></view>
+          </view>
+        </view>
       </view>
 
-      <view class="review">
-        <text class="section-title">逐题回顾</text>
+      <view class="res-actions">
+        <view class="pra-btn" bindtap="returnBankDetail" hover-class="btn-flat-hover" hover-start-time="0" hover-stay-time="240">返回题库</view>
+        <view class="pra-btn primary" bindtap="restartPractice" hover-class="btn-flat-hover" hover-start-time="0" hover-stay-time="240">再来一次</view>
+      </view>
 
-        <view class="review-toolbar">
-          <view class="review-filters">
+      <view class="res-actions res-actions-extra" wx:if="{{hasWrongQuestions}}">
+        <view class="pra-btn highlight" bindtap="redoWrongQuestions" hover-class="btn-flat-hover" hover-start-time="0" hover-stay-time="240">重练错题 {{wrongCount}} 题</view>
+        <view class="pra-btn" bindtap="returnHome" hover-class="btn-flat-hover" hover-start-time="0" hover-stay-time="240">回到首页</view>
+      </view>
+
+      <view class="res-review">
+        <text class="res-review-title">逐题回顾</text>
+
+        <view class="res-review-bar">
+          <view class="res-filters">
             <view
-              class="filter-chip {{resultFilter === 'all' ? 'active' : ''}}"
+              class="res-filter {{resultFilter === 'all' ? 'active' : ''}}"
               data-filter="all"
               bindtap="handleResultFilter"
-              hover-class="ghost-flat-hover"
+              hover-class="chip-flat-hover"
               hover-start-time="0"
-              hover-stay-time="200"
+              hover-stay-time="240"
             >全部 {{resultFilterCounts.all}}</view>
             <view
-              class="filter-chip {{resultFilter === 'correct' ? 'active' : ''}}"
+              class="res-filter {{resultFilter === 'correct' ? 'active' : ''}}"
               data-filter="correct"
               bindtap="handleResultFilter"
-              hover-class="ghost-flat-hover"
+              hover-class="chip-flat-hover"
               hover-start-time="0"
-              hover-stay-time="200"
+              hover-stay-time="240"
             >正确 {{resultFilterCounts.correct}}</view>
             <view
-              class="filter-chip {{resultFilter === 'wrong' ? 'active' : ''}}"
+              class="res-filter {{resultFilter === 'wrong' ? 'active' : ''}}"
               data-filter="wrong"
               bindtap="handleResultFilter"
-              hover-class="ghost-flat-hover"
+              hover-class="chip-flat-hover"
               hover-start-time="0"
-              hover-stay-time="200"
+              hover-stay-time="240"
             >错误 {{resultFilterCounts.wrong}}</view>
             <view
-              class="filter-chip {{resultFilter === 'unanswered' ? 'active' : ''}}"
+              class="res-filter {{resultFilter === 'unanswered' ? 'active' : ''}}"
               data-filter="unanswered"
               bindtap="handleResultFilter"
-              hover-class="ghost-flat-hover"
+              hover-class="chip-flat-hover"
               hover-start-time="0"
-              hover-stay-time="200"
+              hover-stay-time="240"
             >未答 {{resultFilterCounts.unanswered}}</view>
           </view>
 
           <input
-            class="review-search"
+            class="res-search"
             type="text"
             value="{{resultKeyword}}"
             placeholder="搜索题干或选项"
-            placeholder-class="review-search-placeholder"
+            placeholder-class="res-search-ph"
             bindinput="handleResultSearch"
           />
         </view>
 
-        <view wx:if="{{!filteredResultItems.length}}" class="review-empty">
+        <view wx:if="{{!filteredResultItems.length}}" class="res-empty">
           <text>{{resultFilterEmptyText}}</text>
         </view>
 
         <view
           wx:for="{{filteredResultItems}}"
           wx:key="id"
-          class="review-item card {{item.isCorrect ? '' : 'wrong-item'}}"
+          class="res-item {{item.isCorrect ? '' : 'is-wrong'}}"
           data-id="{{item.id}}"
           bindtap="handleOpenQuestionDetail"
-          hover-class="review-item-hover"
+          hover-class="res-item-hover"
           hover-start-time="0"
-          hover-stay-time="200"
+          hover-stay-time="240"
         >
-          <view class="review-head">
-            <text class="review-number">{{item.number}}</text>
-            <text class="review-type">{{item.typeText}}</text>
-            <text class="review-flag {{item.answered ? (item.isCorrect ? 'ok' : 'no') : 'skip'}}">{{item.answered ? (item.isCorrect ? '正确' : '错误') : '未答'}}</text>
+          <view class="res-item-head">
+            <text class="res-item-number">{{item.number}}</text>
+            <text class="res-item-type">{{item.typeText}}</text>
+            <text class="res-item-flag {{item.answered ? (item.isCorrect ? 'ok' : 'no') : 'skip'}}">{{item.answered ? (item.isCorrect ? '正确' : '错误') : '未答'}}</text>
           </view>
-          <text class="review-stem">{{item.stem}}</text>
-          <view class="review-answer">
-            <text class="review-label">你的答案</text>
-            <text class="review-value">{{item.selectedText}}</text>
+          <text class="res-item-stem">{{item.stem}}</text>
+          <view class="res-item-line">
+            <text class="res-item-label">你的答案</text>
+            <text class="res-item-value">{{item.selectedText}}</text>
           </view>
-          <view class="review-answer">
-            <text class="review-label">正确答案</text>
-            <text class="review-value correct-value">{{item.correctText}}</text>
+          <view class="res-item-line">
+            <text class="res-item-label">正确答案</text>
+            <text class="res-item-value is-correct">{{item.correctText}}</text>
           </view>
-          <view class="review-explanation">
-            <text class="review-label">解析</text>
-            <text class="review-value">{{item.explanation}}</text>
+          <view class="res-item-line">
+            <text class="res-item-label">解析</text>
+            <text class="res-item-value">{{item.explanation}}</text>
           </view>
         </view>
       </view>
+
+      <view class="pra-body-pad"></view>
     </scroll-view>
   </block>
 </view>

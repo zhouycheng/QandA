@@ -335,6 +335,15 @@ class PracticeViewModel {
     return result
   }
 
+  /** 标记 / 取消标记：纯会话内状态，随 session 落盘，不额外写其它 storage */
+  toggleMarkQuestion() {
+    if (!this.session) {
+      return null
+    }
+
+    return this.session.toggleMarkQuestion()
+  }
+
   goNext() {
     if (!this.session) {
       return null

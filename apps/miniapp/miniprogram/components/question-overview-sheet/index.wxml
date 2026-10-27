@@ -1,11 +1,40 @@
 <view class="overview" wx:if="{{visible}}">
+  <!-- 答题卡（设计稿：标题 + 三格统计 + 图例 + 6 列网格 + 按钮组）
+       ⚠️ 根节点必须留在第 1 行：自检用「第一行是否有 wx:if」判断浮层会不会常驻占位。 -->
   <view class="mask" bindtap="handleMaskTap"></view>
 
   <view class="panel">
+    <view class="panel-grip"></view>
+
     <view class="panel-header">
       <text class="panel-title">答题卡</text>
-      <text class="panel-sub" wx:if="{{showStatus}}">剩余 {{unansweredCount}} 题未作答</text>
-      <text class="panel-sub" wx:else>点击题号快速查看</text>
+    </view>
+
+    <view class="panel-stats" wx:if="{{showStatus}}">
+      <view class="stat-item">
+        <view class="stat-dot dot-answered"></view>
+        <text class="stat-text">已答 {{answeredCount}}题</text>
+      </view>
+      <text class="stat-sep">·</text>
+      <view class="stat-item">
+        <view class="stat-dot dot-pending"></view>
+        <text class="stat-text">未答 {{unansweredCount}}题</text>
+      </view>
+      <text class="stat-sep">·</text>
+      <view class="stat-item">
+        <view class="stat-dot dot-mark"></view>
+        <text class="stat-text">标记 {{markedCount}}题</text>
+      </view>
+    </view>
+    <text class="panel-sub" wx:else>点击题号快速查看</text>
+
+    <!-- 图例按设计稿：已答 / 未答 / 当前 / 标记。
+         ⚠️ 这里刻意不区分答对答错：考试模式下格子一旦染成「答错色」等于泄题 -->
+    <view class="legend" wx:if="{{showStatus}}">
+      <view class="legend-item"><view class="dot dot-answered"></view><text class="legend-text">已答</text></view>
+      <view class="legend-item"><view class="dot dot-pending"></view><text class="legend-text">未答</text></view>
+      <view class="legend-item"><view class="dot dot-current"></view><text class="legend-text">当前</text></view>
+      <view class="legend-item"><view class="dot dot-mark"></view><text class="legend-text">标记</text></view>
     </view>
 
     <scroll-view class="grid-scroll" scroll-y enhanced bounces show-scrollbar="{{false}}">
@@ -13,7 +42,7 @@
         <view
           wx:for="{{items}}"
           wx:key="index"
-          class="cell {{item.isCurrent ? 'current' : ''}} {{item.answered ? (item.isCorrect ? 'correct' : 'wrong') : ''}}"
+          class="cell {{item.isCurrent ? 'cell-current' : ''}} {{item.answered ? 'cell-answered' : 'cell-pending'}}"
           data-index="{{item.index}}"
           bindtap="handleItemTap"
           hover-class="cell-hover"
@@ -21,15 +50,69 @@
           hover-stay-time="240"
         >
           <text class="cell-number">{{item.number}}</text>
-          <text class="cell-star" wx:if="{{item.isFavorite}}">★</text>
+          <view class="cell-mark" wx:if="{{item.isMarked}}"></view>
         </view>
       </view>
     </scroll-view>
 
-    <view class="legend" wx:if="{{showStatus}}">
-      <view class="legend-item"><view class="dot wrong"></view><text>答错</text></view>
-      <view class="legend-item"><view class="dot correct"></view><text>答对</text></view>
-      <view class="legend-item"><view class="dot pending"></view><text>未答</text></view>
+    <!-- 按钮组三态，对应设计稿的三个答题卡面板：
+         ① 还有未答 → 确认结束（红描边，左）/ 继续答题（蓝，右）
+         ② 全答完且有标记 → 继续答题 / 含标记，前往查看，确认结束另起一行（红描边）
+         ③ 全答完无标记 → 继续答题 / 确认结束（橙实心，交卷成了唯一主操作） -->
+    <view class="panel-actions">
+      <view class="panel-row" wx:if="{{unansweredCount > 0}}">
+        <view
+          class="panel-btn danger"
+          wx:if="{{canSubmit}}"
+          bindtap="handleSubmitTap"
+          hover-class="panel-btn-hover"
+          hover-start-time="0"
+          hover-stay-time="240"
+        >确认结束</view>
+        <view
+          class="panel-btn primary"
+          bindtap="handleMaskTap"
+          hover-class="panel-btn-hover"
+          hover-start-time="0"
+          hover-stay-time="240"
+        >继续答题</view>
+      </view>
+
+      <block wx:else>
+        <view class="panel-row">
+          <view
+            class="panel-btn primary"
+            bindtap="handleMaskTap"
+            hover-class="panel-btn-hover"
+            hover-start-time="0"
+            hover-stay-time="240"
+          >继续答题</view>
+          <view
+            class="panel-btn accent"
+            wx:if="{{markedCount > 0}}"
+            bindtap="handleJumpMarkedTap"
+            hover-class="panel-btn-hover"
+            hover-start-time="0"
+            hover-stay-time="240"
+          >含标记，前往查看</view>
+          <view
+            class="panel-btn accent"
+            wx:else
+            bindtap="handleSubmitTap"
+            hover-class="panel-btn-hover"
+            hover-start-time="0"
+            hover-stay-time="240"
+          >确认结束</view>
+        </view>
+        <view
+          class="panel-btn danger panel-row-single"
+          wx:if="{{markedCount > 0}}"
+          bindtap="handleSubmitTap"
+          hover-class="panel-btn-hover"
+          hover-start-time="0"
+          hover-stay-time="240"
+        >确认结束</view>
+      </block>
     </view>
   </view>
 </view>

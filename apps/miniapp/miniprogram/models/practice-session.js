@@ -17,6 +17,14 @@ const PRACTICE_MODES = {
   TEST: 'test'
 }
 
+/** 页内导航副标题用：模式文案的单一真源，别在页面里另写一份 */
+const MODE_LABELS = {
+  order: '顺序练习',
+  practice: '练习模式',
+  view: '背题模式',
+  test: '模拟测试'
+}
+
 /** 结果复盘的筛选项（PRD 4.7） */
 const RESULT_FILTERS = {
   ALL: 'all',
@@ -93,6 +101,7 @@ function getInitialPracticeViewData() {
     subjectId: '',
     bankId: '',
     practiceTitle: DEFAULT_PRACTICE_TITLE,
+    practiceSubtitle: '',
     practicePath: '/page/practice/index',
     questions: [],
     total: 0,
@@ -115,6 +124,11 @@ function getInitialPracticeViewData() {
     isCompleted: false,
     favoriteQuestionIds: [],
     isCurrentQuestionFavorite: false,
+    // 「标记」= 做题时给可疑题打个记号，稍后回看。与收藏分开：
+    // 收藏是长期资产（跨会话），标记属于这一轮练习
+    markedQuestionIds: [],
+    isCurrentQuestionMarked: false,
+    markedCount: 0,
     wrongQuestionIds: [],
     wrongCount: 0,
     hasWrongQuestions: false,
@@ -125,6 +139,8 @@ function getInitialPracticeViewData() {
     durationSeconds,
     timerSeconds: durationSeconds,
     timerText: formatTimer(durationSeconds),
+    // 结果页「用时」：已消耗时长（timerText 在考试模式下是剩余时间，两者不能混用）
+    elapsedText: formatTimer(0),
     correctCount: 0,
     score: 0,
     bestScore: 0,
@@ -173,6 +189,9 @@ class PracticeSession {
       subjectId: quiz ? quiz.subjectId : '',
       bankId: quiz ? quiz.bankId : '',
       practiceTitle: quiz ? quiz.title : DEFAULT_PRACTICE_TITLE,
+      // 页内导航的第二行：「练习模式 · 共 12 题」。
+      // 用真实字段拼，别写死章节名——题库里没有章节信息
+      practiceSubtitle: `${MODE_LABELS[mode] || '练习'} · 共 ${quiz ? quiz.questions.length : 0} 题`,
       practicePath: normalizedOptions.practicePath || (quiz ? quiz.sharePath : '/page/practice/index'),
       questions: quiz ? quiz.questions : [],
       total: quiz ? quiz.questions.length : 0,
@@ -182,6 +201,10 @@ class PracticeSession {
       bestScore: Number(normalizedOptions.bestScore) || 0,
       favoriteQuestionIds: Array.isArray(normalizedOptions.favoriteQuestionIds)
         ? normalizedOptions.favoriteQuestionIds.slice()
+        : [],
+      // 标记随会话恢复：中途退出再回来，橙色记号还在
+      markedQuestionIds: restored && Array.isArray(restored.markedIds)
+        ? restored.markedIds.filter((id) => typeof id === 'string' && id)
         : []
     })
     this.resetStudyClock()
@@ -239,6 +262,8 @@ class PracticeSession {
       currentIndex: this.state.currentIndex,
       answers: this.state.answers,
       questionStates: deriveQuestionStates(this.state.answers, this.state.questions.length),
+      // 「标记」只存题号 id：和收藏一样是轻量标记，不存题目本体
+      markedIds: this.state.markedQuestionIds.slice(),
       elapsedTime: this.getElapsedSeconds(),
       status: this.state.sessionStatus,
       syncStatus: this.state.syncStatus,
@@ -270,6 +295,15 @@ class PracticeSession {
 
     this.state.answers = answers
     this.state.unansweredCount = this.getUnansweredIndexes(answers).length
+
+    // 标记跟着会话回来：只认本卷里确实存在的题 id，
+    // 题库改过之后残留的旧 id 会在答题卡里变成一个点不到的格子
+    const markedIds = Array.isArray(saved.markedIds) ? saved.markedIds : []
+    this.state.markedQuestionIds = markedIds.filter((id) =>
+      this.state.questions.some((question) => question.id === id)
+    )
+    this.state.markedCount = this.state.markedQuestionIds.length
+
     // 计时接着算：已累计时间直接写进时钟，本轮在场时间从现在开始叠加
     const elapsedSeconds = Math.max(Number(saved.elapsedTime) || 0, 0)
     this.accumulatedMs = elapsedSeconds * 1000
@@ -376,7 +410,26 @@ class PracticeSession {
   }
 
   getViewData() {
-    return Object.assign({}, this.state)
+    const data = Object.assign({}, this.state)
+
+    /**
+     * 结果页要显示「用时」。
+     * 注意它和考试模式的 timerText 不是一回事：那个是**剩余**时间，这个是**已消耗**时长。
+     * 一旦交卷就把这一刻的读数冻住 —— 否则每秒 setData 都会重算，
+     * 结果页上的「用时」会在用户盯着看的时候继续往上走。
+     */
+    if (data.isCompleted) {
+      if (!this.frozenElapsedText) {
+        this.frozenElapsedText = formatTimer(this.getElapsedSeconds())
+      }
+
+      data.elapsedText = this.frozenElapsedText
+    } else {
+      this.frozenElapsedText = ''
+      data.elapsedText = formatTimer(this.getElapsedSeconds())
+    }
+
+    return data
   }
 
   getShareMessage() {
@@ -415,6 +468,10 @@ class PracticeSession {
       isCurrentQuestionFavorite: firstQuestion
         ? this.state.favoriteQuestionIds.indexOf(firstQuestion.id) >= 0
         : false,
+      // 标记属于本轮练习，重练时清空
+      markedQuestionIds: [],
+      isCurrentQuestionMarked: false,
+      markedCount: 0,
       showSubmitModal: false,
       showQuestionOverview: false,
       unansweredCount: isViewMode ? 0 : questions.length,
@@ -539,6 +596,39 @@ class PracticeSession {
       id: question.id,
       value: isCurrentQuestionFavorite
     }
+
+    return result
+  }
+
+  /**
+   * 标记 / 取消标记当前题。
+   * 与收藏不同，标记属于本轮练习，随会话一起落盘（getPersistedState 的 markedIds），
+   * 换卷 / 重练时清空。
+   */
+  toggleMarkQuestion() {
+    const question = this.getCurrentBaseQuestion()
+
+    if (!question) {
+      return null
+    }
+
+    const markedQuestionIds = this.state.markedQuestionIds.slice()
+    const markIndex = markedQuestionIds.indexOf(question.id)
+    const isCurrentQuestionMarked = markIndex === -1
+
+    if (isCurrentQuestionMarked) {
+      markedQuestionIds.push(question.id)
+    } else {
+      markedQuestionIds.splice(markIndex, 1)
+    }
+
+    const result = this.updateState({
+      markedQuestionIds,
+      isCurrentQuestionMarked,
+      markedCount: markedQuestionIds.length
+    })
+
+    result.value = isCurrentQuestionMarked
 
     return result
   }
@@ -695,6 +785,11 @@ class PracticeSession {
       wrongCount: wrongQuestionIds.length,
       hasWrongQuestions: wrongQuestionIds.length > 0,
       resultItems,
+      // 结果页答题卡直接复用 overviewItems：不重新算一遍，
+      // 但必须在这里按最终 answers 重刷一次——交卷前它只反映"打开弹层那一刻"的快照，
+      // 交卷后若沿用旧值，结果页会整片灰格（answered 全 false）。
+      // currentIndex 传 -1：已交卷没有"当前题"，不该有格子高亮。
+      overviewItems: this.getOverviewItems(answers, -1),
       // 交卷后复盘区从"全部"开始，不清空上一轮的搜索词
       resultFilter: RESULT_FILTERS.ALL,
       filteredResultItems: resultItems,
@@ -776,7 +871,9 @@ class PracticeSession {
       progressPercent: this.getProgressPercent(index),
       primaryActionText: this.getPrimaryActionText(index, hasAnswered, selectedKeys),
       isLastQuestion: index >= this.state.questions.length - 1,
-      isCurrentQuestionFavorite: question ? this.state.favoriteQuestionIds.indexOf(question.id) >= 0 : false
+      isCurrentQuestionFavorite: question ? this.state.favoriteQuestionIds.indexOf(question.id) >= 0 : false,
+      isCurrentQuestionMarked: question ? this.state.markedQuestionIds.indexOf(question.id) >= 0 : false,
+      markedCount: this.state.markedQuestionIds.length
     }, extraData || {}))
   }
 
@@ -866,7 +963,8 @@ class PracticeSession {
       isCorrect: answers[index] ? !!answers[index].isCorrect : false,
       selectedKeys: answers[index] ? answers[index].selectedKeys : [],
       isCurrent: index === currentIndex,
-      isFavorite: this.state.favoriteQuestionIds.indexOf(question.id) >= 0
+      isFavorite: this.state.favoriteQuestionIds.indexOf(question.id) >= 0,
+      isMarked: this.state.markedQuestionIds.indexOf(question.id) >= 0
     }))
   }
 
