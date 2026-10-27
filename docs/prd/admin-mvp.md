@@ -1,12 +1,14 @@
 # QandA 管理端 Independent MVP PRD
 
+> 2026-10-26 范围修订：本文以下保留早期 MVP 基线，其中“学院 → 专业 → 科目”的强制内容链及专业关联规则已过时。当前产品依据[学生自主复习平台架构报告](student-platform-architecture.md)，当前管理端实现与验收范围见[管理端学生平台改造说明](../admin-student-platform-implementation.md)。后续开发不得再以旧专业可见性作为学生访问限制。
+
 ## 1. 文档目标
 
 本文档定义 QandA React 管理端的独立 MVP 范围、内容管理交互闭环、Admin Playground / Mock 数据机制和技术架构。
 
 本阶段核心目标不是完成与 Spring Boot 的真实数据联调，而是：
 
-> 在纯前端 Mock 环境中验证管理员能够完整完成“科目 → 题库 → 题目”的内容管理闭环。
+> 在纯前端 Mock 环境中验证管理员能够完整完成“学院 → 专业 → 科目 → 题库 → 题目”的内容管理闭环。
 
 ---
 
@@ -16,7 +18,10 @@
 
 ```text
 管理员进入测试 Admin
-→ 创建科目
+→ 新增当前大学下的学院
+→ 学院列表立即显示
+→ 创建学院下的专业
+→ 创建科目并关联一个或多个专业
 → 列表立即显示
 → 创建题库
 → 题库归属科目
@@ -51,7 +56,7 @@ HttpAdminGateway
 ## 3. 产品目标
 
 1. 验证后台信息架构和操作流程。
-2. 验证科目、题库、题目的 CRUD 体验。
+2. 验证学院、专业、科目、题库、题目的 CRUD 体验。
 3. 验证题目编辑器对三种题型是否足够。
 4. 验证 Arco Design Pro 风格是否适合 QandA。
 5. 验证搜索、筛选、空状态、失败状态。
@@ -79,18 +84,54 @@ admin / mock
 
 不要求真实 Spring Security 联调。
 
-### 4.2 科目管理
+### 4.2 学院管理
+
+当前管理端面向单一大学，支持：
+
+- 列表；
+- 新增；
+- 编辑；
+- 删除；
+- 启用 / 停用；
+- 按学院名称或代码搜索；
+- 空状态。
+
+学院下仍有专业时禁止删除。
+
+### 4.3 专业管理
+
+支持：
+
+- 列表；
+- 新增；
+- 编辑；
+- 删除；
+- 启用 / 停用；
+- 按学院筛选；
+- 按专业名称或代码搜索；
+- 空状态。
+
+专业仍关联科目时禁止删除，需先解除关联。
+
+### 4.4 科目管理
 
 支持：
 
 - 列表；
 - 创建；
 - 编辑；
+- 删除；
 - 启用 / 停用；
 - 搜索；
+- 按专业筛选；
+- 一个科目可以关联多个专业；
 - 空状态。
 
-### 4.3 题库管理
+科目下仍有题库时禁止删除。
+
+数据层使用 `major_subject` 关联表表达专业与科目的多对多关系；前端创建和编辑 DTO 使用 `majorIds` 提交关联专业 ID 列表。停用学院或专业不批量改写下级状态，页面根据上级状态展示实际可用性。
+
+### 4.5 题库管理
 
 支持：
 
@@ -102,7 +143,7 @@ admin / mock
 - 显示题目数量；
 - 按科目筛选。
 
-### 4.4 题目管理
+### 4.6 题目管理
 
 支持：
 
@@ -141,8 +182,9 @@ status
 
 ```mermaid
 flowchart TD
-    A[进入 Mock Admin] --> B[Subject 列表]
-    B --> C[创建 Subject]
+    A[进入 Mock Admin] --> P[新增 College]
+    P --> B[创建 Major]
+    B --> C[创建 Subject 并关联 Major]
     C --> D[列表立即出现]
     D --> E[创建 QuestionBank]
     E --> F[绑定 Subject]
@@ -169,6 +211,8 @@ flowchart TD
 src/pages/
 ├── login/
 ├── dashboard/
+├── colleges/
+├── majors/
 ├── subjects/
 ├── question-banks/
 └── questions/
@@ -179,10 +223,23 @@ src/pages/
 只展示 Mock 数据概览：
 
 - 科目数；
+- 学院数；
 - 题库数；
 - 题目数。
 
 不做 BI。
+
+### Colleges
+
+典型：
+
+```text
+列表
+→ 新增学院
+→ 填写学院名称和代码
+→ 保存
+→ 列表更新
+```
 
 ### Subjects
 
@@ -194,6 +251,18 @@ src/pages/
 → 保存
 → 列表更新
 → 编辑
+```
+
+### Majors
+
+典型：
+
+```text
+选择学院
+→ 新增专业
+→ 保存
+→ 列表更新
+→ 进入该专业的科目列表
 ```
 
 ### QuestionBanks
@@ -232,6 +301,8 @@ apps/admin/
 ├── src/
 └── playground/
     ├── fixtures/
+    │   ├── colleges.ts
+    │   ├── majors.ts
     │   ├── subjects.ts
     │   ├── question-banks.ts
     │   └── questions.ts
@@ -331,8 +402,20 @@ AdminLayout
 
 ```ts
 interface AdminContentGateway {
-  listSubjects(): Promise<Subject[]>
+  listColleges(): Promise<College[]>
+  createCollege(input: CreateCollegeInput): Promise<College>
+  updateCollege(id: string, input: UpdateCollegeInput): Promise<College>
+  deleteCollege(id: string): Promise<void>
+
+  listMajors(query?: MajorQuery): Promise<Major[]>
+  createMajor(input: CreateMajorInput): Promise<Major>
+  updateMajor(id: string, input: UpdateMajorInput): Promise<Major>
+  deleteMajor(id: string): Promise<void>
+
+  listSubjects(query?: SubjectQuery): Promise<Subject[]>
   createSubject(input: CreateSubjectInput): Promise<Subject>
+  updateSubject(id: string, input: UpdateSubjectInput): Promise<Subject>
+  deleteSubject(id: string): Promise<void>
 
   listQuestionBanks(query?: Query): Promise<QuestionBank[]>
   createQuestionBank(input: CreateQuestionBankInput): Promise<QuestionBank>
@@ -401,12 +484,35 @@ CRUD 业务数据由 Query + Gateway 管理。
 
 ## 13. 表单业务规则
 
-### Subject
+### College
 
 至少：
 
 ```text
 name 必填
+code 必填且在当前大学内唯一
+status 必填
+```
+
+### Subject
+
+至少：
+
+```text
+majorIds 至少包含一个专业
+name 必填
+name 在当前大学的科目库内唯一
+status 必填
+```
+
+### Major
+
+至少：
+
+```text
+collegeId 必填
+name 必填
+code 必填且在所属学院内唯一
 status 必填
 ```
 
@@ -466,7 +572,9 @@ status 必填
 
 ```text
 进入 Admin
-→ 创建 Subject
+→ 新增 College
+→ 创建 Major 并绑定 College
+→ 创建 Subject 并关联一个或多个 Major
 → 创建 QuestionBank
 → 创建三种题型
 → 搜索

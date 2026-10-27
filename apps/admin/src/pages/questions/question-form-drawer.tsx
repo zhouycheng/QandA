@@ -14,6 +14,7 @@ import {
 } from '@arco-design/web-react'
 import { IconDelete, IconPlus } from '@arco-design/web-react/icon'
 import type {
+  Chapter,
   ContentStatus,
   CreateQuestionInput,
   Question,
@@ -24,6 +25,7 @@ import type {
 
 interface QuestionFormValues {
   questionBankId: string
+  chapterId?: string
   stem: string
   type: QuestionType
   correctAnswer?: string | string[]
@@ -32,6 +34,10 @@ interface QuestionFormValues {
 }
 
 interface QuestionFormDrawerProps {
+  defaultQuestionBankId?: string
+  defaultChapterId?: string
+  chapters: Chapter[]
+  lockBank?: boolean
   visible: boolean
   editing: Question | null
   questionBanks: QuestionBank[]
@@ -61,6 +67,10 @@ export function QuestionFormDrawer({
   saving,
   onCancel,
   onSave,
+  defaultQuestionBankId,
+  defaultChapterId,
+  chapters,
+  lockBank,
 }: QuestionFormDrawerProps) {
   const [form] = Form.useForm<QuestionFormValues>()
   const [type, setType] = useState<QuestionType>('SINGLE_CHOICE')
@@ -70,19 +80,24 @@ export function QuestionFormDrawer({
     if (!visible) return
     const nextType = editing?.type ?? 'SINGLE_CHOICE'
     setType(nextType)
-    setOptions(editing?.options.map((option) => ({ ...option })) ?? defaultOptions.map((option) => ({ ...option })))
+    setOptions(
+      editing?.options.map((option) => ({ ...option })) ?? defaultOptions.map((option) => ({ ...option })),
+    )
     form.setFieldsValue(
       editing
         ? {
             questionBankId: editing.questionBankId,
+            chapterId: editing.chapterId,
             stem: editing.stem,
             type: editing.type,
-            correctAnswer: editing.type === 'MULTIPLE_CHOICE' ? editing.correctAnswer : editing.correctAnswer[0],
+            correctAnswer:
+              editing.type === 'MULTIPLE_CHOICE' ? editing.correctAnswer : editing.correctAnswer[0],
             explanation: editing.explanation,
             status: editing.status,
           }
         : {
-            questionBankId: questionBanks[0]?.id,
+            questionBankId: defaultQuestionBankId ?? questionBanks[0]?.id,
+            chapterId: defaultChapterId,
             stem: '',
             type: 'SINGLE_CHOICE',
             correctAnswer: undefined,
@@ -90,7 +105,7 @@ export function QuestionFormDrawer({
             status: 'ACTIVE',
           },
     )
-  }, [editing, form, questionBanks, visible])
+  }, [editing, form, visible, defaultQuestionBankId, defaultChapterId])
 
   const availableAnswers = useMemo(
     () => options.filter((option) => option.content.trim()).map((option) => option.key),
@@ -105,7 +120,9 @@ export function QuestionFormDrawer({
   }
 
   const updateOption = (index: number, content: string) => {
-    setOptions((current) => current.map((option, optionIndex) => optionIndex === index ? { ...option, content } : option))
+    setOptions((current) =>
+      current.map((option, optionIndex) => (optionIndex === index ? { ...option, content } : option)),
+    )
   }
 
   const addOption = () => {
@@ -153,6 +170,7 @@ export function QuestionFormDrawer({
 
     onSave({
       questionBankId: values.questionBankId,
+      chapterId: values.chapterId,
       stem: values.stem.trim(),
       type,
       options: normalizedOptions,
@@ -172,15 +190,44 @@ export function QuestionFormDrawer({
       footer={
         <Space>
           <Button onClick={onCancel}>取消</Button>
-          <Button type="primary" loading={saving} onClick={() => form.submit()}>保存题目</Button>
+          <Button type="primary" loading={saving} onClick={() => form.submit()}>
+            保存题目
+          </Button>
         </Space>
       }
     >
       <Form form={form} layout="vertical" onSubmit={submit}>
-        <Form.Item field="questionBankId" label="所属题库" rules={[{ required: true, message: '请选择题库' }]}>
-          <Select placeholder="选择题库">
-            {questionBanks.map((bank) => <Select.Option key={bank.id} value={bank.id}>{bank.name}</Select.Option>)}
+        <Form.Item
+          field="questionBankId"
+          label="所属题库"
+          rules={[{ required: true, message: '请选择题库' }]}
+        >
+          <Select
+            placeholder="选择题库"
+            disabled={lockBank}
+            onChange={() => form.setFieldValue('chapterId', undefined)}
+          >
+            {questionBanks.map((bank) => (
+              <Select.Option key={bank.id} value={bank.id}>
+                {bank.name}
+              </Select.Option>
+            ))}
           </Select>
+        </Form.Item>
+        <Form.Item shouldUpdate noStyle>
+          {(values) => (
+            <Form.Item field="chapterId" label="所属章节">
+              <Select allowClear placeholder="未分章">
+                {chapters
+                  .filter((c) => c.questionBankId === values.questionBankId)
+                  .map((c) => (
+                    <Select.Option key={c.id} value={c.id}>
+                      {c.name}
+                    </Select.Option>
+                  ))}
+              </Select>
+            </Form.Item>
+          )}
         </Form.Item>
         <Form.Item field="type" label="题型" rules={[{ required: true, message: '请选择题型' }]}>
           <Select onChange={changeType} disabled={Boolean(editing)}>
@@ -189,8 +236,20 @@ export function QuestionFormDrawer({
             <Select.Option value="TRUE_FALSE">判断题</Select.Option>
           </Select>
         </Form.Item>
-        <Form.Item field="stem" label="题干" rules={[{ required: true, message: '请输入题干' }, { maxLength: 1000, message: '题干不能超过 1000 个字符' }]}>
-          <Input.TextArea placeholder="输入题目内容" autoSize={{ minRows: 3, maxRows: 8 }} maxLength={1000} showWordLimit />
+        <Form.Item
+          field="stem"
+          label="题干"
+          rules={[
+            { required: true, message: '请输入题干' },
+            { maxLength: 1000, message: '题干不能超过 1000 个字符' },
+          ]}
+        >
+          <Input.TextArea
+            placeholder="输入题目内容"
+            autoSize={{ minRows: 3, maxRows: 8 }}
+            maxLength={1000}
+            showWordLimit
+          />
         </Form.Item>
 
         <Divider orientation="left">选项与答案</Divider>
@@ -205,16 +264,28 @@ export function QuestionFormDrawer({
                 onChange={(value) => updateOption(index, value)}
               />
               {type !== 'TRUE_FALSE' && (
-                <Button type="text" status="danger" icon={<IconDelete />} onClick={() => removeOption(index)} aria-label={`删除选项 ${option.key}`} />
+                <Button
+                  type="text"
+                  status="danger"
+                  icon={<IconDelete />}
+                  onClick={() => removeOption(index)}
+                  aria-label={`删除选项 ${option.key}`}
+                />
               )}
             </div>
           ))}
           {type !== 'TRUE_FALSE' && options.length < optionKeys.length && (
-            <Button type="dashed" long icon={<IconPlus />} onClick={addOption}>添加选项</Button>
+            <Button type="dashed" long icon={<IconPlus />} onClick={addOption}>
+              添加选项
+            </Button>
           )}
         </div>
 
-        <Form.Item field="correctAnswer" label="正确答案" rules={[{ required: true, message: '请选择正确答案' }]}>
+        <Form.Item
+          field="correctAnswer"
+          label="正确答案"
+          rules={[{ required: true, message: '请选择正确答案' }]}
+        >
           {type === 'MULTIPLE_CHOICE' ? (
             <Checkbox.Group options={availableAnswers} />
           ) : (
@@ -228,8 +299,17 @@ export function QuestionFormDrawer({
           )}
         </Form.Item>
 
-        <Form.Item field="explanation" label="答案解析" rules={[{ required: true, message: '请输入答案解析' }, { maxLength: 2000, message: '解析不能超过 2000 个字符' }]}>
-          <Input.TextArea placeholder="说明正确答案及解题思路" autoSize={{ minRows: 3, maxRows: 8 }} maxLength={2000} showWordLimit />
+        <Form.Item
+          field="explanation"
+          label="答案解析（发布前必填）"
+          rules={[{ maxLength: 2000, message: '解析不能超过 2000 个字符' }]}
+        >
+          <Input.TextArea
+            placeholder="说明正确答案及解题思路"
+            autoSize={{ minRows: 3, maxRows: 8 }}
+            maxLength={2000}
+            showWordLimit
+          />
         </Form.Item>
         <Form.Item field="status" label="状态" rules={[{ required: true, message: '请选择状态' }]}>
           <Radio.Group>
@@ -237,7 +317,9 @@ export function QuestionFormDrawer({
             <Radio value="INACTIVE">停用</Radio>
           </Radio.Group>
         </Form.Item>
-        {editing && <Typography.Text type="secondary">编辑时不可切换题型，以避免答案语义发生意外变化。</Typography.Text>}
+        {editing && (
+          <Typography.Text type="secondary">编辑时不可切换题型，以避免答案语义发生意外变化。</Typography.Text>
+        )}
       </Form>
     </Drawer>
   )

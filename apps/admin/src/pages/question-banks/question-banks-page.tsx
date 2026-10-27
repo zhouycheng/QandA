@@ -2,209 +2,258 @@ import { useState } from 'react'
 import {
   Button,
   Card,
-  Drawer,
   Empty,
-  Form,
   Input,
   Message,
-  Modal,
   Popconfirm,
-  Radio,
   Select,
   Space,
   Table,
-  Typography,
+  Tag,
 } from '@arco-design/web-react'
-import { IconDelete, IconEdit, IconPlus, IconSearch } from '@arco-design/web-react/icon'
+import { IconPlus } from '@arco-design/web-react/icon'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Link, useSearchParams } from 'react-router-dom'
 import { ErrorState } from '../../components/error-state'
 import { PageTitle } from '../../components/page-title'
-import { StatusTag } from '../../components/status-tag'
 import { useAdminGateway } from '../../gateways/gateway-context'
-import { getErrorMessage } from '../../lib/errors'
-import type { ContentStatus, QuestionBank } from '../../types/admin'
-
-interface BankFormValues {
-  subjectId: string
-  name: string
-  description: string
-  status: ContentStatus
-}
+import { publicationColors, publicationLabels } from '../../lib/recommendations'
+import { formatDate } from '../../lib/format'
+import type { BankPublicationStatus, CreateQuestionBankInput, QuestionBank } from '../../types/admin'
+import { BankEditorDrawer } from './bank-editor-drawer'
 
 export function QuestionBanksPage() {
   const gateway = useAdminGateway()
-  const queryClient = useQueryClient()
+  const client = useQueryClient()
+  const [params, setParams] = useSearchParams()
+  const subjectId = params.get('subjectId') ?? undefined
   const [keyword, setKeyword] = useState('')
-  const [subjectId, setSubjectId] = useState<string>()
-  const [drawerVisible, setDrawerVisible] = useState(false)
-  const [editing, setEditing] = useState<QuestionBank | null>(null)
-  const [form] = Form.useForm<BankFormValues>()
-
+  const status = (
+    params.get('status') && params.get('status')! in publicationLabels ? params.get('status') : undefined
+  ) as BankPublicationStatus | undefined
+  const setStatus = (value?: BankPublicationStatus) => {
+    const next = new URLSearchParams(params)
+    if (value) next.set('status', value)
+    else next.delete('status')
+    setParams(next)
+  }
+  const [editing, setEditing] = useState<QuestionBank | null | undefined>()
   const subjects = useQuery({ queryKey: ['subjects', 'all'], queryFn: () => gateway.listSubjects() })
-  const banks = useQuery({
-    queryKey: ['question-banks', keyword, subjectId],
-    queryFn: () => gateway.listQuestionBanks({ keyword, subjectId }),
-  })
-
-  const saveBank = useMutation({
-    mutationFn: (values: BankFormValues) =>
-      editing ? gateway.updateQuestionBank(editing.id, values) : gateway.createQuestionBank(values),
+  const banks = useQuery({ queryKey: ['question-banks', 'all'], queryFn: () => gateway.listQuestionBanks() })
+  const save = useMutation({
+    mutationFn: (input: CreateQuestionBankInput) =>
+      editing ? gateway.updateQuestionBank(editing.id, input) : gateway.createQuestionBank(input),
     onSuccess: () => {
-      Message.success(editing ? '题库已更新' : '题库已创建')
-      setDrawerVisible(false)
-      void queryClient.invalidateQueries({ queryKey: ['question-banks'] })
-      void queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] })
+      setEditing(undefined)
+      void client.invalidateQueries()
+      Message.success('题库已保存')
     },
-    onError: (error) => Message.error(getErrorMessage(error)),
+    onError: (e) => Message.error(e.message),
   })
-
-  const toggleStatus = useMutation({
-    mutationFn: (bank: QuestionBank) => gateway.updateQuestionBank(bank.id, {
-      subjectId: bank.subjectId,
-      name: bank.name,
-      description: bank.description,
-      status: bank.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE',
-    }),
-    onSuccess: () => {
-      Message.success('题库状态已更新')
-      void queryClient.invalidateQueries({ queryKey: ['question-banks'] })
-    },
-    onError: (error) => Message.error(getErrorMessage(error)),
-  })
-
-  const deleteBank = useMutation({
+  const remove = useMutation({
     mutationFn: (id: string) => gateway.deleteQuestionBank(id),
     onSuccess: () => {
-      Message.success('题库已删除')
-      void queryClient.invalidateQueries({ queryKey: ['question-banks'] })
-      void queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] })
+      void client.invalidateQueries()
+      Message.success('空题库已删除')
     },
-    onError: (error) => Modal.error({ title: '无法删除题库', content: getErrorMessage(error) }),
+    onError: (e) => Message.error(e.message),
   })
-
-  const openCreate = () => {
-    setEditing(null)
-    form.resetFields()
-    form.setFieldsValue({ status: 'ACTIVE', description: '', subjectId })
-    setDrawerVisible(true)
-  }
-
-  const openEdit = (bank: QuestionBank) => {
-    setEditing(bank)
-    form.setFieldsValue({
-      subjectId: bank.subjectId,
-      name: bank.name,
-      description: bank.description,
-      status: bank.status,
-    })
-    setDrawerVisible(true)
-  }
-
-  const getSubjectName = (id: string) => subjects.data?.find((item) => item.id === id)?.name ?? '未知科目'
-
+  const all = banks.data ?? []
+  const filtered = all.filter(
+    (b) =>
+      (!subjectId || b.subjectId === subjectId) &&
+      (!status || b.publicationStatus === status) &&
+      `${b.name} ${b.textbook}`.toLowerCase().includes(keyword.trim().toLowerCase()),
+  )
+  const error = banks.error ?? subjects.error
   return (
     <>
       <PageTitle
-        title="题库管理"
-        description="创建题库、绑定所属科目并维护发布状态。"
-        action={<Button type="primary" icon={<IconPlus />} onClick={openCreate} disabled={!subjects.data?.length}>新建题库</Button>}
+        title="共享题库"
+        description="同一份内容供多个专业复用，学生按需选择。先整理内容，再检查发布。"
+        action={
+          <Button
+            type="primary"
+            icon={<IconPlus />}
+            disabled={!subjects.data?.length}
+            onClick={() => setEditing(null)}
+          >
+            新建题库
+          </Button>
+        }
       />
+      <div className="compact-metrics">
+        <div>
+          <span>全部题库</span>
+          <strong>{all.length}</strong>
+        </div>
+        <div>
+          <span>已发布</span>
+          <strong>{all.filter((b) => b.publicationStatus === 'PUBLISHED').length}</strong>
+        </div>
+        <div>
+          <span>草稿待整理</span>
+          <strong>{all.filter((b) => b.publicationStatus === 'DRAFT').length}</strong>
+        </div>
+        <div>
+          <span>全校共享</span>
+          <strong>{all.filter((b) => b.scopeType === 'ALL').length}</strong>
+        </div>
+      </div>
       <Card bordered={false}>
         <div className="toolbar toolbar-wrap">
           <Space wrap>
             <Input.Search
               allowClear
-              prefix={<IconSearch />}
-              placeholder="搜索题库名称"
-              style={{ width: 280 }}
-              searchButton
-              onSearch={setKeyword}
+              placeholder="搜索题库或教材"
+              aria-label="搜索题库"
+              style={{ width: 240 }}
+              onChange={setKeyword}
             />
             <Select
               allowClear
-              placeholder="按科目筛选"
-              style={{ width: 200 }}
+              placeholder="全部课程"
+              aria-label="按课程筛选"
               value={subjectId}
-              onChange={setSubjectId}
+              style={{ width: 180 }}
+              onChange={(id) => {
+                const next = new URLSearchParams(params)
+                if (id) next.set('subjectId', id)
+                else next.delete('subjectId')
+                setParams(next)
+              }}
             >
-              {subjects.data?.map((subject) => <Select.Option key={subject.id} value={subject.id}>{subject.name}</Select.Option>)}
+              {subjects.data?.map((s) => (
+                <Select.Option key={s.id} value={s.id}>
+                  {s.name}
+                </Select.Option>
+              ))}
+            </Select>
+            <Select
+              allowClear
+              placeholder="全部发布状态"
+              aria-label="按发布状态筛选"
+              value={status}
+              onChange={setStatus}
+              style={{ width: 150 }}
+            >
+              {Object.entries(publicationLabels).map(([value, label]) => (
+                <Select.Option key={value} value={value}>
+                  {label}
+                </Select.Option>
+              ))}
             </Select>
           </Space>
-          <Typography.Text type="secondary">共 {banks.data?.length ?? 0} 个题库</Typography.Text>
+          <span className="muted">共 {filtered.length} 个题库</span>
         </div>
-        {banks.isError ? (
-          <ErrorState message={banks.error.message} onRetry={() => void banks.refetch()} />
+        {error ? (
+          <ErrorState
+            message={error.message}
+            onRetry={() => {
+              void banks.refetch()
+              void subjects.refetch()
+            }}
+          />
         ) : (
           <Table
             rowKey="id"
+            data={filtered}
             loading={banks.isLoading || subjects.isLoading}
-            data={banks.data ?? []}
-            noDataElement={<Empty description={subjects.data?.length ? '没有符合条件的题库' : '请先创建科目'} />}
+            scroll={{ x: 1000 }}
             pagination={{ pageSize: 10, showTotal: true }}
+            noDataElement={
+              <Empty
+                description={
+                  subjects.data?.length ? (
+                    '暂无题库，先创建草稿再整理内容'
+                  ) : (
+                    <span>
+                      请先到<Link to="/subjects">课程目录</Link>创建课程
+                    </span>
+                  )
+                }
+              />
+            }
             columns={[
-              { title: '题库名称', dataIndex: 'name', width: 220 },
-              { title: '所属科目', dataIndex: 'subjectId', width: 160, render: (value) => getSubjectName(value) },
-              { title: '说明', dataIndex: 'description', ellipsis: true },
-              { title: '题目数', dataIndex: 'questionCount', width: 100 },
-              { title: '状态', dataIndex: 'status', width: 110, render: (_, record) => <StatusTag status={record.status} /> },
+              {
+                title: '题库 / 课程',
+                width: 270,
+                render: (_, b) => (
+                  <div className="table-cell-stack">
+                    <Link className="entity-link" to={`/question-banks/${b.id}`}>
+                      {b.name}
+                    </Link>
+                    <span className="muted">
+                      {subjects.data?.find((s) => s.id === b.subjectId)?.name ?? '未知课程'} ·{' '}
+                      {b.textbook || '教材待补充'}
+                    </span>
+                  </div>
+                ),
+              },
+              {
+                title: '适用范围',
+                width: 150,
+                render: (_, b) => (
+                  <Tag color={b.scopeType === 'ALL' ? 'cyan' : 'arcoblue'}>
+                    {b.scopeType === 'ALL' ? '全校适用' : `${b.audiences.length} 条推荐条件`}
+                  </Tag>
+                ),
+              },
+              {
+                title: '题目',
+                width: 110,
+                render: (_, b) => (
+                  <div>
+                    {b.questionCount} 道<div className="muted">{b.activeQuestionCount ?? 0} 道启用</div>
+                  </div>
+                ),
+              },
+              {
+                title: '发布状态',
+                width: 110,
+                render: (_, b) => (
+                  <Tag color={publicationColors[b.publicationStatus]}>
+                    {publicationLabels[b.publicationStatus]}
+                  </Tag>
+                ),
+              },
+              { title: '最近更新', width: 150, dataIndex: 'updatedAt', render: formatDate },
               {
                 title: '操作',
-                width: 270,
+                width: 210,
                 fixed: 'right',
-                render: (_, record) => (
-                  <Space>
-                    <Button type="text" icon={<IconEdit />} onClick={() => openEdit(record)}>编辑</Button>
-                    <Popconfirm
-                      title={`确认${record.status === 'ACTIVE' ? '停用' : '启用'}该题库？`}
-                      onOk={() => toggleStatus.mutate(record)}
-                    >
-                      <Button type="text" status={record.status === 'ACTIVE' ? 'warning' : 'success'}>
-                        {record.status === 'ACTIVE' ? '停用' : '启用'}
-                      </Button>
-                    </Popconfirm>
-                    <Popconfirm title="删除后不可恢复，确认删除？" onOk={() => deleteBank.mutate(record.id)}>
-                      <Button type="text" status="danger" icon={<IconDelete />}>删除</Button>
-                    </Popconfirm>
+                render: (_, b) => (
+                  <Space size="mini">
+                    <Link to={`/question-banks/${b.id}`}>管理内容</Link>
+                    <Button type="text" onClick={() => setEditing(b)}>
+                      编辑
+                    </Button>
+                    {b.questionCount === 0 && (
+                      <Popconfirm
+                        title="确认删除空题库？已有引用的内容会受到保护。"
+                        onOk={() => remove.mutate(b.id)}
+                      >
+                        <Button type="text" status="danger">
+                          删除
+                        </Button>
+                      </Popconfirm>
+                    )}
                   </Space>
                 ),
               },
             ]}
-            scroll={{ x: 1100 }}
           />
         )}
       </Card>
-      <Drawer
-        width={500}
-        title={editing ? '编辑题库' : '新建题库'}
-        visible={drawerVisible}
-        onCancel={() => setDrawerVisible(false)}
-        footer={
-          <Space>
-            <Button onClick={() => setDrawerVisible(false)}>取消</Button>
-            <Button type="primary" loading={saveBank.isPending} onClick={() => form.submit()}>保存</Button>
-          </Space>
-        }
-      >
-        <Form form={form} layout="vertical" onSubmit={(values) => saveBank.mutate(values)}>
-          <Form.Item field="subjectId" label="所属科目" rules={[{ required: true, message: '请选择所属科目' }]}>
-            <Select placeholder="选择科目">
-              {subjects.data?.map((subject) => <Select.Option key={subject.id} value={subject.id}>{subject.name}</Select.Option>)}
-            </Select>
-          </Form.Item>
-          <Form.Item field="name" label="题库名称" rules={[{ required: true, message: '请输入题库名称' }, { maxLength: 80, message: '名称不能超过 80 个字符' }]}>
-            <Input placeholder="例如：微积分基础题库" maxLength={80} showWordLimit />
-          </Form.Item>
-          <Form.Item field="description" label="题库说明" rules={[{ maxLength: 200, message: '说明不能超过 200 个字符' }]}>
-            <Input.TextArea placeholder="简要说明题库内容" maxLength={200} showWordLimit autoSize={{ minRows: 3, maxRows: 6 }} />
-          </Form.Item>
-          <Form.Item field="status" label="状态" rules={[{ required: true, message: '请选择状态' }]}>
-            <Radio.Group>
-              <Radio value="ACTIVE">启用</Radio>
-              <Radio value="INACTIVE">停用</Radio>
-            </Radio.Group>
-          </Form.Item>
-        </Form>
-      </Drawer>
+      <BankEditorDrawer
+        visible={editing !== undefined}
+        bank={editing ?? undefined}
+        subjects={subjects.data ?? []}
+        defaultSubjectId={subjectId}
+        saving={save.isPending}
+        onClose={() => setEditing(undefined)}
+        onSave={(input) => save.mutate(input)}
+      />
     </>
   )
 }

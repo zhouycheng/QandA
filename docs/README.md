@@ -6,6 +6,8 @@
 docs/
 ├── README.md
 ├── git-workflow.md
+├── admin-figma-implementation.md
+├── admin-student-platform-implementation.md
 ├── prd/
 │   ├── README.md
 │   ├── mvp-functions.md
@@ -21,10 +23,17 @@ docs/
 
 进入 [PRD 索引](prd/README.md)。
 
+- [学生自主复习平台架构报告](prd/student-platform-architecture.md)：平台定位、共享题库、学生自选课程、后台模块、数据关系与实施建议。
+
 ## Git 协作
 
 - [Git 工作流](git-workflow.md)
 - [Git 操作速查与常见问题](sops/QandA-Git-Workflow-Handbook.md)
+
+## 管理端实现
+
+- [管理端学生平台改造说明](admin-student-platform-implementation.md)：当前页面、推荐规则、章节、发布检查、反馈处理、旧数据兼容及实际边界。
+- [管理端 Figma 原型实现说明](admin-figma-implementation.md)：画板对应、交互规则、Mock 边界与验证方式。
 
 ## 文档组织原则
 

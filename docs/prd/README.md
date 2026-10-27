@@ -34,6 +34,7 @@ API MVP 不 Mock 自身核心业务与数据库，使用真实 PostgreSQL 或 Te
 - [用户 Web 端 MVP PRD](web-mvp.md)
 - [管理端 MVP PRD](admin-mvp.md)
 - [后端 API MVP PRD](api-mvp.md)
+- [学生自主复习平台架构报告](student-platform-architecture.md)：依据学生自主注册、自主选择课程的产品定位，提出共享内容、推荐范围、后台架构及后续调整建议；新增能力尚未实现。
 
 ## 当前目录原则
 
