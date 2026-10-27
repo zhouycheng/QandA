@@ -1,8 +1,9 @@
 {
-  "navigationBarTitleText": "题库",
+  "navigationBarTitleText": "",
+  "navigationBarBackgroundColor": "#FFFFFF",
+  "navigationBarTextStyle": "black",
   "usingComponents": {
     "bank-list-item": "/components/bank-list-item/index",
-    "bottom-sheet": "/components/bottom-sheet/index",
     "route-loading": "/components/route-loading/index"
   }
 }
