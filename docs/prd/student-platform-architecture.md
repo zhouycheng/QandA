@@ -273,7 +273,7 @@ flowchart LR
 | 后端 API | Kotlin、Spring Boot、Maven 与 MyBatis-Plus 的模块化单体 | 按当前合同接入客户端，验收入口见后端 README |
 | 数据与契约 | PostgreSQL 使用完整建表脚本，OpenAPI 合同位于 `apps/api/contracts/openapi.yaml` | 保持初始化脚本、合同和运行验收一致 |
 
-API 与数据库的当前实现和验证入口见[后端 README](../../apps/api/README.md)；管理端仍使用本地 Mock，小程序的题库与练习数据仍保存在本地。客户端业务联调、跨端数据共享及端到端生产流程仍待完成。
+API 与数据库的当前实现和验证入口见[后端 README](../../apps/api/README.md)；管理端仍使用本地 Mock。小程序现有流程已接入统一接口，使用本机草稿支持离线续答，真实客户端代码与隔离后端的练习闭环通过。设备和生产环境验收见[小程序联调验收记录](../miniapp-integration-verification.md)。
 
 ```mermaid
 flowchart TB
@@ -326,6 +326,6 @@ flowchart TB
 
 ## 8. 客户端接入约定
 
-后端关系模型、账号与内容规则以[后端架构与数据库](../backend-architecture.md)及当前 OpenAPI 为准。管理端目前使用本地 Mock，小程序的题库、练习与学习记录目前保存在本地；各端状态见对应应用说明。
+后端关系模型、账号与内容规则以[后端架构与数据库](../backend-architecture.md)及当前 OpenAPI 为准。管理端目前使用本地 Mock；小程序目录、练习及学习记录接入统一后端，本机保存未确认草稿与练习快照。各端状态见对应应用说明。
 
 客户端开始接入时按当前 `1.0.0` 合同实现 API 适配，并由后端维护共享业务数据。已有 Mock 或本地记录继续由客户端管理，只有明确安排导入时才写入后端。
