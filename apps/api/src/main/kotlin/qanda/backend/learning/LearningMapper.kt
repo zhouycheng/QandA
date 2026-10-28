@@ -21,6 +21,8 @@ class OrganizationRow { var collegeId: UUID?=null;var majorId: UUID?=null;var co
     fun days(@Param("f") filter: StatsFilter): List<DailyRow>
     fun wrong(@Param("userId") userId: UUID,@Param("status") status: String,@Param("bankId") bankId: UUID?,@Param("offset") offset: Int,@Param("limit") limit: Int): List<WrongRow>
     fun wrongCount(@Param("userId") userId: UUID,@Param("status") status: String,@Param("bankId") bankId: UUID?): Long
+    fun questionProgress(@Param("userId") userId: UUID,@Param("bankId") bankId: UUID?,@Param("offset") offset: Int,@Param("limit") limit: Int): List<WrongRow>
+    fun questionProgressCount(@Param("userId") userId: UUID,@Param("bankId") bankId: UUID?): Long
     fun wrongHistory(@Param("userId") userId: UUID,@Param("questionId") questionId: UUID,@Param("offset") offset: Int,@Param("limit") limit: Int): List<WrongHistoryRow>
     fun wrongHistoryCount(@Param("userId") userId: UUID,@Param("questionId") questionId: UUID): Long
     fun activeCount(@Param("f") filter: StatsFilter): Long

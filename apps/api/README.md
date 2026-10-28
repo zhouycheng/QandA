@@ -26,14 +26,19 @@ BACKEND_DOCS_ENABLED=true node apps/api/scripts/backend.mjs start
 
 API 默认地址为 `http://127.0.0.1:8083/api/v1`，健康检查为 `/api/v1/health`。启用文档后，可访问本机服务的 `/swagger-ui/index.html` 和 `/v3/api-docs`。本地验证码进入 Mailpit；`stop-deps` 停止开发依赖容器。
 
+## 已有数据库升级
+
+练习同步增加配置快照、写入设备和确认序号字段。已有 `1.0.0` 数据库在备份后显式执行 [`20261028-practice-sync.sql`](src/main/resources/db/upgrades/20261028-practice-sync.sql)，保留已有账号、题库和练习。应用启动检查结构，不自动执行升级。新建数据库继续使用完整 `schema.sql`。升级前创建的练习没有完整配置快照，可通过编辑权获取与快照接口继续作答。
+
 ## 接口规则
 
 - 学生通过邮箱或微信注册、登录，院系资料选填；管理员使用 `/admin/auth/sessions` 单独登录。
 - 令牌通过 `Authorization: Bearer …` 传递，学生与管理员令牌隔离。密码或邮箱变更后重新登录。
 - 写命令携带 UUID 格式的 `Idempotency-Key`。同一意图重试复用原键；同键不同内容返回 `409`。
 - 更新请求使用业务并发字段；冲突返回 `VERSION_CONFLICT`。`PUT /me/profile` 完整替换资料，组织字段留空可以清除已有选择。
-- 列表分页使用 `page`、`pageSize`，单页最多 `100` 条。需要全部目录时继续读取后续页。
+- 列表分页使用 `page`、`pageSize`，单页最多 `100` 条。需要全部目录时继续读取后续页。`GET /questions?keyword=…` 跨已发布可用题库搜索题干与选项；`GET /me/question-progress` 返回每题最近一次已判定的提交结果，用于各端一致的已练题数与正确率。
 - 学生可访问有可练习题目的已发布题库，专业影响推荐。课程移除和资料变更保留历史记录。
+- 同一用户可以创建多份独立练习，跨设备续答以练习 ID 为边界。创建时携带 `deviceId` 开启写入所有权；所有后续变更携带 `writerToken`，旧凭证在交接后失效。
 - 创建练习固定题目修订与顺序。多选题需要确认；统一反馈时交卷前不返回答案及解析。简答题在交卷后自评，统计与客观题分开。
 - 管理员安全设置执行登录锁定、闲置超时和密码组成规则。密码至少 12 个字符，可提高到 64；当前接口的设备验证、首次改密字段固定为关闭。
 - JSON 使用 UTF-8，限制 8 MiB；图片上传限制 5 MiB，校验实际类型、像素与尺寸后保存为 PNG。
@@ -50,3 +55,13 @@ node apps/api/scripts/backend.mjs verify
 聚合合同为 [`contracts/openapi.yaml`](contracts/openapi.yaml)，各模块合同引用聚合文档中的共享模型。当前模块进度与 Q01 历史计划对照见[后端接口进度](../../docs/backend-progress.md)。合同和 Postman 生成、校验入口见[接口验收说明](acceptance/README.md)。Postman 的账号、密码、验证码和令牌变量由使用者填写。
 
 本地捕获和测试微信身份用于独立验收；官方微信与腾讯云 SES 的真实服务验收需要对应配置和实际执行记录。
+
+## 练习同步协议
+
+联网创建带 `deviceId` 的练习一次返回 `configuration`、题目快照和独立的 `offlineGrading`。普通题目 DTO 按反馈时机提供可展示字段；客户端将离线判题数据保存在逻辑层，仅在确认作答或交卷后展示相应答案及解析。服务端重新判题并保存正式成绩。
+
+`PUT /practice/sessions/{id}/progress-ack` 接收原进度字段及 `writerToken`、递增 `clientSequence`，只返回版本、确认序号与写入状态。客户端合并尚未发送的进度，固定在途请求的内容与幂等键，确认后保留更新的本地草稿。`expectedVersion` 用于业务并发校验，`writerToken` 用于设备写入隔离。
+
+接管端调用 `writer-acquire` 后通过 `writer-state?deviceId=…` 等待。原设备看见 `pendingDeviceId` 后停止编辑、完成最后一批进度上传，再用相同确认序号和版本调用 `writer-release`。释放与新凭证签发在同一事务内完成。原设备退出时也可主动释放；离线或进程终止时，接管继续等待它再次联网完成交接。等待中的设备可创建独立新练习。
+
+接管完成后，通过 `GET /practice/sessions/{id}/snapshot?deviceId=…` 和 `X-Practice-Writer` 请求头取得完整离线快照。普通读取不返回离线判题数据或其他设备的写入凭证。写入状态查询只返回匹配 `deviceId` 的持有者凭证；客户端的设备 ID 应使用持久化随机 UUID。

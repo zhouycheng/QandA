@@ -13,7 +13,7 @@ import qanda.backend.platform.persistence.SystemMapper
 @ConditionalOnProperty(name=["qanda.backend.schema-command"],havingValue="false",matchIfMissing=true)
 class SchemaReadiness {
     @Bean @DependsOn("backendSafety","validateProductionProviders")
-    fun databaseReady(sql: SystemMapper)=InitializingBean { check(sql.ready()) { "数据库尚未初始化，请显式运行db-init或开发库db-reset" } }
+    fun databaseReady(sql: SystemMapper)=InitializingBean { check(sql.ready()) { "数据库结构未就绪，请按README运行db-init初始化或执行对应的保留数据升级脚本" } }
 }
 data class HealthView(val status: String="UP",val version: String="1.0.0")
 @RestController

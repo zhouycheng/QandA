@@ -115,6 +115,12 @@ class ContentService(private val banks: QuestionBankMapper,private val chapters:
         val row=questions.selectById(id) ?: missing();access.bank(actor,row.bankId!!);if(actor.kind=="USER" && row.status!="ACTIVE") missing()
         return questionView(row,answers=actor.kind=="ADMIN")
     }
+    fun search(actor: Actor,keyword: String,p: PageSpec): Page<QuestionView> {
+        if(actor.kind!="USER") forbidden()
+        val query=keyword.trim()
+        if(query.isEmpty() || query.length>200 || '\u0000' in query) invalid("/keyword")
+        return Page(sql.search(query,p.offset,p.pageSize).map { questionView(it,answers=false) },sql.searchCount(query),p.page,p.pageSize)
+    }
     fun questions(actor: Actor,bankId: UUID,chapterId: UUID?,keyword: String?,p: PageSpec): Page<QuestionView> {
         access.bank(actor,bankId);val activeOnly=actor.kind=="USER"
         return Page(sql.questions(bankId,chapterId,keyword,activeOnly,p.offset,p.pageSize).map { questionView(it,answers=!activeOnly) },sql.filteredQuestionCount(bankId,chapterId,keyword,activeOnly),p.page,p.pageSize)

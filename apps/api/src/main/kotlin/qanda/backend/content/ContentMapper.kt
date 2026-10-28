@@ -12,6 +12,8 @@ import java.util.UUID
     fun questionCount(@Param("bankId") bankId: UUID,@Param("activeOnly") activeOnly: Boolean): Long
     fun questions(@Param("bankId") bankId: UUID,@Param("chapterId") chapterId: UUID?,@Param("keyword") keyword: String?,@Param("activeOnly") activeOnly: Boolean,@Param("offset") offset: Int,@Param("limit") limit: Int): List<Question>
     fun filteredQuestionCount(@Param("bankId") bankId: UUID,@Param("chapterId") chapterId: UUID?,@Param("keyword") keyword: String?,@Param("activeOnly") activeOnly: Boolean): Long
+    fun search(@Param("keyword") keyword: String,@Param("offset") offset: Int,@Param("limit") limit: Int): List<Question>
+    fun searchCount(@Param("keyword") keyword: String): Long
     fun options(@Param("revisionId") revisionId: UUID): List<QuestionOption>
     fun insertOption(@Param("option") option: QuestionOption)
     fun attachments(@Param("revisionId") revisionId: UUID): List<UUID>

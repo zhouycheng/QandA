@@ -401,6 +401,12 @@
     }
   },
   {
+    "operationId": "Content_search_GET",
+    "method": "GET",
+    "path": "/api/v1/questions",
+    "body": null
+  },
+  {
     "operationId": "Content_question_GET",
     "method": "GET",
     "path": "/api/v1/questions/{id}",
@@ -641,6 +647,12 @@
     "body": null
   },
   {
+    "operationId": "Learning_questionProgress_GET",
+    "method": "GET",
+    "path": "/api/v1/me/question-progress",
+    "body": null
+  },
+  {
     "operationId": "Learning_history_GET",
     "method": "GET",
     "path": "/api/v1/me/practice-history",
@@ -824,7 +836,21 @@
     "body": {
       "expectedVersion": "{{expectedVersion}}",
       "currentIndex": 0,
-      "durationSeconds": 0
+      "durationSeconds": 0,
+      "writerToken": "{{writerToken}}",
+      "clientSequence": "{{clientSequence}}"
+    }
+  },
+  {
+    "operationId": "Practice_progressAck_PUT",
+    "method": "PUT",
+    "path": "/api/v1/practice/sessions/{id}/progress-ack",
+    "body": {
+      "expectedVersion": "{{expectedVersion}}",
+      "currentIndex": 0,
+      "durationSeconds": 0,
+      "writerToken": "{{writerToken}}",
+      "clientSequence": "{{clientSequence}}"
     }
   },
   {
@@ -833,7 +859,8 @@
     "path": "/api/v1/practice/sessions/{id}/items/{itemId}/self-assessment",
     "body": {
       "expectedVersion": "{{expectedVersion}}",
-      "assessment": "CORRECT"
+      "assessment": "CORRECT",
+      "writerToken": "{{writerToken}}"
     }
   },
   {
@@ -847,7 +874,27 @@
         "order": "SEQUENTIAL",
         "selectionKind": "NORMAL"
       },
-      "expectedContentVersion": "{{expectedContentVersion}}"
+      "expectedContentVersion": "{{expectedContentVersion}}",
+      "deviceId": "{{deviceId}}"
+    }
+  },
+  {
+    "operationId": "Practice_releaseWriter_POST",
+    "method": "POST",
+    "path": "/api/v1/practice/sessions/{id}/writer-release",
+    "body": {
+      "deviceId": "{{deviceId}}",
+      "writerToken": "{{writerToken}}",
+      "expectedVersion": "{{expectedVersion}}",
+      "clientSequence": "{{acknowledgedSequence}}"
+    }
+  },
+  {
+    "operationId": "Practice_acquireWriter_POST",
+    "method": "POST",
+    "path": "/api/v1/practice/sessions/{id}/writer-acquire",
+    "body": {
+      "deviceId": "{{deviceId}}"
     }
   },
   {
@@ -856,7 +903,8 @@
     "path": "/api/v1/practice/sessions/{id}/finish",
     "body": {
       "expectedVersion": "{{expectedVersion}}",
-      "durationSeconds": 0
+      "durationSeconds": 0,
+      "writerToken": "{{writerToken}}"
     }
   },
   {
@@ -864,7 +912,8 @@
     "method": "POST",
     "path": "/api/v1/practice/sessions/{id}/cancel",
     "body": {
-      "expectedVersion": "{{expectedVersion}}"
+      "expectedVersion": "{{expectedVersion}}",
+      "writerToken": "{{writerToken}}"
     }
   },
   {
@@ -882,6 +931,18 @@
     "operationId": "Practice_read_GET",
     "method": "GET",
     "path": "/api/v1/practice/sessions/{id}",
+    "body": null
+  },
+  {
+    "operationId": "Practice_writerState_GET",
+    "method": "GET",
+    "path": "/api/v1/practice/sessions/{id}/writer-state",
+    "body": null
+  },
+  {
+    "operationId": "Practice_snapshot_GET",
+    "method": "GET",
+    "path": "/api/v1/practice/sessions/{id}/snapshot",
     "body": null
   },
   {

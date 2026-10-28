@@ -2,13 +2,13 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="qanda.backend.practice.PracticeQueries">
   <sql id="eligibleFilter">WHERE q.bank_id=#{scope.questionBankId} AND q.status='ACTIVE'
+    <if test="scope.questionIds.size > 0">AND q.id IN <foreach collection="scope.questionIds" item="id" open="(" close=")" separator=",">#{id}</foreach></if>
     <if test="scope.chapterIds.size > 0">AND q.chapter_id IN <foreach collection="scope.chapterIds" item="id" open="(" close=")" separator=",">#{id}</foreach></if>
     <if test="scope.selectionKind == 'FAVORITE'">AND EXISTS(SELECT 1 FROM user_favorite f WHERE f.user_id=#{userId} AND f.question_id=q.id)</if>
     <if test="scope.selectionKind == 'WRONG'">AND (SELECT coalesce(i.self_assessment,i.outcome) FROM practice_item i JOIN practice_session ps ON ps.id=i.session_id WHERE i.question_id=q.id AND ps.user_id=#{userId} AND ps.status='SUBMITTED' AND (i.outcome IN ('CORRECT','WRONG') OR i.self_assessment IS NOT NULL) ORDER BY ps.submitted_at DESC,ps.id DESC LIMIT 1)='WRONG'</if>
   </sql>
   <select id="eligible" resultType="qanda.backend.content.Question">SELECT q.* FROM question q <include refid="eligibleFilter"/> ORDER BY <if test="scope.order == 'RANDOM'">random(),</if>q.created_at,q.id LIMIT #{scope.count}</select>
   <select id="eligibleCount" resultType="long">SELECT count(*) FROM question q <include refid="eligibleFilter"/></select>
-  <select id="active" resultType="qanda.backend.practice.PracticeSession">SELECT * FROM practice_session WHERE user_id=#{userId} AND bank_id=#{bankId} AND status='IN_PROGRESS'</select>
   <select id="lockSession" resultType="qanda.backend.practice.PracticeSession">SELECT * FROM practice_session WHERE id=#{id} FOR UPDATE</select>
   <select id="items" resultType="qanda.backend.practice.PracticeItem">SELECT * FROM practice_item WHERE session_id=#{sessionId} ORDER BY position</select>
   <select id="choices" resultType="string">SELECT option_key FROM practice_item_choice WHERE item_id=#{itemId} ORDER BY option_key</select>

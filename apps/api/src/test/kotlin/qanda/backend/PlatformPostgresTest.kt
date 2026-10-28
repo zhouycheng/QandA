@@ -78,15 +78,15 @@ class PlatformPostgresTest {
         learningMapper.days(qanda.backend.learning.StatsFilter(Instant.now().minusSeconds(86400),Instant.now()))
         learningMapper.activityDays(qanda.backend.learning.StatsFilter(Instant.now().minusSeconds(86400),Instant.now()))
     }
-    private fun raw(method: String,path: String,body: Any?=null,token: String?=adminToken,key: UUID?=UUID.randomUUID(),contentType: String="application/json",accept: String?=null): HttpResponse<String> {
+    private fun raw(method: String,path: String,body: Any?=null,token: String?=adminToken,key: UUID?=UUID.randomUUID(),contentType: String="application/json",accept: String?=null,extraHeaders: Map<String,String> = emptyMap()): HttpResponse<String> {
         val builder=HttpRequest.newBuilder(URI("http://127.0.0.1:$port/api/v1$path")).timeout(Duration.ofSeconds(30))
         token?.let { builder.header("Authorization","Bearer $it") };key?.let { builder.header("Idempotency-Key",it.toString()) }
         if(body!=null) builder.header("Content-Type",contentType)
-        accept?.let { builder.header("Accept",it) }
+        accept?.let { builder.header("Accept",it) };extraHeaders.forEach { (name,value) -> builder.header(name,value) }
         val bytes=when(body) { null -> ByteArray(0);is ByteArray -> body;else -> json.writeValueAsBytes(body) }
         val response=http.send(builder.method(method,HttpRequest.BodyPublishers.ofByteArray(bytes)).build(),HttpResponse.BodyHandlers.ofString())
         exchanges.add(mapOf("method" to method,"path" to "/api/v1$path","status" to response.statusCode(),"validateRequest" to (response.statusCode()<400),
-            "requestHeaders" to buildMap<String,String> { if(body!=null) put("Content-Type",contentType);key?.let { put("Idempotency-Key",it.toString()) } },
+            "requestHeaders" to buildMap<String,String> { putAll(extraHeaders);if(body!=null) put("Content-Type",contentType);key?.let { put("Idempotency-Key",it.toString()) } },
             "requestBody" to if(body is ByteArray) null else json.valueToTree<JsonNode>(body),"responseHeaders" to response.headers().map().mapValues { it.value.joinToString(",") },
             "responseBody" to runCatching { json.readTree(response.body()) }.getOrNull()))
         return response
@@ -311,6 +311,133 @@ class PlatformPostgresTest {
         assertFalse(call("GET","/announcements",token=one.token)["items"].any { it["id"].asText()==announcement.toString() })
     }
 
+    @Test fun `offline snapshots compact synchronization and strict writer handoff preserve all answers`() {
+        val s=student();val other=student();val f=fixture();val device=UUID.randomUUID();val next=UUID.randomUUID()
+        val bank=call("GET","/question-banks/${f.bank}",token=s.token)
+        val selected=mapOf("questionBankId" to f.bank,"count" to 1,"questionIds" to listOf(f.questions.first()))
+        val selectedSession=call("POST","/practice/sessions",mapOf("scope" to selected,"expectedContentVersion" to bank["contentVersion"].asLong()),s.token)
+        assertEquals(f.questions.first().toString(),selectedSession["items"].first()["question"]["id"].asText())
+        call("POST","/practice/scope-preview",selected+mapOf("questionIds" to listOf(UUID.randomUUID())),s.token,422)
+        val create=mapOf("scope" to mapOf("questionBankId" to f.bank,"count" to 4,"order" to "RANDOM"),"expectedContentVersion" to bank["contentVersion"].asLong(),"deviceId" to device)
+        val session=call("POST","/practice/sessions",create,s.token);val sessionId=id(session)
+        assertEquals(4,session["configuration"]["count"].asInt());assertEquals(4,session["offlineGrading"].size())
+        assertTrue(session["items"].all { it["question"]["correctAnswer"].isNull && it["question"]["referenceAnswer"].isNull })
+        val token=session["writer"]["writerToken"].asText();assertEquals("ACTIVE",session["writer"]["state"].asText())
+        val plain=call("GET","/practice/sessions/$sessionId",token=s.token)
+        assertTrue(plain["offlineGrading"].isNull);assertTrue(plain["writer"]["writerToken"].isNull)
+        fun snapshot(d: UUID,t: String,status: Int=200): JsonNode {
+            val response=raw("GET","/practice/sessions/$sessionId/snapshot?deviceId=$d",token=s.token,extraHeaders=mapOf("X-Practice-Writer" to t))
+            assertEquals(status,response.statusCode(),response.body());return json.readTree(response.body())
+        }
+        assertEquals(session["offlineGrading"],snapshot(device,token)["offlineGrading"])
+        snapshot(next,token,409)
+        val acquireKey=UUID.randomUUID();val waiting=call("POST","/practice/sessions/$sessionId/writer-acquire",mapOf("deviceId" to next),s.token,key=acquireKey)
+        assertEquals("WAITING",waiting["state"].asText());assertTrue(waiting["writerToken"].isNull)
+        assertEquals(waiting,call("POST","/practice/sessions/$sessionId/writer-acquire",mapOf("deviceId" to next),s.token,key=acquireKey))
+        call("POST","/practice/sessions/$sessionId/writer-acquire",mapOf("deviceId" to UUID.randomUUID()),s.token,409)
+        call("GET","/practice/sessions/$sessionId/writer-state?deviceId=$device",token=other.token,status=404)
+        assertEquals(next.toString(),call("GET","/practice/sessions/$sessionId/writer-state?deviceId=$device",token=s.token)["pendingDeviceId"].asText())
+        // A separate practice can be created while the first practice waits for handoff.
+        assertNotEquals(sessionId,id(call("POST","/practice/sessions",create,s.token)))
+        val progress=mapOf("expectedVersion" to 1,"currentIndex" to 2,"durationSeconds" to 0,"items" to answers(session),"writerToken" to token,"clientSequence" to 3)
+        val saveKey=UUID.randomUUID();val ack=call("PUT","/practice/sessions/$sessionId/progress-ack",progress,s.token,key=saveKey)
+        assertEquals(3,ack["acknowledgedSequence"].asInt());assertFalse(ack.has("items"))
+        assertEquals(ack,call("PUT","/practice/sessions/$sessionId/progress-ack",progress,s.token,key=saveKey))
+        call("PUT","/practice/sessions/$sessionId/progress-ack",progress+mapOf("expectedVersion" to 2),s.token,422)
+        val release=mapOf("deviceId" to device,"writerToken" to token,"expectedVersion" to 2,"clientSequence" to 4)
+        call("POST","/practice/sessions/$sessionId/writer-release",release,s.token,409)
+        val releaseKey=UUID.randomUUID()
+        call("POST","/practice/sessions/$sessionId/writer-release",release+mapOf("clientSequence" to 3),s.token,key=releaseKey)
+        call("POST","/practice/sessions/$sessionId/writer-release",release+mapOf("clientSequence" to 3),s.token,key=releaseKey)
+        val acquired=call("GET","/practice/sessions/$sessionId/writer-state?deviceId=$next",token=s.token)
+        assertEquals("ACTIVE",acquired["state"].asText());assertEquals(0,acquired["acknowledgedSequence"].asInt());assertTrue(acquired["pendingDeviceId"].isNull)
+        val nextToken=acquired["writerToken"].asText();assertNotEquals(token,nextToken)
+        val restored=snapshot(next,nextToken);assertEquals(2,restored["currentIndex"].asInt());assertTrue(restored["items"].all { !it["answer"].isNull })
+        snapshot(device,token,409)
+        call("PUT","/practice/sessions/$sessionId/progress",progress+mapOf("expectedVersion" to 2,"clientSequence" to 4),s.token,409)
+        call("POST","/practice/sessions/$sessionId/cancel",mapOf("expectedVersion" to 2,"writerToken" to token),s.token,409)
+        val finish=mapOf("expectedVersion" to 2,"durationSeconds" to 0,"writerToken" to nextToken)
+        call("POST","/practice/sessions/$sessionId/finish",finish+mapOf("writerToken" to token),s.token,409)
+        val result=call("POST","/practice/sessions/$sessionId/finish",finish,s.token)
+        assertEquals(3,result["objective"]["correct"].asInt());assertEquals(1,result["shortAnswer"]["answered"].asInt())
+        val short=result["items"].first { it["question"]["type"].asText()=="SHORT_ANSWER" }
+        call("PUT","/practice/sessions/$sessionId/items/${short["itemId"].asText()}/self-assessment",mapOf("expectedVersion" to result["version"].asLong(),"assessment" to "CORRECT"),s.token)
+        call("PUT","/practice/sessions/$sessionId/items/${short["itemId"].asText()}/self-assessment",mapOf("expectedVersion" to result["version"].asLong(),"assessment" to "WRONG"),s.token,409)
+    }
+
+    @Test fun `released writers reacquire safely and compact acknowledgements bound repeated response size`() {
+        val s=student();val f=fixture();val legacy=createPractice(s,f);val id=id(legacy);val device=UUID.randomUUID()
+        val writer=call("POST","/practice/sessions/$id/writer-acquire",mapOf("deviceId" to device),s.token)
+        val token=writer["writerToken"].asText()
+        call("POST","/practice/sessions/$id/writer-release",mapOf("deviceId" to device,"writerToken" to token,"expectedVersion" to 1,"clientSequence" to 0),s.token)
+        val released=call("GET","/practice/sessions/$id/writer-state?deviceId=$device",token=s.token)
+        assertEquals("RELEASED",released["state"].asText());assertTrue(released["writerToken"].isNull)
+        call("PUT","/practice/sessions/$id/progress-ack",mapOf("expectedVersion" to 1,"currentIndex" to 0,"durationSeconds" to 0,"writerToken" to token,"clientSequence" to 1),s.token,409)
+        val renewed=call("POST","/practice/sessions/$id/writer-acquire",mapOf("deviceId" to device),s.token)
+        val renewedToken=renewed["writerToken"].asText();assertNotEquals(token,renewedToken)
+        val os=java.lang.management.ManagementFactory.getOperatingSystemMXBean() as com.sun.management.OperatingSystemMXBean
+        val cpu=os.processCpuTime;val started=System.nanoTime();var bytes=0
+        repeat(30) { index ->
+            val ack=call("PUT","/practice/sessions/$id/progress-ack",mapOf("expectedVersion" to index+1,"currentIndex" to index%4,"durationSeconds" to 0,"writerToken" to renewedToken,"clientSequence" to index+1),s.token)
+            assertEquals(index+1,ack["acknowledgedSequence"].asInt());bytes+=json.writeValueAsBytes(ack).size
+        }
+        val compactCpu=(os.processCpuTime-cpu)/1000000;val compactWall=(System.nanoTime()-started)/1000000
+        val fullCpu=os.processCpuTime;val fullStarted=System.nanoTime();var fullBytes=0
+        repeat(30) { index ->
+            val full=call("PUT","/practice/sessions/$id/progress",mapOf("expectedVersion" to index+31,"currentIndex" to index%4,"durationSeconds" to 0,"writerToken" to renewedToken,"clientSequence" to index+31),s.token)
+            fullBytes+=json.writeValueAsBytes(full).size
+        }
+        assertTrue(bytes<fullBytes)
+        val report=mapOf("scenario" to "4题练习，各30次串行进度保存，隔离PostgreSQL；仅为响应体与进程CPU观察", "requestsPerVariant" to 30,"concurrency" to 1,
+            "compact" to mapOf("wallMillis" to compactWall,"jvmCpuMillis" to compactCpu,"responseBytes" to bytes,"averageResponseBytes" to bytes/30),
+            "full" to mapOf("wallMillis" to (System.nanoTime()-fullStarted)/1000000,"jvmCpuMillis" to (os.processCpuTime-fullCpu)/1000000,"responseBytes" to fullBytes,"averageResponseBytes" to fullBytes/30))
+        val dir=Path.of(".backend-runtime/verification");Files.createDirectories(dir);Files.writeString(dir.resolve("practice-sync-observation.json"),json.writerWithDefaultPrettyPrinter().writeValueAsString(report))
+        val sql=javaClass.classLoader.getResource("db/upgrades/20261028-practice-sync.sql")!!.readText()
+        jdbc.execute(sql);jdbc.execute(sql)
+        assertEquals(61L,jdbc.queryForObject("SELECT version FROM practice_session WHERE id=?",Long::class.java,id))
+    }
+
+    @Test fun `global question search is paginated and progress contains latest personal graded outcomes`() {
+        val s=student();val another=student();val f=fixture();val hidden=fixture();val marker="search-${UUID.randomUUID()}"
+        for((bank,q) in listOf(f.bank to f.questions[0],f.bank to f.questions[1],hidden.bank to hidden.questions[0])) {
+            val current=call("GET","/admin/questions/$q")
+            val type=current["type"].asText()
+            val payload=question(bank,type)+mapOf("stem" to "$marker $type","expectedVersion" to current["version"].asLong())
+            call("PUT","/admin/questions/$q",if(q==f.questions[0]) payload+mapOf("options" to listOf(mapOf("key" to "A","content" to "option-$marker"),mapOf("key" to "B","content" to "乙"),mapOf("key" to "C","content" to "丙"))) else payload)
+        }
+        val hiddenBank=call("GET","/admin/question-banks/${hidden.bank}")
+        call("PUT","/admin/question-banks/${hidden.bank}/publication",mapOf("expectedVersion" to hiddenBank["version"].asLong(),"status" to "UNPUBLISHED"))
+        val found=call("GET","/questions?keyword=$marker&pageSize=1",token=s.token)
+        assertEquals(2,found["total"].asInt());assertEquals(1,found["items"].size())
+        val first=found["items"].first();assertEquals(f.bank.toString(),first["questionBankId"].asText())
+        val optionMatch=call("GET","/questions?keyword=option-$marker",token=s.token)
+        assertEquals(1,optionMatch["total"].asInt());assertEquals(f.questions[0].toString(),optionMatch["items"].first()["id"].asText())
+        assertTrue(first["correctAnswer"].isNull);assertTrue(first["referenceAnswer"].isNull);assertTrue(first["explanation"].isNull)
+        val second=call("GET","/questions?keyword=$marker&pageSize=1&page=2",token=s.token)
+        assertNotEquals(first["id"],second["items"].first()["id"])
+        call("GET","/questions?keyword=%20",token=s.token,status=422)
+        call("GET","/questions?keyword="+"x".repeat(201),token=s.token,status=422)
+        call("GET","/questions?keyword=$marker",token=null,status=401)
+        val session=createPractice(s,f)
+        val result=call("POST","/practice/sessions/${id(session)}/finish",mapOf("expectedVersion" to 1,"durationSeconds" to 0,"items" to answers(session)),s.token)
+        assertEquals(3,call("GET","/me/question-progress",token=s.token)["total"].asInt())
+        val short=result["items"].first { it["question"]["type"].asText()=="SHORT_ANSWER" }
+        call("PUT","/practice/sessions/${id(session)}/items/${short["itemId"].asText()}/self-assessment",mapOf("expectedVersion" to result["version"].asLong(),"assessment" to "WRONG"),s.token)
+        val progress=call("GET","/me/question-progress?questionBankId=${f.bank}&pageSize=2",token=s.token)
+        assertEquals(4,progress["total"].asInt());assertEquals(2,progress["items"].size())
+        val rest=call("GET","/me/question-progress?questionBankId=${f.bank}&pageSize=2&page=2",token=s.token)
+        val all=progress["items"].toList()+rest["items"].toList()
+        assertEquals(4,all.map { it["questionId"].asText() }.distinct().size)
+        assertEquals("WRONG",all.first { it["questionId"]==short["question"]["id"] }["outcome"].asText())
+        assertTrue(all.all { it["questionBankId"].asText()==f.bank.toString() && it["lastPracticedAt"].isTextual })
+        assertEquals(0,call("GET","/me/question-progress",token=another.token)["total"].asInt())
+        val again=createPractice(s,f)
+        val single=again["items"].first { it["question"]["type"].asText()=="SINGLE_CHOICE" }
+        call("POST","/practice/sessions/${id(again)}/finish",mapOf("expectedVersion" to 1,"durationSeconds" to 0,"items" to listOf(mapOf("itemId" to single["itemId"].asText(),"answer" to mapOf("optionKeys" to listOf("C")),"confirmed" to true))),s.token)
+        val latest=call("GET","/me/question-progress",token=s.token)
+        assertEquals(4,latest["total"].asInt());assertEquals("WRONG",latest["items"].first { it["questionId"]==single["question"]["id"] }["outcome"].asText())
+    }
+
     @Test fun `OpenAPI contains current typed endpoints and version one`() {
         val response=http.send(HttpRequest.newBuilder(URI("http://127.0.0.1:$port/v3/api-docs")).GET().build(),HttpResponse.BodyHandlers.ofString())
         assertEquals(200,response.statusCode(),response.body());val spec=json.readTree(response.body())
@@ -337,7 +464,7 @@ class PlatformPostgresTest {
     @Test fun `local mail uses encrypted outbox and a real SMTP capture transport`() {
         val address="${UUID.randomUUID()}@example.test"
         val challenge=call("POST","/auth/email-challenges",mapOf("purpose" to "REGISTER","email" to address),null,201)
-        repeat(30) { if(!outbox.dispatchOne()) return@repeat }
+        repeat(200) { if(jdbc.queryForObject("SELECT state FROM mail_delivery WHERE challenge_id=?",String::class.java,id(challenge))!="ACCEPTED") outbox.dispatchOne() }
         assertEquals("ACCEPTED",jdbc.queryForObject("SELECT state FROM mail_delivery WHERE challenge_id=?",String::class.java,id(challenge)))
         val uri=URI("http://127.0.0.1:${mailpit.getMappedPort(8025)}/api/v1/search?query="+java.net.URLEncoder.encode("to:$address",Charsets.UTF_8))
         val search=json.readTree(http.send(HttpRequest.newBuilder(uri).GET().build(),HttpResponse.BodyHandlers.ofString()).body())
@@ -564,6 +691,7 @@ class PlatformPostgresTest {
                 node.fields().forEachRemaining { (key,value) ->
                     result.set<JsonNode>(key,when {
                         key in setOf("password","newPassword") -> json.valueToTree("Redacted-password-123")
+                        key=="writerToken" && value.isTextual -> json.valueToTree("00000000-0000-0000-0000-000000000001")
                         key in setOf("accessToken","registrationToken") && value.isTextual -> json.valueToTree((if(value.asText().startsWith("u_")) "u_" else if(value.asText().startsWith("a_")) "a_" else "")+"x".repeat(43))
                         key in setOf("code","oldCode","newCode") && value.isTextual && value.asText().matches(Regex("[0-9]{6}")) -> json.valueToTree("000000")
                         else -> redact(value)
@@ -578,7 +706,7 @@ class PlatformPostgresTest {
             val op=operations.firstOrNull { (route,method,_) ->
                 method==event["method"] && Regex("^"+route.split(Regex("\\{[^}]+}")).joinToString("[^/]+") { Regex.escape(it) }+"$").matches((event["path"] as String).substringBefore('?'))
             } ?: return@mapNotNull null
-            event+mapOf("operationId" to op.third,"requestBody" to redact(event["requestBody"] as? JsonNode),"responseBody" to redact(event["responseBody"] as? JsonNode))
+            event+mapOf("operationId" to op.third,"requestBody" to redact(event["requestBody"] as? JsonNode),"responseBody" to redact(event["responseBody"] as? JsonNode),"requestHeaders" to ((event["requestHeaders"] as? Map<*,*>) ?: emptyMap<Any,Any>()).mapValues { (key,value) -> if(key=="X-Practice-Writer") "00000000-0000-0000-0000-000000000001" else value })
         }
         val dir=Path.of(".backend-runtime/verification");Files.createDirectories(dir)
         Files.writeString(dir.resolve("openapi.json"),json.writerWithDefaultPrettyPrinter().writeValueAsString(spec))

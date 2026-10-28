@@ -86,6 +86,7 @@
                   "if(session.accessToken)pm.environment.set(\"adminToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -153,6 +154,7 @@
                   "if(session.accessToken)pm.environment.set(\"adminToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -237,6 +239,7 @@
                   "if(session.accessToken)pm.environment.set(\"adminToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -323,6 +326,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"administratorId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -402,6 +406,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"administratorId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -477,6 +482,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"sessionId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -545,6 +551,7 @@
                   "if(session.accessToken)pm.environment.set(\"adminToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -624,6 +631,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"administratorId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -709,6 +717,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"administratorId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -808,6 +817,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"userId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -877,6 +887,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"userId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -945,6 +956,7 @@
                   "if(session.accessToken)pm.environment.set(\"adminToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -1023,6 +1035,7 @@
                   "if(session.accessToken)pm.environment.set(\"adminToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -1114,6 +1127,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"subjectId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -1200,6 +1214,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"majorId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -1286,6 +1301,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"collegeId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -1370,6 +1386,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"subjectId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -1455,6 +1472,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"subjectId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -1540,6 +1558,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"majorId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -1619,6 +1638,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"collegeId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -1704,6 +1724,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"collegeId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -1787,6 +1808,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"subjectId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -1855,6 +1877,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"subjectId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -1926,6 +1949,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"collegeId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -1999,6 +2023,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"majorId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -2080,6 +2105,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"majorId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -2154,6 +2180,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"questionId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -2240,6 +2267,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"questionId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -2319,6 +2347,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"questionId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -2388,6 +2417,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"questionBankId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -2474,6 +2504,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"questionBankId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -2560,6 +2591,7 @@
                   "if(session.accessToken)pm.environment.set(\"adminToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -2646,6 +2678,7 @@
                   "if(session.accessToken)pm.environment.set(\"adminToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -2734,6 +2767,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"chapterId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -2815,6 +2849,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"chapterId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -2900,6 +2935,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"questionId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -2989,6 +3025,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"questionBankId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -3074,6 +3111,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"questionBankId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -3160,6 +3198,7 @@
                   "if(session.accessToken)pm.environment.set(\"adminToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -3242,6 +3281,7 @@
                   "if(session.accessToken)pm.environment.set(\"adminToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -3312,6 +3352,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"chapterId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -3399,6 +3440,91 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"chapterId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
+                  "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Content_search_GET",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-Id",
+                "value": "{{$guid}}"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/questions?keyword=%E7%A4%BA%E4%BE%8B%E5%86%85%E5%AE%B9",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "questions"
+              ],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "示例内容",
+                  "disabled": false
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "1",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Content_search_GET"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const base=pm.environment.get('baseUrl');",
+                  "if(!/^https?:\\/\\/(localhost|127\\.0\\.0\\.1|\\[::1\\])(:[0-9]+)?$/.test(base))throw new Error('本集合用于本地验收');",
+                  "const key=pm.environment.get('commandKey')||pm.variables.replaceIn('{{$guid}}');",
+                  "pm.variables.set('effectiveCommandKey',key);pm.environment.set('lastCommandKey',key);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('状态符合合同',()=>pm.expect(pm.response.code).to.eql(200));",
+                  "pm.test('禁止缓存',()=>pm.expect(pm.response.headers.get('Cache-Control')).to.eql('no-store'));",
+                  "if(pm.response.headers.get('Content-Type')?.includes('application/json')&&pm.response.code<300){const b=pm.response.json();",
+                  "const session=b.session||b;",
+                  "if(session.accessToken)pm.environment.set(\"userToken\",session.accessToken);",
+                  "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
+                  "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "if(b.id)pm.environment.set(\"questionId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -3467,6 +3593,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"questionId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -3555,6 +3682,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"questionBankId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -3623,6 +3751,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"questionBankId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -3713,6 +3842,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"questionId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -3782,6 +3912,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"chapterId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -3873,6 +4004,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"questionId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -3964,6 +4096,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"subjectId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -4037,6 +4170,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"subjectId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -4110,6 +4244,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"questionId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -4183,6 +4318,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"questionId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -4262,6 +4398,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"subjectId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -4340,6 +4477,7 @@
                   "if(session.accessToken)pm.environment.set(\"userToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -4419,6 +4557,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"questionId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -4508,6 +4647,7 @@
                   "if(session.accessToken)pm.environment.set(\"userToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -4575,6 +4715,7 @@
                   "if(session.accessToken)pm.environment.set(\"userToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -4659,6 +4800,7 @@
                   "if(session.accessToken)pm.environment.set(\"userToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -4743,6 +4885,7 @@
                   "if(session.accessToken)pm.environment.set(\"userToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -4827,6 +4970,7 @@
                   "if(session.accessToken)pm.environment.set(\"userToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -4912,6 +5056,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"challengeId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -4985,6 +5130,7 @@
                   "if(session.accessToken)pm.environment.set(\"userToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -5063,6 +5209,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"userId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -5137,6 +5284,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"sessionId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -5214,6 +5362,7 @@
                   "if(session.accessToken)pm.environment.set(\"userToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -5292,6 +5441,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"userId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -5370,6 +5520,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"challengeId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -5436,6 +5587,7 @@
                   "if(session.accessToken)pm.environment.set(\"userToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -5504,6 +5656,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"sessionId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -5577,6 +5730,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"sessionId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -5645,6 +5799,7 @@
                   "if(session.accessToken)pm.environment.set(\"userToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -5738,6 +5893,7 @@
                   "if(session.accessToken)pm.environment.set(\"userToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -5818,6 +5974,7 @@
                   "if(session.accessToken)pm.environment.set(\"userToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -5896,6 +6053,7 @@
                   "if(session.accessToken)pm.environment.set(\"userToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -5975,6 +6133,7 @@
                   "if(session.accessToken)pm.environment.set(\"userToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -6053,6 +6212,91 @@
                   "if(session.accessToken)pm.environment.set(\"userToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
+                  "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Learning_questionProgress_GET",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-Id",
+                "value": "{{$guid}}"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/question-progress",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "me",
+                "question-progress"
+              ],
+              "query": [
+                {
+                  "key": "questionBankId",
+                  "value": "00000000-0000-0000-0000-000000000001",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "1",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Learning_questionProgress_GET"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const base=pm.environment.get('baseUrl');",
+                  "if(!/^https?:\\/\\/(localhost|127\\.0\\.0\\.1|\\[::1\\])(:[0-9]+)?$/.test(base))throw new Error('本集合用于本地验收');",
+                  "const key=pm.environment.get('commandKey')||pm.variables.replaceIn('{{$guid}}');",
+                  "pm.variables.set('effectiveCommandKey',key);pm.environment.set('lastCommandKey',key);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('状态符合合同',()=>pm.expect(pm.response.code).to.eql(200));",
+                  "pm.test('禁止缓存',()=>pm.expect(pm.response.headers.get('Cache-Control')).to.eql('no-store'));",
+                  "if(pm.response.headers.get('Content-Type')?.includes('application/json')&&pm.response.code<300){const b=pm.response.json();",
+                  "const session=b.session||b;",
+                  "if(session.accessToken)pm.environment.set(\"userToken\",session.accessToken);",
+                  "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
+                  "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -6131,6 +6375,7 @@
                   "if(session.accessToken)pm.environment.set(\"userToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -6199,6 +6444,7 @@
                   "if(session.accessToken)pm.environment.set(\"userToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -6279,6 +6525,7 @@
                   "if(session.accessToken)pm.environment.set(\"adminToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -6359,6 +6606,7 @@
                   "if(session.accessToken)pm.environment.set(\"adminToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -6429,6 +6677,7 @@
                   "if(session.accessToken)pm.environment.set(\"adminToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -6523,6 +6772,7 @@
                   "if(session.accessToken)pm.environment.set(\"adminToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -6622,6 +6872,7 @@
                   "if(session.accessToken)pm.environment.set(\"adminToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -6716,6 +6967,7 @@
                   "if(session.accessToken)pm.environment.set(\"adminToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -6800,6 +7052,7 @@
                   "if(session.accessToken)pm.environment.set(\"adminToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -6891,6 +7144,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"feedbackId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -6977,6 +7231,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"courseRequestId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -7063,6 +7318,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"announcementId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -7142,6 +7398,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"announcementId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -7226,6 +7483,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"feedbackId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -7311,6 +7569,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"feedbackId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -7395,6 +7654,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"courseRequestId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -7480,6 +7740,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"courseRequestId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -7559,6 +7820,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"announcementId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -7644,6 +7906,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"announcementId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -7722,6 +7985,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"announcementId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -7806,6 +8070,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"feedbackId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -7873,6 +8138,7 @@
                   "if(session.accessToken)pm.environment.set(\"adminToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -7957,6 +8223,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"courseRequestId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -8046,6 +8313,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"fileId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -8105,6 +8373,7 @@
                   "if(session.accessToken)pm.environment.set(\"userToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -8172,6 +8441,7 @@
                   "if(session.accessToken)pm.environment.set(\"userToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -8230,7 +8500,7 @@
             "description": "Practice_progress_PUT",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"expectedVersion\": {{expectedVersion}},\n  \"currentIndex\": 0,\n  \"durationSeconds\": 0\n}",
+              "raw": "{\n  \"expectedVersion\": {{expectedVersion}},\n  \"currentIndex\": 0,\n  \"durationSeconds\": 0,\n  \"writerToken\": \"{{writerToken}}\",\n  \"clientSequence\": {{clientSequence}}\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -8263,6 +8533,94 @@
                   "if(session.accessToken)pm.environment.set(\"userToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
+                  "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Practice_progressAck_PUT",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "X-Request-Id",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{effectiveCommandKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/practice/sessions/{{sessionId}}/progress-ack",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "practice",
+                "sessions",
+                "{{sessionId}}",
+                "progress-ack"
+              ],
+              "query": []
+            },
+            "description": "Practice_progressAck_PUT",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expectedVersion\": {{expectedVersion}},\n  \"currentIndex\": 0,\n  \"durationSeconds\": 0,\n  \"writerToken\": \"{{writerToken}}\",\n  \"clientSequence\": {{clientSequence}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const base=pm.environment.get('baseUrl');",
+                  "if(!/^https?:\\/\\/(localhost|127\\.0\\.0\\.1|\\[::1\\])(:[0-9]+)?$/.test(base))throw new Error('本集合用于本地验收');",
+                  "const key=pm.environment.get('commandKey')||pm.variables.replaceIn('{{$guid}}');",
+                  "pm.variables.set('effectiveCommandKey',key);pm.environment.set('lastCommandKey',key);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('状态符合合同',()=>pm.expect(pm.response.code).to.eql(200));",
+                  "pm.test('禁止缓存',()=>pm.expect(pm.response.headers.get('Cache-Control')).to.eql('no-store'));",
+                  "if(pm.response.headers.get('Content-Type')?.includes('application/json')&&pm.response.code<300){const b=pm.response.json();",
+                  "const session=b.session||b;",
+                  "if(session.accessToken)pm.environment.set(\"userToken\",session.accessToken);",
+                  "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
+                  "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -8318,7 +8676,7 @@
             "description": "Practice_assess_PUT",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"expectedVersion\": {{expectedVersion}},\n  \"assessment\": \"CORRECT\"\n}",
+              "raw": "{\n  \"expectedVersion\": {{expectedVersion}},\n  \"assessment\": \"CORRECT\",\n  \"writerToken\": \"{{writerToken}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -8351,6 +8709,7 @@
                   "if(session.accessToken)pm.environment.set(\"userToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -8402,7 +8761,7 @@
             "description": "Practice_create_POST",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"scope\": {\n    \"questionBankId\": \"{{questionBankId}}\",\n    \"count\": 1,\n    \"order\": \"SEQUENTIAL\",\n    \"selectionKind\": \"NORMAL\"\n  },\n  \"expectedContentVersion\": {{expectedContentVersion}}\n}",
+              "raw": "{\n  \"scope\": {\n    \"questionBankId\": \"{{questionBankId}}\",\n    \"count\": 1,\n    \"order\": \"SEQUENTIAL\",\n    \"selectionKind\": \"NORMAL\"\n  },\n  \"expectedContentVersion\": {{expectedContentVersion}},\n  \"deviceId\": \"{{deviceId}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -8436,6 +8795,181 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"sessionId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
+                  "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Practice_releaseWriter_POST",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Request-Id",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{effectiveCommandKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/practice/sessions/{{sessionId}}/writer-release",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "practice",
+                "sessions",
+                "{{sessionId}}",
+                "writer-release"
+              ],
+              "query": []
+            },
+            "description": "Practice_releaseWriter_POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"deviceId\": \"{{deviceId}}\",\n  \"writerToken\": \"{{writerToken}}\",\n  \"expectedVersion\": {{expectedVersion}},\n  \"clientSequence\": {{acknowledgedSequence}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const base=pm.environment.get('baseUrl');",
+                  "if(!/^https?:\\/\\/(localhost|127\\.0\\.0\\.1|\\[::1\\])(:[0-9]+)?$/.test(base))throw new Error('本集合用于本地验收');",
+                  "const key=pm.environment.get('commandKey')||pm.variables.replaceIn('{{$guid}}');",
+                  "pm.variables.set('effectiveCommandKey',key);pm.environment.set('lastCommandKey',key);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('状态符合合同',()=>pm.expect(pm.response.code).to.eql(200));",
+                  "pm.test('禁止缓存',()=>pm.expect(pm.response.headers.get('Cache-Control')).to.eql('no-store'));",
+                  "if(pm.response.headers.get('Content-Type')?.includes('application/json')&&pm.response.code<300){const b=pm.response.json();",
+                  "const session=b.session||b;",
+                  "if(session.accessToken)pm.environment.set(\"userToken\",session.accessToken);",
+                  "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
+                  "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
+                  "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Practice_acquireWriter_POST",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Request-Id",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{effectiveCommandKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/practice/sessions/{{sessionId}}/writer-acquire",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "practice",
+                "sessions",
+                "{{sessionId}}",
+                "writer-acquire"
+              ],
+              "query": []
+            },
+            "description": "Practice_acquireWriter_POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"deviceId\": \"{{deviceId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const base=pm.environment.get('baseUrl');",
+                  "if(!/^https?:\\/\\/(localhost|127\\.0\\.0\\.1|\\[::1\\])(:[0-9]+)?$/.test(base))throw new Error('本集合用于本地验收');",
+                  "const key=pm.environment.get('commandKey')||pm.variables.replaceIn('{{$guid}}');",
+                  "pm.variables.set('effectiveCommandKey',key);pm.environment.set('lastCommandKey',key);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('状态符合合同',()=>pm.expect(pm.response.code).to.eql(200));",
+                  "pm.test('禁止缓存',()=>pm.expect(pm.response.headers.get('Cache-Control')).to.eql('no-store'));",
+                  "if(pm.response.headers.get('Content-Type')?.includes('application/json')&&pm.response.code<300){const b=pm.response.json();",
+                  "const session=b.session||b;",
+                  "if(session.accessToken)pm.environment.set(\"userToken\",session.accessToken);",
+                  "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
+                  "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -8489,7 +9023,7 @@
             "description": "Practice_finish_POST",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"expectedVersion\": {{expectedVersion}},\n  \"durationSeconds\": 0\n}",
+              "raw": "{\n  \"expectedVersion\": {{expectedVersion}},\n  \"durationSeconds\": 0,\n  \"writerToken\": \"{{writerToken}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -8523,6 +9057,7 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"resultId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -8576,7 +9111,7 @@
             "description": "Practice_cancel_POST",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"expectedVersion\": {{expectedVersion}}\n}",
+              "raw": "{\n  \"expectedVersion\": {{expectedVersion}},\n  \"writerToken\": \"{{writerToken}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -8609,6 +9144,7 @@
                   "if(session.accessToken)pm.environment.set(\"userToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -8689,6 +9225,7 @@
                   "if(session.accessToken)pm.environment.set(\"userToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -8758,6 +9295,163 @@
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
                   "if(b.id)pm.environment.set(\"sessionId\",b.id);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
+                  "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Practice_writerState_GET",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-Id",
+                "value": "{{$guid}}"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/practice/sessions/{{sessionId}}/writer-state?deviceId={{deviceId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "practice",
+                "sessions",
+                "{{sessionId}}",
+                "writer-state"
+              ],
+              "query": [
+                {
+                  "key": "deviceId",
+                  "value": "{{deviceId}}",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "Practice_writerState_GET"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const base=pm.environment.get('baseUrl');",
+                  "if(!/^https?:\\/\\/(localhost|127\\.0\\.0\\.1|\\[::1\\])(:[0-9]+)?$/.test(base))throw new Error('本集合用于本地验收');",
+                  "const key=pm.environment.get('commandKey')||pm.variables.replaceIn('{{$guid}}');",
+                  "pm.variables.set('effectiveCommandKey',key);pm.environment.set('lastCommandKey',key);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('状态符合合同',()=>pm.expect(pm.response.code).to.eql(200));",
+                  "pm.test('禁止缓存',()=>pm.expect(pm.response.headers.get('Cache-Control')).to.eql('no-store'));",
+                  "if(pm.response.headers.get('Content-Type')?.includes('application/json')&&pm.response.code<300){const b=pm.response.json();",
+                  "const session=b.session||b;",
+                  "if(session.accessToken)pm.environment.set(\"userToken\",session.accessToken);",
+                  "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
+                  "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
+                  "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Practice_snapshot_GET",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-Id",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "X-Practice-Writer",
+                "value": "{{writerToken}}"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/practice/sessions/{{sessionId}}/snapshot?deviceId={{deviceId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "practice",
+                "sessions",
+                "{{sessionId}}",
+                "snapshot"
+              ],
+              "query": [
+                {
+                  "key": "deviceId",
+                  "value": "{{deviceId}}",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "Practice_snapshot_GET"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const base=pm.environment.get('baseUrl');",
+                  "if(!/^https?:\\/\\/(localhost|127\\.0\\.0\\.1|\\[::1\\])(:[0-9]+)?$/.test(base))throw new Error('本集合用于本地验收');",
+                  "const key=pm.environment.get('commandKey')||pm.variables.replaceIn('{{$guid}}');",
+                  "pm.variables.set('effectiveCommandKey',key);pm.environment.set('lastCommandKey',key);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('状态符合合同',()=>pm.expect(pm.response.code).to.eql(200));",
+                  "pm.test('禁止缓存',()=>pm.expect(pm.response.headers.get('Cache-Control')).to.eql('no-store'));",
+                  "if(pm.response.headers.get('Content-Type')?.includes('application/json')&&pm.response.code<300){const b=pm.response.json();",
+                  "const session=b.session||b;",
+                  "if(session.accessToken)pm.environment.set(\"userToken\",session.accessToken);",
+                  "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
+                  "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]
@@ -8827,6 +9521,7 @@
                   "if(session.accessToken)pm.environment.set(\"userToken\",session.accessToken);",
                   "if(b.registrationToken)pm.environment.set('registrationToken',b.registrationToken);",
                   "if(b.version!==undefined)pm.environment.set('expectedVersion',b.version);if(b.contentVersion!==undefined)pm.environment.set('expectedContentVersion',b.contentVersion);",
+                  "const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}",
                   "for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}",
                   "}"
                 ]

@@ -12,6 +12,7 @@ data class StatisticsView(val startDate: LocalDate,val endDateExclusive: LocalDa
                           val selfRatedCount: Long,val selfRatedCorrectCount: Long,val selfRatedWrongCount: Long,val durationSeconds: Long)
 data class DayView(val date: LocalDate,val practiceCount: Long,val answeredCount: Long,val correctCount: Long,val durationSeconds: Long)
 data class WrongView(val questionId: UUID,val questionBankId: UUID,val stem: String,val type: String,val lastOutcome: String,val lastPracticedAt: Instant,val rightCount: Long,val wrongCount: Long,val available: Boolean)
+data class QuestionProgressView(val questionId: UUID,val questionBankId: UUID,val outcome: String,val lastPracticedAt: Instant)
 data class WrongAttemptView(val sessionId: UUID,val revisionId: UUID,val outcome: String,val selfAssessment: String?,val submittedAt: Instant)
 data class ActivityDayView(val date: LocalDate,val activeUsers: Long,val newUsers: Long,val returningUsers: Long)
 data class ActivityView(val dailyActive: Long,val weeklyActive: Long,val monthlyActive: Long,val activeUsers: Long,val retention: Double,val records: List<ActivityDayView>)
@@ -47,6 +48,7 @@ class LearningService(private val sql: LearningMapper,private val clock: Clock) 
         if(status !in setOf("ALL","UNMASTERED","MASTERED")) invalid("/status")
         return Page(sql.wrong(userId,status,bankId,p.offset,p.pageSize).map { WrongView(it.questionId!!,it.bankId!!,it.stem,it.type,it.lastOutcome,it.lastPracticedAt,it.rightCount,it.wrongCount,it.available) },sql.wrongCount(userId,status,bankId),p.page,p.pageSize)
     }
+    fun questionProgress(userId: UUID,bankId: UUID?,p: PageSpec): Page<QuestionProgressView> = Page(sql.questionProgress(userId,bankId,p.offset,p.pageSize).map { QuestionProgressView(it.questionId!!,it.bankId!!,it.lastOutcome,it.lastPracticedAt) },sql.questionProgressCount(userId,bankId),p.page,p.pageSize)
     fun wrongHistory(userId: UUID,questionId: UUID,p: PageSpec): Page<WrongAttemptView> = Page(sql.wrongHistory(userId,questionId,p.offset,p.pageSize).map { WrongAttemptView(it.sessionId!!,it.revisionId!!,it.outcome,it.selfAssessment,it.submittedAt) },sql.wrongHistoryCount(userId,questionId),p.page,p.pageSize)
     fun activity(f: StatsFilter): ActivityView {
         val length=Duration.between(f.start,f.end);val previous=f.copy(start=f.start.minus(length),end=f.start)
