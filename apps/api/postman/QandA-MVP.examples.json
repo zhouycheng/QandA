@@ -1,1354 +1,893 @@
-{
-  "scope": "结构样例；资源/版本需由实际响应填充，待验条目不代表业务成功",
-  "operations": [
-    {
-      "operationId": "adminSecurityListAdministrators",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "adminSecuritySetQualification",
-      "status": "独立验收通过",
-      "requestBody": {
-        "qualified": true,
-        "expectedVersion": null
-      },
-      "requiredPathVariables": [
-        "accountId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "adminSecurityListUsers",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "adminSecurityGetUser",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "accountId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "adminSecuritySetAccountStatus",
-      "status": "独立验收通过",
-      "requestBody": {
-        "status": "DISABLED",
-        "expectedVersion": "{{expectedVersion}}"
-      },
-      "requiredPathVariables": [
-        "accountId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "adminSecurityReadPolicy",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "adminSecurityListAudit",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "adminSecurityGetAudit",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "auditEntryId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "analyticsGetMySummary",
-      "status": "合同草稿·未实现",
-      "requestBody": null,
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "analyticsGetMyDays",
-      "status": "合同草稿·未实现",
-      "requestBody": null,
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "analyticsGetAdminSummary",
-      "status": "合同草稿·未实现",
-      "requestBody": null,
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "analyticsGetStudentSummary",
-      "status": "合同草稿·未实现",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "accountId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "analyticsGetOrganizationSummaries",
-      "status": "合同草稿·未实现",
-      "requestBody": null,
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "analyticsGetSchoolRanking",
-      "status": "合同草稿·未实现",
-      "requestBody": null,
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "authorizationListSelectableColleges",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "authorizationListSelectableMajors",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "collegeId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "authorizationAdminListColleges",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "authorizationCreateCollege",
-      "status": "独立验收通过",
-      "requestBody": {
-        "name": "信息工程学院"
-      },
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 201
-    },
-    {
-      "operationId": "authorizationAdminGetCollege",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "collegeId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "authorizationUpdateCollege",
-      "status": "独立验收通过",
-      "requestBody": {
-        "name": "信息工程学院",
-        "status": "DISABLED",
-        "expectedVersion": "{{expectedVersion}}"
-      },
-      "requiredPathVariables": [
-        "collegeId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "authorizationAdminListMajors",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "collegeId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "authorizationCreateMajor",
-      "status": "独立验收通过",
-      "requestBody": {
-        "name": "信息工程学院"
-      },
-      "requiredPathVariables": [
-        "collegeId"
-      ],
-      "defaultExpectedStatus": 201
-    },
-    {
-      "operationId": "authorizationAdminGetMajor",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "majorId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "authorizationUpdateMajor",
-      "status": "独立验收通过",
-      "requestBody": {
-        "name": "信息工程学院",
-        "status": "DISABLED",
-        "expectedVersion": "{{expectedVersion}}"
-      },
-      "requiredPathVariables": [
-        "majorId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "authorizationGetOwnMembership",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "authorizationSetOwnMembership",
-      "status": "独立验收通过",
-      "requestBody": {
-        "collegeId": "{{collegeId}}",
-        "majorId": "{{majorId}}",
-        "expectedVersion": "{{expectedVersion}}"
-      },
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "authorizationAdminGetMembership",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "accountId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "authorizationAdminSetMembership",
-      "status": "独立验收通过",
-      "requestBody": {
-        "collegeId": "{{collegeId}}",
-        "majorId": "{{majorId}}",
-        "expectedVersion": "{{expectedVersion}}"
-      },
-      "requiredPathVariables": [
-        "accountId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "authorizationAdminListMembershipHistory",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "accountId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "authorizationExplainAccountSchoolAccess",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "accountId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "authorizationGetSchoolPolicy",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "subjectId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "authorizationSetSchoolPublic",
-      "status": "独立验收通过",
-      "requestBody": {
-        "isPublic": true,
-        "expectedVersion": "{{expectedVersion}}"
-      },
-      "requiredPathVariables": [
-        "subjectId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "authorizationListCollegeGrants",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "subjectId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "authorizationSetCollegeGrant",
-      "status": "独立验收通过",
-      "requestBody": {
-        "enabled": true,
-        "expectedVersion": "{{expectedVersion}}"
-      },
-      "requiredPathVariables": [
-        "subjectId",
-        "collegeId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "authorizationListMajorGrants",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "subjectId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "authorizationSetMajorGrant",
-      "status": "独立验收通过",
-      "requestBody": {
-        "enabled": true,
-        "expectedVersion": "{{expectedVersion}}"
-      },
-      "requiredPathVariables": [
-        "subjectId",
-        "majorId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "authorizationListSchoolAccountRules",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "subjectId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "authorizationSetSchoolAccountRule",
-      "status": "独立验收通过",
-      "requestBody": {
-        "granted": false,
-        "inheritanceBlocked": true,
-        "expectedVersion": "{{expectedVersion}}"
-      },
-      "requiredPathVariables": [
-        "subjectId",
-        "accountId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "authorizationListUserSubjectShares",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "subjectId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "authorizationGrantUserSubjectShare",
-      "status": "独立验收通过",
-      "requestBody": {
-        "accountCode": "{{accountCode}}",
-        "expectedVersion": "{{expectedVersion}}"
-      },
-      "requiredPathVariables": [
-        "subjectId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "authorizationRevokeUserSubjectShare",
-      "status": "独立验收通过",
-      "requestBody": {
-        "recipientAccountId": "{{recipientAccountId}}",
-        "expectedVersion": "{{expectedVersion}}"
-      },
-      "requiredPathVariables": [
-        "subjectId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "contentListSubjects",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "contentCreateSubject",
-      "status": "独立验收通过",
-      "requestBody": {
-        "source": "SCHOOL",
-        "title": "样例"
-      },
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 201
-    },
-    {
-      "operationId": "contentGetSubject",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "subjectId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "contentUpdateSubject",
-      "status": "独立验收通过",
-      "requestBody": {
-        "expectedVersion": "{{subjectVersion}}",
-        "title": "样例",
-        "description": "样例"
-      },
-      "requiredPathVariables": [
-        "subjectId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "contentSetSubjectStatus",
-      "status": "独立验收通过",
-      "requestBody": {
-        "expectedVersion": "{{subjectVersion}}",
-        "status": "ACTIVE"
-      },
-      "requiredPathVariables": [
-        "subjectId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "contentListChapters",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "subjectId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "contentCreateChapter",
-      "status": "独立验收通过",
-      "requestBody": {
-        "expectedVersion": "{{expectedContentVersion}}",
-        "title": "样例"
-      },
-      "requiredPathVariables": [
-        "subjectId"
-      ],
-      "defaultExpectedStatus": 201
-    },
-    {
-      "operationId": "contentUpdateChapter",
-      "status": "独立验收通过",
-      "requestBody": {
-        "expectedVersion": "{{chapterVersion}}",
-        "title": "样例",
-        "status": "ACTIVE"
-      },
-      "requiredPathVariables": [
-        "subjectId",
-        "chapterId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "contentReorderChapters",
-      "status": "独立验收通过",
-      "requestBody": {
-        "expectedVersion": "{{expectedContentVersion}}",
-        "ids": [
-          "{{orderId1}}"
-        ]
-      },
-      "requiredPathVariables": [
-        "subjectId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "contentListQuestions",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "subjectId",
-        "chapterId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "contentCreateQuestion",
-      "status": "独立验收通过",
-      "requestBody": {
-        "expectedVersion": "{{expectedContentVersion}}",
-        "question": {
-          "sourceKey": "single-001",
-          "content": {
-            "type": "SINGLE_CHOICE",
-            "stem": {
-              "blocks": [
-                {
-                  "kind": "TEXT",
-                  "text": "选择正确描述",
-                  "format": "PLAIN"
-                }
-              ]
-            },
-            "options": [
-              {
-                "key": "a",
-                "optionId": null,
-                "content": {
-                  "blocks": [
-                    {
-                      "kind": "TEXT",
-                      "text": "甲",
-                      "format": "PLAIN"
-                    }
-                  ]
-                }
-              },
-              {
-                "key": "b",
-                "optionId": null,
-                "content": {
-                  "blocks": [
-                    {
-                      "kind": "TEXT",
-                      "text": "乙",
-                      "format": "PLAIN"
-                    }
-                  ]
-                }
-              }
-            ],
-            "correctOptionKeys": [
-              "a"
-            ],
-            "explanation": null
-          }
+[
+  {
+    "operationId": "Admin_userStatus_PUT",
+    "method": "PUT",
+    "path": "/api/v1/admin/users/{id}/status",
+    "body": {
+      "expectedVersion": "{{expectedVersion}}",
+      "status": "ACTIVE"
+    }
+  },
+  {
+    "operationId": "Admin_policy_GET",
+    "method": "GET",
+    "path": "/api/v1/admin/security-policy",
+    "body": null
+  },
+  {
+    "operationId": "Admin_policy_PUT",
+    "method": "PUT",
+    "path": "/api/v1/admin/security-policy",
+    "body": {
+      "expectedVersion": "{{expectedVersion}}",
+      "lockEnabled": true,
+      "maxAttempts": 5,
+      "lockMinutes": 30,
+      "sessionMinutes": 30,
+      "minPasswordLength": 12,
+      "requireLetter": true,
+      "requireNumber": true,
+      "requireMixedCase": false
+    }
+  },
+  {
+    "operationId": "Admin_update_PUT",
+    "method": "PUT",
+    "path": "/api/v1/admin/administrators/{id}",
+    "body": {
+      "username": "{{username}}",
+      "name": "示例内容",
+      "expectedVersion": "{{expectedVersion}}"
+    }
+  },
+  {
+    "operationId": "Admin_disable_DELETE",
+    "method": "DELETE",
+    "path": "/api/v1/admin/administrators/{id}",
+    "body": null
+  },
+  {
+    "operationId": "Admin_login_POST",
+    "method": "POST",
+    "path": "/api/v1/admin/auth/sessions",
+    "body": {
+      "username": "{{username}}",
+      "password": "{{password}}",
+      "deviceId": "{{deviceId}}"
+    }
+  },
+  {
+    "operationId": "Admin_logout_POST",
+    "method": "POST",
+    "path": "/api/v1/admin/auth/logout",
+    "body": null
+  },
+  {
+    "operationId": "Admin_list_GET",
+    "method": "GET",
+    "path": "/api/v1/admin/administrators",
+    "body": null
+  },
+  {
+    "operationId": "Admin_create_POST",
+    "method": "POST",
+    "path": "/api/v1/admin/administrators",
+    "body": {
+      "username": "{{username}}",
+      "name": "示例内容",
+      "password": "{{password}}"
+    }
+  },
+  {
+    "operationId": "Admin_users_GET",
+    "method": "GET",
+    "path": "/api/v1/admin/users",
+    "body": null
+  },
+  {
+    "operationId": "Admin_user_GET",
+    "method": "GET",
+    "path": "/api/v1/admin/users/{id}",
+    "body": null
+  },
+  {
+    "operationId": "Admin_me_GET",
+    "method": "GET",
+    "path": "/api/v1/admin/auth/me",
+    "body": null
+  },
+  {
+    "operationId": "Admin_logs_GET",
+    "method": "GET",
+    "path": "/api/v1/admin/audit-logs",
+    "body": null
+  },
+  {
+    "operationId": "Catalog_updateSubject_PUT",
+    "method": "PUT",
+    "path": "/api/v1/admin/subjects/{id}",
+    "body": {
+      "name": "示例内容",
+      "expectedVersion": "{{expectedVersion}}"
+    }
+  },
+  {
+    "operationId": "Catalog_updateMajor_PUT",
+    "method": "PUT",
+    "path": "/api/v1/admin/majors/{id}",
+    "body": {
+      "collegeId": "{{collegeId}}",
+      "name": "示例内容",
+      "code": "{{code}}",
+      "expectedVersion": "{{expectedVersion}}"
+    }
+  },
+  {
+    "operationId": "Catalog_updateCollege_PUT",
+    "method": "PUT",
+    "path": "/api/v1/admin/colleges/{id}",
+    "body": {
+      "name": "示例内容",
+      "code": "{{code}}",
+      "expectedVersion": "{{expectedVersion}}"
+    }
+  },
+  {
+    "operationId": "Catalog_adminSubjects_GET",
+    "method": "GET",
+    "path": "/api/v1/admin/subjects",
+    "body": null
+  },
+  {
+    "operationId": "Catalog_createSubject_POST",
+    "method": "POST",
+    "path": "/api/v1/admin/subjects",
+    "body": {
+      "name": "示例内容"
+    }
+  },
+  {
+    "operationId": "Catalog_createMajor_POST",
+    "method": "POST",
+    "path": "/api/v1/admin/majors",
+    "body": {
+      "collegeId": "{{collegeId}}",
+      "name": "示例内容",
+      "code": "{{code}}"
+    }
+  },
+  {
+    "operationId": "Catalog_adminColleges_GET",
+    "method": "GET",
+    "path": "/api/v1/admin/colleges",
+    "body": null
+  },
+  {
+    "operationId": "Catalog_createCollege_POST",
+    "method": "POST",
+    "path": "/api/v1/admin/colleges",
+    "body": {
+      "name": "示例内容",
+      "code": "{{code}}"
+    }
+  },
+  {
+    "operationId": "Catalog_subjects_GET",
+    "method": "GET",
+    "path": "/api/v1/subjects",
+    "body": null
+  },
+  {
+    "operationId": "Catalog_subject_GET",
+    "method": "GET",
+    "path": "/api/v1/subjects/{id}",
+    "body": null
+  },
+  {
+    "operationId": "Catalog_colleges_GET",
+    "method": "GET",
+    "path": "/api/v1/colleges",
+    "body": null
+  },
+  {
+    "operationId": "Catalog_majors_GET",
+    "method": "GET",
+    "path": "/api/v1/colleges/{id}/majors",
+    "body": null
+  },
+  {
+    "operationId": "Catalog_adminMajors_GET",
+    "method": "GET",
+    "path": "/api/v1/admin/colleges/{id}/majors",
+    "body": null
+  },
+  {
+    "operationId": "Content_adminQuestion_GET",
+    "method": "GET",
+    "path": "/api/v1/admin/questions/{id}",
+    "body": null
+  },
+  {
+    "operationId": "Content_updateQuestion_PUT",
+    "method": "PUT",
+    "path": "/api/v1/admin/questions/{id}",
+    "body": {
+      "questionBankId": "{{questionBankId}}",
+      "type": "SINGLE_CHOICE",
+      "stem": "示例题干",
+      "options": [
+        {
+          "key": "A",
+          "content": "选项甲"
+        },
+        {
+          "key": "B",
+          "content": "选项乙"
         }
-      },
-      "requiredPathVariables": [
-        "subjectId",
-        "chapterId"
       ],
-      "defaultExpectedStatus": 201
-    },
-    {
-      "operationId": "contentReorderQuestions",
-      "status": "独立验收通过",
-      "requestBody": {
-        "expectedVersion": "{{expectedContentVersion}}",
-        "ids": [
-          "{{orderId1}}"
-        ]
-      },
-      "requiredPathVariables": [
-        "subjectId",
-        "chapterId"
+      "correctAnswer": [
+        "A"
       ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "contentGetQuestion",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "subjectId",
-        "questionId"
+      "explanation": "示例解析",
+      "expectedVersion": "{{expectedVersion}}"
+    }
+  },
+  {
+    "operationId": "Content_deactivateQuestion_DELETE",
+    "method": "DELETE",
+    "path": "/api/v1/admin/questions/{id}",
+    "body": null
+  },
+  {
+    "operationId": "Content_adminBank_GET",
+    "method": "GET",
+    "path": "/api/v1/admin/question-banks/{id}",
+    "body": null
+  },
+  {
+    "operationId": "Content_updateBank_PUT",
+    "method": "PUT",
+    "path": "/api/v1/admin/question-banks/{id}",
+    "body": {
+      "subjectId": "{{subjectId}}",
+      "name": "示例内容",
+      "expectedVersion": "{{expectedVersion}}"
+    }
+  },
+  {
+    "operationId": "Content_publish_PUT",
+    "method": "PUT",
+    "path": "/api/v1/admin/question-banks/{id}/publication",
+    "body": {
+      "expectedVersion": "{{expectedVersion}}",
+      "status": "DRAFT"
+    }
+  },
+  {
+    "operationId": "Content_reorder_PUT",
+    "method": "PUT",
+    "path": "/api/v1/admin/question-banks/{id}/chapter-order",
+    "body": {
+      "expectedContentVersion": "{{expectedContentVersion}}",
+      "ids": []
+    }
+  },
+  {
+    "operationId": "Content_updateChapter_PUT",
+    "method": "PUT",
+    "path": "/api/v1/admin/question-banks/{bankId}/chapters/{id}",
+    "body": {
+      "name": "示例内容",
+      "sortOrder": 0,
+      "expectedVersion": "{{expectedVersion}}"
+    }
+  },
+  {
+    "operationId": "Content_deleteChapter_DELETE",
+    "method": "DELETE",
+    "path": "/api/v1/admin/question-banks/{bankId}/chapters/{id}",
+    "body": null
+  },
+  {
+    "operationId": "Content_createQuestion_POST",
+    "method": "POST",
+    "path": "/api/v1/admin/questions",
+    "body": {
+      "questionBankId": "{{questionBankId}}",
+      "type": "SINGLE_CHOICE",
+      "stem": "示例题干",
+      "options": [
+        {
+          "key": "A",
+          "content": "选项甲"
+        },
+        {
+          "key": "B",
+          "content": "选项乙"
+        }
       ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "contentReviseQuestion",
-      "status": "独立验收通过",
-      "requestBody": {
-        "expectedVersion": "{{questionVersion}}",
-        "content": {
+      "correctAnswer": [
+        "A"
+      ],
+      "explanation": "示例解析"
+    }
+  },
+  {
+    "operationId": "Content_adminBanks_GET",
+    "method": "GET",
+    "path": "/api/v1/admin/question-banks",
+    "body": null
+  },
+  {
+    "operationId": "Content_createBank_POST",
+    "method": "POST",
+    "path": "/api/v1/admin/question-banks",
+    "body": {
+      "subjectId": "{{subjectId}}",
+      "name": "示例内容"
+    }
+  },
+  {
+    "operationId": "Content_importQuestions_POST",
+    "method": "POST",
+    "path": "/api/v1/admin/question-banks/{id}/imports",
+    "body": {
+      "expectedContentVersion": "{{expectedContentVersion}}",
+      "questions": [
+        {
+          "questionBankId": "{{questionBankId}}",
           "type": "SINGLE_CHOICE",
-          "stem": {
-            "blocks": [
-              {
-                "kind": "TEXT",
-                "text": "修订题干",
-                "format": "PLAIN"
-              }
-            ]
-          },
+          "stem": "示例题干",
           "options": [
             {
-              "key": "old",
-              "optionId": "{{optionId}}",
-              "content": {
-                "blocks": [
-                  {
-                    "kind": "TEXT",
-                    "text": "保留原选项身份",
-                    "format": "PLAIN"
-                  }
-                ]
-              }
+              "key": "A",
+              "content": "选项甲"
             },
             {
-              "key": "new",
-              "optionId": null,
-              "content": {
-                "blocks": [
-                  {
-                    "kind": "TEXT",
-                    "text": "新增选项",
-                    "format": "PLAIN"
-                  }
-                ]
-              }
+              "key": "B",
+              "content": "选项乙"
             }
           ],
-          "correctOptionKeys": [
-            "old"
+          "correctAnswer": [
+            "A"
           ],
-          "explanation": null
+          "explanation": "示例解析"
         }
-      },
-      "requiredPathVariables": [
-        "subjectId",
-        "questionId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "contentSetQuestionStatus",
-      "status": "独立验收通过",
-      "requestBody": {
-        "expectedVersion": "{{questionVersion}}",
-        "status": "ACTIVE"
-      },
-      "requiredPathVariables": [
-        "subjectId",
-        "questionId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "contentGetManagedRevision",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "subjectId",
-        "questionId",
-        "revisionId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "contentSearchQuestions",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "subjectId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "contentPrevalidateImport",
-      "status": "独立验收通过",
-      "requestBody": {
-        "expectedVersion": "{{expectedContentVersion}}",
-        "documents": [
-          {
-            "fileName": "sample.json",
-            "schemaVersion": "qanda-content-1",
-            "chapterId": "{{chapterId}}",
-            "questions": [
-              {
-                "sourceKey": "single-001",
-                "content": {
-                  "type": "SINGLE_CHOICE",
-                  "stem": {
-                    "blocks": [
-                      {
-                        "kind": "TEXT",
-                        "text": "选择正确描述",
-                        "format": "PLAIN"
-                      }
-                    ]
-                  },
-                  "options": [
-                    {
-                      "key": "a",
-                      "optionId": null,
-                      "content": {
-                        "blocks": [
-                          {
-                            "kind": "TEXT",
-                            "text": "甲",
-                            "format": "PLAIN"
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "key": "b",
-                      "optionId": null,
-                      "content": {
-                        "blocks": [
-                          {
-                            "kind": "TEXT",
-                            "text": "乙",
-                            "format": "PLAIN"
-                          }
-                        ]
-                      }
-                    }
-                  ],
-                  "correctOptionKeys": [
-                    "a"
-                  ],
-                  "explanation": null
-                }
-              },
-              {
-                "sourceKey": "multi-001",
-                "content": {
-                  "type": "MULTIPLE_CHOICE",
-                  "stem": {
-                    "blocks": [
-                      {
-                        "kind": "TEXT",
-                        "text": "选择所有正确描述",
-                        "format": "PLAIN"
-                      }
-                    ]
-                  },
-                  "options": [
-                    {
-                      "key": "a",
-                      "optionId": null,
-                      "content": {
-                        "blocks": [
-                          {
-                            "kind": "TEXT",
-                            "text": "a",
-                            "format": "PLAIN"
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "key": "b",
-                      "optionId": null,
-                      "content": {
-                        "blocks": [
-                          {
-                            "kind": "TEXT",
-                            "text": "b",
-                            "format": "PLAIN"
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "key": "c",
-                      "optionId": null,
-                      "content": {
-                        "blocks": [
-                          {
-                            "kind": "TEXT",
-                            "text": "c",
-                            "format": "PLAIN"
-                          }
-                        ]
-                      }
-                    }
-                  ],
-                  "correctOptionKeys": [
-                    "a",
-                    "b"
-                  ],
-                  "explanation": {
-                    "blocks": [
-                      {
-                        "kind": "TEXT",
-                        "text": "示例解析",
-                        "format": "PLAIN"
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                "sourceKey": "boolean-001",
-                "content": {
-                  "type": "TRUE_FALSE",
-                  "stem": {
-                    "blocks": [
-                      {
-                        "kind": "TEXT",
-                        "text": "命题成立吗？",
-                        "format": "PLAIN"
-                      }
-                    ]
-                  },
-                  "correctValue": true,
-                  "explanation": null
-                }
-              },
-              {
-                "sourceKey": "short-001",
-                "content": {
-                  "type": "SHORT_ANSWER",
-                  "stem": {
-                    "blocks": [
-                      {
-                        "kind": "TEXT",
-                        "text": "说明公式的含义",
-                        "format": "MARKDOWN"
-                      },
-                      {
-                        "kind": "LATEX",
-                        "source": "a^2+b^2=c^2",
-                        "display": true
-                      }
-                    ]
-                  },
-                  "referenceAnswer": {
-                    "blocks": [
-                      {
-                        "kind": "TEXT",
-                        "text": "参考要点",
-                        "format": "PLAIN"
-                      }
-                    ]
-                  },
-                  "explanation": null
-                }
-              }
-            ]
-          }
-        ]
-      },
-      "requiredPathVariables": [
-        "subjectId"
-      ],
-      "defaultExpectedStatus": 201
-    },
-    {
-      "operationId": "contentGetImport",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "subjectId",
-        "importId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "contentCommitImport",
-      "status": "独立验收通过",
-      "requestBody": {
-        "expectedVersion": "{{importVersion}}"
-      },
-      "requiredPathVariables": [
-        "subjectId",
-        "importId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "contentCancelImport",
-      "status": "独立验收通过",
-      "requestBody": {
-        "expectedVersion": "{{importVersion}}"
-      },
-      "requiredPathVariables": [
-        "subjectId",
-        "importId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "contentUploadImage",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "subjectId"
-      ],
-      "defaultExpectedStatus": 201
-    },
-    {
-      "operationId": "contentReadImage",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "subjectId",
-        "fileId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "identityRequestPublicEmailChallenge",
-      "status": "独立验收通过",
-      "requestBody": {
-        "purpose": "REGISTER",
-        "email": "{{email}}"
-      },
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 201
-    },
-    {
-      "operationId": "identityRegisterEmail",
-      "status": "独立验收通过",
-      "requestBody": {
-        "challengeId": "{{challengeId}}",
-        "code": "{{emailCode}}",
-        "password": "{{password}}",
-        "collegeId": "{{collegeId}}",
-        "majorId": "{{majorId}}"
-      },
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 201
-    },
-    {
-      "operationId": "identityRegisterWechat",
-      "status": "独立验收通过",
-      "requestBody": {
-        "registrationToken": "{{registrationToken}}",
-        "collegeId": "{{collegeId}}",
-        "majorId": "{{majorId}}"
-      },
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 201
-    },
-    {
-      "operationId": "identityCreateEmailSession",
-      "status": "独立验收通过",
-      "requestBody": {
-        "email": "{{loginEmail}}",
-        "password": "{{password}}",
-        "clientType": "WEB",
-        "deviceId": "{{deviceId}}"
-      },
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 201
-    },
-    {
-      "operationId": "identityCreateWechatSession",
-      "status": "独立验收通过",
-      "requestBody": {
-        "code": "{{wechatCode}}",
-        "clientType": "MINI_PROGRAM",
-        "deviceId": "{{deviceId}}"
-      },
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "identityResetPassword",
-      "status": "独立验收通过",
-      "requestBody": {
-        "challengeId": "{{challengeId}}",
-        "code": "{{emailCode}}",
-        "newPassword": "{{newPassword}}"
-      },
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 204
-    },
-    {
-      "operationId": "identityLogout",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 204
-    },
-    {
-      "operationId": "identityGetMe",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "identityUpdateProfile",
-      "status": "独立验收通过",
-      "requestBody": {
-        "expectedVersion": "{{expectedVersion}}",
-        "nickname": "样例"
-      },
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "identityRequestOwnEmailChallenge",
-      "status": "独立验收通过",
-      "requestBody": {
-        "purpose": "BIND_EMAIL",
-        "email": "{{email}}"
-      },
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 201
-    },
-    {
-      "operationId": "identityBindEmail",
-      "status": "独立验收通过",
-      "requestBody": {
-        "challengeId": "{{challengeId}}",
-        "code": "{{emailCode}}",
-        "expectedVersion": "{{expectedVersion}}"
-      },
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 204
-    },
-    {
-      "operationId": "identityChangePassword",
-      "status": "独立验收通过",
-      "requestBody": {
-        "challengeId": "{{challengeId}}",
-        "code": "{{emailCode}}",
-        "newPassword": "{{newPassword}}",
-        "expectedVersion": "{{expectedVersion}}"
-      },
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 204
-    },
-    {
-      "operationId": "identityRequestEmailChange",
-      "status": "独立验收通过",
-      "requestBody": {
-        "newEmail": "qa-example@example.test",
-        "expectedVersion": "{{expectedVersion}}"
-      },
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 201
-    },
-    {
-      "operationId": "identityConfirmEmailChange",
-      "status": "独立验收通过",
-      "requestBody": {
-        "oldCode": "{{oldCode}}",
-        "newCode": "{{newCode}}",
-        "expectedVersion": "{{expectedVersion}}"
-      },
-      "requiredPathVariables": [
-        "emailChangeId"
-      ],
-      "defaultExpectedStatus": 204
-    },
-    {
-      "operationId": "identityBindWechat",
-      "status": "独立验收通过",
-      "requestBody": {
-        "code": "{{wechatCode}}",
-        "expectedVersion": "{{expectedVersion}}"
-      },
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 204
-    },
-    {
-      "operationId": "identityListSessions",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "identityRevokeSession",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "sessionId"
-      ],
-      "defaultExpectedStatus": 204
-    },
-    {
-      "operationId": "identityResolveShareRecipient",
-      "status": "独立验收通过",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "accountCode"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "learningListPracticeHistory",
-      "status": "合同草稿·未实现",
-      "requestBody": null,
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "learningReadPracticeRecord",
-      "status": "合同草稿·未实现",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "sessionId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "learningListRecentLearning",
-      "status": "合同草稿·未实现",
-      "requestBody": null,
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "learningListWrongQuestions",
-      "status": "合同草稿·未实现",
-      "requestBody": null,
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "learningPreviewWrongReview",
-      "status": "合同草稿·未实现",
-      "requestBody": null,
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "learningReadWrongQuestionHistory",
-      "status": "合同草稿·未实现",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "questionId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "learningListStudentPracticeRecords",
-      "status": "合同草稿·未实现",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "accountId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "previewPracticeScope",
-      "status": "合同草稿·未实现",
-      "requestBody": {
-        "subjectId": "{{subjectId}}",
-        "chapterIds": [
-          "{{chapterId}}"
-        ],
-        "selectionKind": "NORMAL",
-        "count": 2,
-        "order": "SEQUENTIAL"
-      },
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "createPracticeSession",
-      "status": "合同草稿·未实现",
-      "requestBody": {
-        "scope": {
-          "subjectId": "{{subjectId}}",
-          "chapterIds": [
-            "{{chapterId}}"
-          ],
-          "selectionKind": "NORMAL",
-          "count": 2,
-          "order": "SEQUENTIAL"
-        },
-        "expectedContentVersion": "{{expectedContentVersion}}",
-        "config": {
-          "mode": "PRACTICE",
-          "feedback": "IMMEDIATE",
-          "timeLimitSeconds": null
-        },
-        "writerId": "{{writerId}}"
-      },
-      "requiredPathVariables": [],
-      "defaultExpectedStatus": 201
-    },
-    {
-      "operationId": "readPracticeSession",
-      "status": "合同草稿·未实现",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "sessionId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "syncPracticeBatch",
-      "status": "合同草稿·未实现",
-      "requestBody": {
-        "writerId": "{{writerId}}",
-        "epoch": "{{epoch}}",
-        "firstSequence": 1,
-        "operations": [
-          {
-            "type": "SET_ANSWER",
-            "sequence": 1,
-            "occurredAt": "2026-10-25T04:00:01.000Z",
-            "itemId": "{{itemId}}",
-            "answer": {
-              "type": "TRUE_FALSE",
-              "value": false
-            },
-            "clientAnsweredAt": "2026-10-25T04:00:01.000Z"
-          }
-        ]
-      },
-      "requiredPathVariables": [
-        "sessionId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "takeOverPracticeSession",
-      "status": "合同草稿·未实现",
-      "requestBody": {
-        "newWriterId": "{{newWriterId}}",
-        "expectedEpoch": 1
-      },
-      "requiredPathVariables": [
-        "sessionId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "finishPracticeSession",
-      "status": "合同草稿·未实现",
-      "requestBody": {
-        "writerId": "{{writerId}}",
-        "epoch": "{{epoch}}",
-        "finalSequence": 1,
-        "clientCompletedAt": "2026-10-25T04:00:02.000Z",
-        "durationSeconds": 2,
-        "items": [
-          {
-            "itemId": "{{itemId}}",
-            "answer": {
-              "type": "TRUE_FALSE",
-              "value": false
-            },
-            "outcome": "CORRECT",
-            "clientAnsweredAt": "2026-10-25T04:00:01.000Z"
-          },
-          {
-            "itemId": "{{itemId}}",
-            "answer": null,
-            "outcome": "SHORT_UNANSWERED",
-            "clientAnsweredAt": null
-          }
-        ]
-      },
-      "requiredPathVariables": [
-        "sessionId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "cancelPendingPracticeFinish",
-      "status": "合同草稿·未实现",
-      "requestBody": {
-        "writerId": "{{writerId}}",
-        "epoch": "{{epoch}}",
-        "finishCommandId": "{{finishCommandId}}"
-      },
-      "requiredPathVariables": [
-        "sessionId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "archiveRestrictedPractice",
-      "status": "合同草稿·未实现",
-      "requestBody": {
-        "writerId": "{{writerId}}",
-        "epoch": "{{epoch}}",
-        "clientLastSequence": 1,
-        "clientEndedAt": null,
-        "durationSeconds": 2,
-        "items": [
-          {
-            "itemId": "{{itemId}}",
-            "answer": {
-              "type": "TRUE_FALSE",
-              "value": false
-            },
-            "clientAnsweredAt": "2026-10-25T04:00:01.000Z",
-            "confirmed": false,
-            "judgment": null
-          },
-          {
-            "itemId": "{{itemId}}",
-            "answer": null,
-            "clientAnsweredAt": null,
-            "confirmed": false,
-            "judgment": null
-          }
-        ]
-      },
-      "requiredPathVariables": [
-        "sessionId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "readPracticeResult",
-      "status": "合同草稿·未实现",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "sessionId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "listPracticeReceipts",
-      "status": "合同草稿·未实现",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "sessionId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "readPracticeReceipt",
-      "status": "合同草稿·未实现",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "sessionId",
-        "commandId"
-      ],
-      "defaultExpectedStatus": 200
-    },
-    {
-      "operationId": "readIssuedPracticeImage",
-      "status": "合同草稿·未实现",
-      "requestBody": null,
-      "requiredPathVariables": [
-        "sessionId",
-        "fileId"
-      ],
-      "defaultExpectedStatus": 200
+      ]
     }
-  ]
-}
+  },
+  {
+    "operationId": "Content_preview_POST",
+    "method": "POST",
+    "path": "/api/v1/admin/question-banks/{id}/import-preview",
+    "body": {
+      "expectedContentVersion": "{{expectedContentVersion}}",
+      "questions": [
+        {
+          "questionBankId": "{{questionBankId}}",
+          "type": "SINGLE_CHOICE",
+          "stem": "示例题干",
+          "options": [
+            {
+              "key": "A",
+              "content": "选项甲"
+            },
+            {
+              "key": "B",
+              "content": "选项乙"
+            }
+          ],
+          "correctAnswer": [
+            "A"
+          ],
+          "explanation": "示例解析"
+        }
+      ]
+    }
+  },
+  {
+    "operationId": "Content_adminChapters_GET",
+    "method": "GET",
+    "path": "/api/v1/admin/question-banks/{id}/chapters",
+    "body": null
+  },
+  {
+    "operationId": "Content_createChapter_POST",
+    "method": "POST",
+    "path": "/api/v1/admin/question-banks/{id}/chapters",
+    "body": {
+      "name": "示例内容",
+      "sortOrder": 0
+    }
+  },
+  {
+    "operationId": "Content_question_GET",
+    "method": "GET",
+    "path": "/api/v1/questions/{id}",
+    "body": null
+  },
+  {
+    "operationId": "Content_banks_GET",
+    "method": "GET",
+    "path": "/api/v1/question-banks",
+    "body": null
+  },
+  {
+    "operationId": "Content_bank_GET",
+    "method": "GET",
+    "path": "/api/v1/question-banks/{id}",
+    "body": null
+  },
+  {
+    "operationId": "Content_questions_GET",
+    "method": "GET",
+    "path": "/api/v1/question-banks/{id}/questions",
+    "body": null
+  },
+  {
+    "operationId": "Content_chapters_GET",
+    "method": "GET",
+    "path": "/api/v1/question-banks/{id}/chapters",
+    "body": null
+  },
+  {
+    "operationId": "Content_adminQuestions_GET",
+    "method": "GET",
+    "path": "/api/v1/admin/question-banks/{id}/questions",
+    "body": null
+  },
+  {
+    "operationId": "Discovery_saveCourse_PUT",
+    "method": "PUT",
+    "path": "/api/v1/me/subjects/{id}",
+    "body": {}
+  },
+  {
+    "operationId": "Discovery_removeCourse_DELETE",
+    "method": "DELETE",
+    "path": "/api/v1/me/subjects/{id}",
+    "body": null
+  },
+  {
+    "operationId": "Discovery_favorite_PUT",
+    "method": "PUT",
+    "path": "/api/v1/me/favorites/{id}",
+    "body": null
+  },
+  {
+    "operationId": "Discovery_unfavorite_DELETE",
+    "method": "DELETE",
+    "path": "/api/v1/me/favorites/{id}",
+    "body": null
+  },
+  {
+    "operationId": "Discovery_courses_GET",
+    "method": "GET",
+    "path": "/api/v1/me/subjects",
+    "body": null
+  },
+  {
+    "operationId": "Discovery_recommendations_GET",
+    "method": "GET",
+    "path": "/api/v1/me/recommendations",
+    "body": null
+  },
+  {
+    "operationId": "Discovery_favorites_GET",
+    "method": "GET",
+    "path": "/api/v1/me/favorites",
+    "body": null
+  },
+  {
+    "operationId": "Identity_bindWechat_PUT",
+    "method": "PUT",
+    "path": "/api/v1/me/wechat-binding",
+    "body": {
+      "expectedVersion": "{{expectedVersion}}",
+      "code": "{{code}}"
+    }
+  },
+  {
+    "operationId": "Identity_profile_GET",
+    "method": "GET",
+    "path": "/api/v1/me/profile",
+    "body": null
+  },
+  {
+    "operationId": "Identity_updateProfile_PUT",
+    "method": "PUT",
+    "path": "/api/v1/me/profile",
+    "body": {
+      "expectedVersion": "{{expectedVersion}}",
+      "nickname": "示例内容"
+    }
+  },
+  {
+    "operationId": "Identity_changePassword_PUT",
+    "method": "PUT",
+    "path": "/api/v1/me/password",
+    "body": {
+      "expectedVersion": "{{expectedVersion}}",
+      "challengeId": "{{challengeId}}",
+      "code": "{{code}}",
+      "newPassword": "{{newPassword}}"
+    }
+  },
+  {
+    "operationId": "Identity_changeEmail_PUT",
+    "method": "PUT",
+    "path": "/api/v1/me/email-binding",
+    "body": {
+      "expectedVersion": "{{expectedVersion}}",
+      "newChallengeId": "{{newChallengeId}}",
+      "newCode": "{{newCode}}"
+    }
+  },
+  {
+    "operationId": "Identity_requestOwnEmailChallenge_POST",
+    "method": "POST",
+    "path": "/api/v1/me/email-challenges",
+    "body": {
+      "purpose": "REGISTER"
+    }
+  },
+  {
+    "operationId": "Identity_wechatLogin_POST",
+    "method": "POST",
+    "path": "/api/v1/auth/wechat-sessions",
+    "body": {
+      "code": "{{code}}",
+      "deviceId": "{{deviceId}}"
+    }
+  },
+  {
+    "operationId": "Identity_registerWechat_POST",
+    "method": "POST",
+    "path": "/api/v1/auth/wechat-registrations",
+    "body": {
+      "registrationToken": "{{registrationToken}}"
+    }
+  },
+  {
+    "operationId": "Identity_login_POST",
+    "method": "POST",
+    "path": "/api/v1/auth/sessions",
+    "body": {
+      "email": "{{email}}",
+      "password": "{{password}}",
+      "deviceId": "{{deviceId}}"
+    }
+  },
+  {
+    "operationId": "Identity_resetPassword_POST",
+    "method": "POST",
+    "path": "/api/v1/auth/password-resets",
+    "body": {
+      "challengeId": "{{challengeId}}",
+      "code": "{{code}}",
+      "newPassword": "{{newPassword}}"
+    }
+  },
+  {
+    "operationId": "Identity_registerEmail_POST",
+    "method": "POST",
+    "path": "/api/v1/auth/email-registrations",
+    "body": {
+      "challengeId": "{{challengeId}}",
+      "code": "{{code}}",
+      "password": "{{password}}"
+    }
+  },
+  {
+    "operationId": "Identity_requestPublicEmailChallenge_POST",
+    "method": "POST",
+    "path": "/api/v1/auth/email-challenges",
+    "body": {
+      "purpose": "REGISTER"
+    }
+  },
+  {
+    "operationId": "Identity_me_GET",
+    "method": "GET",
+    "path": "/api/v1/me",
+    "body": null
+  },
+  {
+    "operationId": "Identity_listSessions_GET",
+    "method": "GET",
+    "path": "/api/v1/me/sessions",
+    "body": null
+  },
+  {
+    "operationId": "Identity_revokeSession_DELETE",
+    "method": "DELETE",
+    "path": "/api/v1/me/sessions/{id}",
+    "body": null
+  },
+  {
+    "operationId": "Identity_logout_DELETE",
+    "method": "DELETE",
+    "path": "/api/v1/auth/sessions/current",
+    "body": null
+  },
+  {
+    "operationId": "Learning_wrong_GET",
+    "method": "GET",
+    "path": "/api/v1/me/wrong-questions",
+    "body": null
+  },
+  {
+    "operationId": "Learning_wrongHistory_GET",
+    "method": "GET",
+    "path": "/api/v1/me/wrong-questions/{id}/history",
+    "body": null
+  },
+  {
+    "operationId": "Learning_summary_GET",
+    "method": "GET",
+    "path": "/api/v1/me/statistics",
+    "body": null
+  },
+  {
+    "operationId": "Learning_days_GET",
+    "method": "GET",
+    "path": "/api/v1/me/statistics/days",
+    "body": null
+  },
+  {
+    "operationId": "Learning_recent_GET",
+    "method": "GET",
+    "path": "/api/v1/me/recent-learning",
+    "body": null
+  },
+  {
+    "operationId": "Learning_history_GET",
+    "method": "GET",
+    "path": "/api/v1/me/practice-history",
+    "body": null
+  },
+  {
+    "operationId": "Learning_record_GET",
+    "method": "GET",
+    "path": "/api/v1/me/practice-history/{id}",
+    "body": null
+  },
+  {
+    "operationId": "Learning_studentSummary_GET",
+    "method": "GET",
+    "path": "/api/v1/admin/students/{id}/statistics",
+    "body": null
+  },
+  {
+    "operationId": "Learning_studentHistory_GET",
+    "method": "GET",
+    "path": "/api/v1/admin/students/{id}/practice-history",
+    "body": null
+  },
+  {
+    "operationId": "Learning_studentResult_GET",
+    "method": "GET",
+    "path": "/api/v1/admin/students/{id}/practice-history/{sessionId}",
+    "body": null
+  },
+  {
+    "operationId": "Learning_adminSummary_GET",
+    "method": "GET",
+    "path": "/api/v1/admin/statistics/summary",
+    "body": null
+  },
+  {
+    "operationId": "Learning_rankings_GET",
+    "method": "GET",
+    "path": "/api/v1/admin/statistics/rankings",
+    "body": null
+  },
+  {
+    "operationId": "Learning_organizations_GET",
+    "method": "GET",
+    "path": "/api/v1/admin/statistics/organizations",
+    "body": null
+  },
+  {
+    "operationId": "Learning_activity_GET",
+    "method": "GET",
+    "path": "/api/v1/admin/statistics/activity",
+    "body": null
+  },
+  {
+    "operationId": "Operations_handleFeedback_PUT",
+    "method": "PUT",
+    "path": "/api/v1/admin/question-feedback/{id}",
+    "body": {
+      "expectedVersion": "{{expectedVersion}}",
+      "status": "OPEN",
+      "response": "示例内容"
+    }
+  },
+  {
+    "operationId": "Operations_handleRequest_PUT",
+    "method": "PUT",
+    "path": "/api/v1/admin/course-requests/{id}",
+    "body": {
+      "expectedVersion": "{{expectedVersion}}",
+      "status": "OPEN",
+      "response": "示例内容"
+    }
+  },
+  {
+    "operationId": "Operations_updateAnnouncement_PUT",
+    "method": "PUT",
+    "path": "/api/v1/admin/announcements/{id}",
+    "body": {
+      "title": "示例内容",
+      "expectedVersion": "{{expectedVersion}}"
+    }
+  },
+  {
+    "operationId": "Operations_deleteAnnouncement_DELETE",
+    "method": "DELETE",
+    "path": "/api/v1/admin/announcements/{id}",
+    "body": null
+  },
+  {
+    "operationId": "Operations_feedback_GET",
+    "method": "GET",
+    "path": "/api/v1/me/question-feedback",
+    "body": null
+  },
+  {
+    "operationId": "Operations_submitFeedback_POST",
+    "method": "POST",
+    "path": "/api/v1/me/question-feedback",
+    "body": {
+      "questionId": "{{questionId}}",
+      "revisionId": "{{revisionId}}",
+      "category": "ANSWER",
+      "body": "示例内容"
+    }
+  },
+  {
+    "operationId": "Operations_requests_GET",
+    "method": "GET",
+    "path": "/api/v1/me/course-requests",
+    "body": null
+  },
+  {
+    "operationId": "Operations_requestCourse_POST",
+    "method": "POST",
+    "path": "/api/v1/me/course-requests",
+    "body": {
+      "courseName": "示例内容",
+      "body": "示例内容"
+    }
+  },
+  {
+    "operationId": "Operations_adminAnnouncements_GET",
+    "method": "GET",
+    "path": "/api/v1/admin/announcements",
+    "body": null
+  },
+  {
+    "operationId": "Operations_createAnnouncement_POST",
+    "method": "POST",
+    "path": "/api/v1/admin/announcements",
+    "body": {
+      "title": "示例内容"
+    }
+  },
+  {
+    "operationId": "Operations_announcements_GET",
+    "method": "GET",
+    "path": "/api/v1/announcements",
+    "body": null
+  },
+  {
+    "operationId": "Operations_adminFeedback_GET",
+    "method": "GET",
+    "path": "/api/v1/admin/question-feedback",
+    "body": null
+  },
+  {
+    "operationId": "Operations_dashboard_GET",
+    "method": "GET",
+    "path": "/api/v1/admin/dashboard",
+    "body": null
+  },
+  {
+    "operationId": "Operations_adminRequests_GET",
+    "method": "GET",
+    "path": "/api/v1/admin/course-requests",
+    "body": null
+  },
+  {
+    "operationId": "File_upload_POST",
+    "method": "POST",
+    "path": "/api/v1/admin/question-banks/{id}/images",
+    "body": null
+  },
+  {
+    "operationId": "Health_health_GET",
+    "method": "GET",
+    "path": "/api/v1/health",
+    "body": null
+  },
+  {
+    "operationId": "File_read_GET",
+    "method": "GET",
+    "path": "/api/v1/files/{id}",
+    "body": null
+  },
+  {
+    "operationId": "Practice_progress_PUT",
+    "method": "PUT",
+    "path": "/api/v1/practice/sessions/{id}/progress",
+    "body": {
+      "expectedVersion": "{{expectedVersion}}",
+      "currentIndex": 0,
+      "durationSeconds": 0
+    }
+  },
+  {
+    "operationId": "Practice_assess_PUT",
+    "method": "PUT",
+    "path": "/api/v1/practice/sessions/{id}/items/{itemId}/self-assessment",
+    "body": {
+      "expectedVersion": "{{expectedVersion}}",
+      "assessment": "CORRECT"
+    }
+  },
+  {
+    "operationId": "Practice_create_POST",
+    "method": "POST",
+    "path": "/api/v1/practice/sessions",
+    "body": {
+      "scope": {
+        "questionBankId": "{{questionBankId}}",
+        "count": 1,
+        "order": "SEQUENTIAL",
+        "selectionKind": "NORMAL"
+      },
+      "expectedContentVersion": "{{expectedContentVersion}}"
+    }
+  },
+  {
+    "operationId": "Practice_finish_POST",
+    "method": "POST",
+    "path": "/api/v1/practice/sessions/{id}/finish",
+    "body": {
+      "expectedVersion": "{{expectedVersion}}",
+      "durationSeconds": 0
+    }
+  },
+  {
+    "operationId": "Practice_cancel_POST",
+    "method": "POST",
+    "path": "/api/v1/practice/sessions/{id}/cancel",
+    "body": {
+      "expectedVersion": "{{expectedVersion}}"
+    }
+  },
+  {
+    "operationId": "Practice_preview_POST",
+    "method": "POST",
+    "path": "/api/v1/practice/scope-preview",
+    "body": {
+      "questionBankId": "{{questionBankId}}",
+      "count": 1,
+      "order": "SEQUENTIAL",
+      "selectionKind": "NORMAL"
+    }
+  },
+  {
+    "operationId": "Practice_read_GET",
+    "method": "GET",
+    "path": "/api/v1/practice/sessions/{id}",
+    "body": null
+  },
+  {
+    "operationId": "Practice_result_GET",
+    "method": "GET",
+    "path": "/api/v1/practice/sessions/{id}/result",
+    "body": null
+  }
+]

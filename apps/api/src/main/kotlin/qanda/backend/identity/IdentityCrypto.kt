@@ -22,8 +22,6 @@ internal fun conflict(code: String, message: String): Nothing = throw ApiExcepti
 internal fun unavailable(code: String): Nothing = throw ApiException(HttpStatus.SERVICE_UNAVAILABLE, code, "所需服务暂时不可用")
 internal fun unauthenticated(): Nothing = throw ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHENTICATED", "请提供有效令牌")
 internal fun invalidProof(): Nothing = throw ApiException(HttpStatus.CONFLICT, "VERIFICATION_FAILED", "验证证明无效或已失效")
-internal const val MAX_VERSION = 9007199254740991L
-internal fun version(value: Long) { if (value !in 1..MAX_VERSION) invalid("expectedVersion") }
 internal fun nickname(value: String): String = value.trim().also {
     if (it.codePointCount(0,it.length) !in 1..40 || it.any { c -> c.code < 32 || c.code == 127 }) invalid("nickname")
 }
@@ -39,11 +37,9 @@ internal fun email(value: String, field: String = "email"): Email {
         domain.length > 253 || domain.split('.').any { !it.matches(Regex("[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?")) }) invalid(field)
     return Email(text,text.lowercase(Locale.ROOT))
 }
-internal fun maskEmail(value: String) = value.substringBefore('@').take(1) + "***@" + value.substringAfter('@')
 internal fun code(value: String) { if (!value.matches(Regex("[0-9]{6}"))) invalid("code") }
 internal fun wechatCode(value: String) { if (value.length !in 1..512 || value.any { it.code < 32 || it.code == 127 }) invalid("code") }
 internal fun token(value: String) { if (!value.matches(Regex("[A-Za-z0-9_-]{43}"))) invalid("registrationToken") }
-internal fun page(page: Int, size: Int) { if (page < 1 || size !in 1..100) invalid("page") }
 
 @Component
 class IdentityCrypto(private val environment: Environment) {

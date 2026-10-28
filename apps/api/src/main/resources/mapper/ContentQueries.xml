@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="qanda.backend.content.ContentQueries">
+  <select id="bank" resultType="qanda.backend.content.QuestionBank">SELECT b.* FROM question_bank b JOIN subject s ON s.id=b.subject_id WHERE b.id=#{id} AND b.status='ACTIVE' AND b.publication_status='PUBLISHED' AND s.status='ACTIVE' AND EXISTS(SELECT 1 FROM question q WHERE q.bank_id=b.id AND q.status='ACTIVE')</select>
+  <select id="lockBank" resultType="qanda.backend.content.QuestionBank">SELECT * FROM question_bank WHERE id=#{id} FOR UPDATE</select>
+  <sql id="bankFilter"><where><if test="subjectId != null">b.subject_id=#{subjectId}</if><if test="keyword != null">AND b.name ILIKE '%'||#{keyword}||'%'</if>
+    <if test="publicOnly">AND b.status='ACTIVE' AND b.publication_status='PUBLISHED' AND s.status='ACTIVE' AND EXISTS(SELECT 1 FROM question q WHERE q.bank_id=b.id AND q.status='ACTIVE')</if>
+    <if test="adminId != null">AND EXISTS(SELECT 1 FROM bank_maintainer bm WHERE bm.bank_id=b.id AND bm.admin_id=#{adminId})</if></where></sql>
+  <select id="banks" resultType="qanda.backend.content.QuestionBank">SELECT b.* FROM question_bank b JOIN subject s ON s.id=b.subject_id <include refid="bankFilter"/> ORDER BY b.updated_at DESC,b.id LIMIT #{limit} OFFSET #{offset}</select>
+  <select id="bankCount" resultType="long">SELECT count(*) FROM question_bank b JOIN subject s ON s.id=b.subject_id <include refid="bankFilter"/></select>
+  <select id="questionCount" resultType="long">SELECT count(*) FROM question WHERE bank_id=#{bankId}<if test="activeOnly"> AND status='ACTIVE'</if></select>
+  <sql id="questionFilter">WHERE q.bank_id=#{bankId}<if test="chapterId != null">AND q.chapter_id=#{chapterId}</if><if test="keyword != null">AND r.stem ILIKE '%'||#{keyword}||'%'</if><if test="activeOnly">AND q.status='ACTIVE'</if></sql>
+  <select id="questions" resultType="qanda.backend.content.Question">SELECT q.* FROM question q JOIN question_revision r ON r.id=q.current_revision_id <include refid="questionFilter"/> ORDER BY q.created_at,q.id LIMIT #{limit} OFFSET #{offset}</select>
+  <select id="filteredQuestionCount" resultType="long">SELECT count(*) FROM question q JOIN question_revision r ON r.id=q.current_revision_id <include refid="questionFilter"/></select>
+  <select id="options" resultType="qanda.backend.content.QuestionOption">SELECT * FROM question_option WHERE revision_id=#{revisionId} ORDER BY sort_order</select>
+  <insert id="insertOption">INSERT INTO question_option(revision_id,option_key,content,is_correct,sort_order) VALUES(#{option.revisionId},#{option.optionKey},#{option.content},#{option.isCorrect},#{option.sortOrder})</insert>
+  <select id="attachments" resultType="java.util.UUID">SELECT file_id FROM question_attachment WHERE revision_id=#{revisionId} ORDER BY file_id</select>
+  <insert id="attach">INSERT INTO question_attachment(revision_id,file_id) VALUES(#{revisionId},#{fileId})</insert>
+  <select id="maintainers" resultType="java.util.UUID">SELECT admin_id FROM bank_maintainer WHERE bank_id=#{bankId} ORDER BY admin_id</select>
+  <delete id="clearMaintainers">DELETE FROM bank_maintainer WHERE bank_id=#{bankId}</delete>
+  <insert id="addMaintainer">INSERT INTO bank_maintainer(bank_id,admin_id) VALUES(#{bankId},#{adminId})</insert>
+  <delete id="clearAudiences">DELETE FROM bank_audience WHERE bank_id=#{bankId}</delete>
+  <update id="bumpBank">UPDATE question_bank SET version=version+1,content_version=content_version+1,updated_at=now() WHERE id=#{id}</update>
+  <update id="updateQuestion">UPDATE question SET chapter_id=#{chapterId},status=#{status},current_revision_id=#{revisionId},version=version+1,updated_at=now() WHERE id=#{id}</update>
+  <select id="chapterQuestions" resultType="long">SELECT count(*) FROM question WHERE chapter_id=#{id}</select>
+</mapper>

@@ -12,7 +12,7 @@ import com.fasterxml.jackson.databind.cfg.CoercionAction
 import com.fasterxml.jackson.databind.cfg.CoercionInputShape
 import com.fasterxml.jackson.databind.type.LogicalType
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
-import org.springframework.boot.autoconfigure.flyway.FlywayConfigurationCustomizer
+import org.springframework.beans.factory.InitializingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment
@@ -75,7 +75,7 @@ class PlatformConfiguration {
     }
 
     @Bean
-    fun backendSafety(environment: Environment) = FlywayConfigurationCustomizer { BackendSafety(
+    fun backendSafety(environment: Environment) = InitializingBean { BackendSafety(
         environment.getProperty("qanda.backend.mode", "production"),
         environment.getProperty("server.address", "127.0.0.1"),
         environment.getRequiredProperty("spring.datasource.url"),

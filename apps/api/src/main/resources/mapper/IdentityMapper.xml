@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="qanda.backend.identity.IdentityMapper">
+  <select id="userByEmail" resultType="qanda.backend.identity.UserAccount">SELECT * FROM user_account WHERE email_key=#{email}</select>
+  <select id="lockUser" resultType="qanda.backend.identity.UserAccount">SELECT * FROM user_account WHERE id=#{id} FOR UPDATE</select>
+  <select id="lockAdmin" resultType="qanda.backend.admin.AdminAccount">SELECT * FROM admin_account WHERE id=#{id} FOR UPDATE</select>
+  <select id="userSession" resultType="qanda.backend.identity.UserSession">SELECT * FROM user_session WHERE token_digest=#{digest}</select>
+  <select id="adminSession" resultType="qanda.backend.admin.AdminSession">SELECT * FROM admin_session WHERE token_digest=#{digest}</select>
+  <select id="lockUserSession" resultType="qanda.backend.identity.UserSession">SELECT * FROM user_session WHERE id=#{id} FOR UPDATE</select>
+  <select id="lockAdminSession" resultType="qanda.backend.admin.AdminSession">SELECT * FROM admin_session WHERE id=#{id} FOR UPDATE</select>
+  <update id="touchUserSession">UPDATE user_session SET last_seen_at=#{now} WHERE id=#{id} AND revoked_at IS NULL AND last_seen_at &lt; CAST(#{now} AS timestamptz) - interval '30 seconds'</update>
+  <update id="touchAdminSession">UPDATE admin_session SET last_seen_at=#{now} WHERE id=#{id} AND revoked_at IS NULL AND last_seen_at &lt; CAST(#{now} AS timestamptz) - interval '30 seconds'</update>
+  <update id="revokeUserSessions">UPDATE user_session SET revoked_at=now() WHERE user_id=#{userId} AND revoked_at IS NULL</update>
+  <update id="revokeAdminSessions">UPDATE admin_session SET revoked_at=now() WHERE admin_id=#{adminId} AND revoked_at IS NULL</update>
+  <select id="lockChallenge" resultType="qanda.backend.identity.EmailChallenge">SELECT * FROM email_challenge WHERE id=#{id} FOR UPDATE</select>
+  <select id="recentChallenge" resultType="java.time.Instant">SELECT max(created_at) FROM email_challenge WHERE email_key=#{email}</select>
+  <update id="failChallenge">UPDATE email_challenge SET failed_attempts=least(failed_attempts+1,5) WHERE id=#{id}</update>
+  <update id="consumeChallenge">UPDATE email_challenge SET consumed_at=now() WHERE id=#{id} AND consumed_at IS NULL</update>
+  <select id="wechat" resultType="qanda.backend.identity.UserWechat">SELECT * FROM user_wechat WHERE app_id=#{appId} AND open_id=#{openId}</select>
+  <select id="lockTicket" resultType="qanda.backend.identity.WechatTicket">SELECT * FROM wechat_ticket WHERE token_digest=#{digest} FOR UPDATE</select>
+  <update id="consumeTicket">UPDATE wechat_ticket SET consumed_at=now() WHERE id=#{id}</update>
+  <update id="updateProfile">UPDATE user_profile SET college_id=#{collegeId},major_id=#{majorId},enrollment_year=#{year} WHERE user_id=#{userId}</update>
+  <update id="updateCredentials">UPDATE user_account SET email=#{email},email_key=#{emailKey},password_hash=#{password},version=version+1,credential_version=credential_version+1,updated_at=now() WHERE id=#{id}</update>
+</mapper>

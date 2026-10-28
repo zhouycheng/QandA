@@ -18,13 +18,15 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.servlet.resource.NoResourceFoundException
 import java.util.UUID
+import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.dao.TransientDataAccessException
+import org.springframework.beans.factory.ObjectProvider
+import qanda.backend.platform.security.AuditFailures
 
 data class FieldError(val field: String, val code: String, val message: String)
 
 data class ErrorDetails(
-    @get:JsonInclude(JsonInclude.Include.NON_NULL) val expectedSequence: Long? = null,
     @get:JsonInclude(JsonInclude.Include.NON_NULL) val currentVersion: Long? = null,
-    @get:JsonInclude(JsonInclude.Include.NON_NULL) val currentEpoch: Long? = null,
     @get:JsonInclude(JsonInclude.Include.NON_NULL) val retryAfterSeconds: Int? = null,
 )
 
@@ -51,8 +53,9 @@ class ApiException(
 }
 
 @Component
-class ErrorWriter(private val mapper: ObjectMapper) {
+class ErrorWriter(private val mapper: ObjectMapper,private val audits: ObjectProvider<AuditFailures>) {
     fun write(request: HttpServletRequest, response: HttpServletResponse, error: ApiException) {
+        try { audits.ifAvailable?.record(request,error.code) } catch(_: Exception) { LoggerFactory.getLogger(javaClass).warn("Failure audit unavailable") }
         response.status = error.status.value()
         response.contentType = "application/json"
         response.characterEncoding = "UTF-8"
@@ -64,15 +67,22 @@ class ErrorWriter(private val mapper: ObjectMapper) {
 }
 
 @RestControllerAdvice
-class ApiExceptionHandler {
+class ApiExceptionHandler(private val audits: ObjectProvider<AuditFailures>) {
     private val log = LoggerFactory.getLogger(javaClass)
 
     @ExceptionHandler(ApiException::class)
     fun business(error: ApiException, request: HttpServletRequest): ResponseEntity<ApiError> {
-        val response = ResponseEntity.status(error.status)
+        try { audits.ifAvailable?.record(request,error.code) } catch(_: Exception) { log.warn("Failure audit unavailable") }
+        val response = ResponseEntity.status(error.status).contentType(org.springframework.http.MediaType.APPLICATION_JSON)
         error.details?.retryAfterSeconds?.let { response.header("Retry-After", it.toString()) }
         return response.body(error.body(request))
     }
+
+    @ExceptionHandler(DataIntegrityViolationException::class)
+    fun integrity(request: HttpServletRequest) = business(ApiException(HttpStatus.CONFLICT,"RELATION_CONFLICT","记录已存在或仍有关联数据"),request)
+
+    @ExceptionHandler(TransientDataAccessException::class)
+    fun transientFailure(request: HttpServletRequest) = business(ApiException(HttpStatus.SERVICE_UNAVAILABLE,"TEMPORARILY_UNAVAILABLE","服务繁忙，请使用原请求标识重试"),request)
 
     @ExceptionHandler(HttpMessageNotReadableException::class)
     fun unreadable(request: HttpServletRequest) = business(ApiException(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", "请求JSON格式或字段不符合要求"), request)
@@ -93,6 +103,9 @@ class ApiExceptionHandler {
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException::class)
     fun media(request: HttpServletRequest) = business(ApiException(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "UNSUPPORTED_MEDIA_TYPE", "请求媒体类型不受支持"), request)
+
+    @ExceptionHandler(org.springframework.web.HttpMediaTypeNotAcceptableException::class)
+    fun acceptable(request: HttpServletRequest) = business(ApiException(HttpStatus.NOT_ACCEPTABLE, "NOT_ACCEPTABLE", "请求的响应媒体类型不受支持"), request)
 
     @ExceptionHandler(TypeMismatchException::class, ServletRequestBindingException::class)
     fun parameter(request: HttpServletRequest) = business(ApiException(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", "请求参数不符合要求"), request)

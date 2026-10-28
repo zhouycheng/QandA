@@ -1,4 +1,0 @@
-// Keep this owner's build outputs independent of concurrent owner verification.
-gradle.projectsLoaded {
-    rootProject.layout.buildDirectory.set(new File(System.getenv('QANDA_CONTENT_BUILD_DIR')))
-}
