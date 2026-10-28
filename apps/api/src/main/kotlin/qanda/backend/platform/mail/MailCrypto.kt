@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.core.env.Environment
 import org.springframework.http.HttpStatus
 import qanda.backend.platform.http.ApiException
-import java.security.MessageDigest
 import java.security.SecureRandom
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
@@ -18,7 +17,6 @@ import javax.crypto.spec.SecretKeySpec
 
 internal val IDENTITY_MAIL_TEMPLATES = setOf("REGISTER", "RESET_PASSWORD", "BIND_EMAIL", "CHANGE_PASSWORD", "CHANGE_EMAIL_OLD", "CHANGE_EMAIL_NEW").map { "IDENTITY_$it" }.toSet()
 internal fun mailUnavailable(code: String = "MAIL_UNAVAILABLE"): Nothing = throw ApiException(HttpStatus.SERVICE_UNAVAILABLE, code, "邮件服务暂时不可用")
-internal fun mailConflict(): Nothing = throw ApiException(HttpStatus.CONFLICT, "IDEMPOTENCY_CONFLICT", "同一邮件意图的封装不同")
 internal class MailMaterial(val recipient: String, val code: String, val expiresAt: Instant, val templateCode: String) {
     override fun toString() = "MailMaterial([REDACTED])"
 }
@@ -71,8 +69,6 @@ class MailCrypto(private val mapper: ObjectMapper, environment: Environment) {
         catch (_: Exception) { mailUnavailable("MAIL_MATERIAL_INVALID") }
     }
 
-    internal fun fingerprint(envelope: PreparedMailEnvelope): ByteArray = MessageDigest.getInstance("SHA-256").digest(
-        mapper.writeValueAsBytes(listOf(envelope.challengeId.toString(), envelope.templateCode, envelope.templateVersion.toString(), envelope.expiresAt.toString(), envelope.keyVersion.toString(), envelope.nonce, envelope.ciphertext)))
     private fun aad(id: UUID, template: String, version: Int, expiry: Instant): ByteArray = ByteArrayOutputStream().also { output ->
         DataOutputStream(output).use { framed ->
             for (part in listOf(id.toString(), template, version.toString(), expiry.toString())) {

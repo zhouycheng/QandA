@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="qanda.backend.discovery.DiscoveryMapper">
+  <select id="choice" resultType="qanda.backend.discovery.UserSubject">SELECT * FROM user_subject WHERE user_id=#{userId} AND subject_id=#{subjectId} FOR UPDATE</select>
+  <select id="choices" resultType="qanda.backend.discovery.UserSubject">SELECT * FROM user_subject WHERE user_id=#{userId} ORDER BY sort_order,added_at DESC,subject_id LIMIT #{limit} OFFSET #{offset}</select>
+  <select id="choiceCount" resultType="long">SELECT count(*) FROM user_subject WHERE user_id=#{userId}</select>
+  <insert id="saveChoice">INSERT INTO user_subject(user_id,subject_id,preferred_bank_id,sort_order,version) VALUES(#{row.userId},#{row.subjectId},#{row.preferredBankId},#{row.sortOrder},#{row.version}) ON CONFLICT(user_id,subject_id) DO UPDATE SET preferred_bank_id=excluded.preferred_bank_id,sort_order=excluded.sort_order,version=excluded.version</insert>
+  <delete id="removeChoice">DELETE FROM user_subject WHERE user_id=#{userId} AND subject_id=#{subjectId}</delete>
+  <insert id="favorite">INSERT INTO user_favorite(user_id,question_id) VALUES(#{userId},#{questionId}) ON CONFLICT DO NOTHING</insert>
+  <delete id="unfavorite">DELETE FROM user_favorite WHERE user_id=#{userId} AND question_id=#{questionId}</delete>
+  <select id="favorites" resultType="qanda.backend.discovery.FavoriteRow">SELECT f.question_id,q.bank_id,r.stem,r.type,f.created_at,(q.status='ACTIVE' AND b.status='ACTIVE' AND b.publication_status='PUBLISHED' AND s.status='ACTIVE') AS available FROM user_favorite f JOIN question q ON q.id=f.question_id JOIN question_revision r ON r.id=q.current_revision_id JOIN question_bank b ON b.id=q.bank_id JOIN subject s ON s.id=b.subject_id WHERE f.user_id=#{userId} ORDER BY f.created_at DESC,f.question_id LIMIT #{limit} OFFSET #{offset}</select>
+  <select id="favoriteCount" resultType="long">SELECT count(*) FROM user_favorite WHERE user_id=#{userId}</select>
+  <sql id="matchingBank">b.status='ACTIVE' AND b.publication_status='PUBLISHED' AND EXISTS(SELECT 1 FROM question q WHERE q.bank_id=b.id AND q.status='ACTIVE')
+    AND (b.scope_type='ALL' OR EXISTS(SELECT 1 FROM bank_audience a LEFT JOIN user_profile p ON p.user_id=#{userId} LEFT JOIN major m ON m.id=p.major_id WHERE a.bank_id=b.id
+      AND (a.college_id IS NULL OR a.college_id=coalesce(p.college_id,m.college_id)) AND (a.major_id IS NULL OR a.major_id=p.major_id) AND (a.enrollment_year IS NULL OR a.enrollment_year=p.enrollment_year)))</sql>
+  <sql id="recommendSubject">FROM subject s WHERE s.status='ACTIVE' AND NOT EXISTS(SELECT 1 FROM user_subject us WHERE us.user_id=#{userId} AND us.subject_id=s.id) AND EXISTS(SELECT 1 FROM question_bank b WHERE b.subject_id=s.id AND <include refid="matchingBank"/>)</sql>
+  <select id="recommendedSubjects" resultType="qanda.backend.catalog.Subject">SELECT s.* <include refid="recommendSubject"/> ORDER BY s.name,s.id LIMIT #{limit} OFFSET #{offset}</select>
+  <select id="recommendedCount" resultType="long">SELECT count(*) <include refid="recommendSubject"/></select>
+  <select id="recommendedBanks" resultType="qanda.backend.content.QuestionBank">SELECT b.* FROM question_bank b WHERE b.subject_id=#{subjectId} AND <include refid="matchingBank"/> ORDER BY CASE WHEN b.scope_type='TARGETED' THEN 0 ELSE 1 END,b.name,b.id LIMIT 100</select>
+</mapper>

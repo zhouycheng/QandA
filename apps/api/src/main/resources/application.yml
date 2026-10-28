@@ -18,12 +18,9 @@ spring:
       connection-timeout: 5000
       transaction-isolation: TRANSACTION_READ_COMMITTED
       connection-init-sql: SET TIME ZONE 'UTC'
-  flyway:
-    locations: classpath:db/migration
-    fail-on-missing-locations: true
-    validate-on-migrate: true
-    clean-disabled: true
-    out-of-order: false
+  sql:
+    init:
+      mode: never
   jackson:
     time-zone: UTC
     serialization:
@@ -50,3 +47,19 @@ qanda:
     files:
       enabled: ${BACKEND_FILES_ENABLED:false}
       root: ${BACKEND_FILE_ROOT:${user.home}/.local/share/qanda-backend/assets}
+
+mybatis-plus:
+  mapper-locations: classpath*:mapper/**/*.xml
+  type-handlers-package: qanda.backend.platform.persistence
+  configuration:
+    map-underscore-to-camel-case: true
+    jdbc-type-for-null: 'NULL'
+    default-statement-timeout: 10
+  global-config:
+    banner: false
+springdoc:
+  api-docs:
+    enabled: ${BACKEND_DOCS_ENABLED:false}
+    version: OPENAPI_3_1
+  swagger-ui:
+    enabled: ${BACKEND_DOCS_ENABLED:false}

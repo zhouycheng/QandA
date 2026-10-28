@@ -1,6 +1,6 @@
 package qanda.backend.platform.config
 
-import org.springframework.boot.autoconfigure.flyway.FlywayConfigurationCustomizer
+import org.springframework.beans.factory.InitializingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment
@@ -9,7 +9,7 @@ import java.util.Base64
 @Configuration
 class ProviderConfigurationGuard {
     @Bean
-    fun validateProductionProviders(environment: Environment) = FlywayConfigurationCustomizer {
+    fun validateProductionProviders(environment: Environment) = InitializingBean {
         validate(environment)
     }
 

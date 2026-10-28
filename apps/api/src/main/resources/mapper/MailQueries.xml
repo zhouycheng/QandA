@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="qanda.backend.platform.mail.MailQueries">
+  <update id="sweep">UPDATE mail_delivery d SET state=CASE WHEN state='SENDING' THEN 'UNKNOWN' ELSE 'CANCELLED' END,error_code=CASE WHEN state='SENDING' THEN 'LEASE_RESULT_UNKNOWN' ELSE 'CHALLENGE_INVALID' END WHERE (state='SENDING' AND leased_at &lt; now()-interval '30 seconds') OR (state IN ('PENDING','RETRYABLE_FAILED') AND (expires_at &lt;= now() OR NOT EXISTS(SELECT 1 FROM email_challenge c LEFT JOIN user_account u ON u.id=c.user_id WHERE c.id=d.challenge_id AND c.consumed_at IS NULL AND c.eligible AND c.failed_attempts &lt; 5 AND c.expires_at>now() AND (c.user_id IS NULL OR (u.status='ACTIVE' AND u.credential_version=c.credential_version)))))</update>
+  <select id="claim" resultType="qanda.backend.platform.mail.MailDelivery">SELECT * FROM mail_delivery WHERE state IN ('PENDING','RETRYABLE_FAILED') AND next_attempt_at &lt;= now() AND expires_at>now() AND attempts &lt; 3 ORDER BY next_attempt_at,id FOR UPDATE SKIP LOCKED LIMIT 1</select>
+  <update id="lease">UPDATE mail_delivery SET state='SENDING',lease_id=#{leaseId},leased_at=now(),attempts=attempts+1 WHERE id=#{id}</update>
+  <update id="record">UPDATE mail_delivery SET state=#{state},provider_message_id=#{messageId},error_code=#{error},next_attempt_at=now()+interval '30 seconds' WHERE id=#{id} AND lease_id=#{leaseId} AND state='SENDING'</update>
+</mapper>

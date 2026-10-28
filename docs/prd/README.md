@@ -8,7 +8,7 @@
 | --- | --- |
 | 微信小程序 | 题库与学习记录使用本地存储；身份适配层支持 HTTP 请求与本地降级，练习业务仍待整体联调 |
 | 管理端 | React 管理界面使用浏览器本地 Mock 数据，尚未接入统一 API |
-| API | Kotlin / Spring Boot / PostgreSQL；101 个操作合同中 76 个已实现，25 个为 Draft |
+| API | Kotlin / Spring Boot / Maven / MyBatis-Plus / PostgreSQL；完整业务和验收入口见后端 README |
 | 用户 Web | 当前没有实现；保留 Web MVP PRD 作为未来产品范围 |
 
 前端与 API 的联调尚未完成。API 合同位于 apps/api/contracts，实现情况见 [apps/api/README.md](../../apps/api/README.md)。
@@ -19,4 +19,4 @@
 - [用户 Web MVP PRD](web-mvp.md)
 - [管理端 MVP PRD](admin-mvp.md)
 - [API MVP PRD](api-mvp.md)
-- [学生自主复习平台架构报告](student-platform-architecture.md)：产品定位、共享内容、推荐范围、后台架构与后续建议。
+- [学生自主复习平台架构报告](student-platform-architecture.md)：产品定位、共享内容、推荐范围与客户端接入约定。

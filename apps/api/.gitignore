@@ -12,3 +12,5 @@ client/reports/
 .env.backend.local
 .backend-runtime/
 __pycache__/
+
+/target/

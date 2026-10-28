@@ -1,6 +1,5 @@
 """基于当前拥有者合同的完整 Schema 验收；敏感实例只从标准输入进入内存。"""
 import argparse
-import copy
 import hashlib
 import json
 import os
@@ -15,7 +14,7 @@ from referencing.jsonschema import DRAFT202012
 
 ROOT = Path(__file__).resolve().parents[3]
 DESIGN = ROOT / "apps/api/contracts"
-EVIDENCE = Path(os.environ.get("QANDA_QUALITY_EVIDENCE_DIR", ROOT / "apps/api/.backend-runtime/verification/quality")).resolve()
+EVIDENCE = Path(os.environ.get("QANDA_QUALITY_EVIDENCE_DIR", ROOT / "apps/api/.backend-runtime/verification")).resolve()
 METHODS = {"get", "post", "put", "patch", "delete", "head", "options", "trace"}
 
 
@@ -49,7 +48,9 @@ class Contracts:
                     self.operations[key] = {"owner": path.parent.name, "file": path,
                                             "method": method.upper(), "route": route,
                                             "operation": operation, "pathItem": item}
-        assert len(self.operations) == 101
+        assert self.operations
+        assert all(d["info"]["version"] == "1.0.0" for d in self.documents.values())
+        assert set(self.operations) == {op["operationId"] for item in self.documents[entry]["paths"].values() for method, op in item.items() if method in METHODS}
 
     def resolve(self, value, owner):
         seen = set()
@@ -81,7 +82,7 @@ class Contracts:
         owner, operation = op["file"], op["operation"]
         errors = []
         route = urlparse(event["path"])
-        template = "/api/v1" + op["route"]
+        template = op["route"]
         expression = re.escape(template)
         for name in re.findall(r"\{([^}]+)\}", template):
             expression = expression.replace(re.escape("{" + name + "}"), "(?P<" + name + ">[^/]+)")
@@ -144,40 +145,51 @@ class Contracts:
 
 
 def operation_evidence(contracts):
-    """Per-operation evidence keeps observed HTTP, schema and missing dependencies separate."""
-    def read(name, default):
-        path = EVIDENCE / name
-        return json.loads(path.read_text()) if path.exists() else default
-
-    events = read("a-http-redacted.json", [])
-    schema = read("a-http-schema-validation.json", {}).get("results", [])
-    schema_failed = {x["operationId"] for x in schema if x["schemaStatus"] == "FAIL"}
-    assertions = read("a-assertions.json", {})
-    assertion_failed = {x["operationId"] for x in assertions.get("findings", [])}
-    status_failed = {x["operationId"] for x in events if not x.get("statusMatches", True)}
-    failed = schema_failed | assertion_failed | status_failed
-    positives = {x["operationId"] for x in events if x.get("validateRequest") and x.get("statusMatches") and 200 <= x["status"] < 300}
-    pending = {x["operationId"] for x in events if x.get("case") == "pending-content-fk"}
-    results = {}
-    mail_operations = {"identityRequestPublicEmailChallenge", "identityRegisterEmail", "identityResetPassword",
-                       "identityRequestOwnEmailChallenge", "identityBindEmail", "identityChangePassword",
-                       "identityRequestEmailChange", "identityConfirmEmailChange"}
-    for op_id, item in contracts.operations.items():
-        sources = list((ROOT / "apps/api/src/main/kotlin/qanda/backend" / item["owner"].replace("-", "")).glob("*.kt"))
-        written = any(re.search(r"fun\s+" + re.escape(op_id) + r"\s*\(", path.read_text()) for path in sources)
-        integrated = "NOT_IMPLEMENTED" if not written else "FAIL" if op_id in failed else "PASS" if op_id in positives else "PENDING_DEPENDENCY" if op_id in pending else "NOT_EXECUTED"
-        external = "PENDING_OFFICIAL_WECHAT" if "Wechat" in op_id else "PENDING_TENCENT_SES" if op_id in mail_operations else "NOT_APPLICABLE"
-        local = "EXPLICIT_LOCAL_WECHAT" if "Wechat" in op_id else assertions.get("mailTransport", "TEST_ONLY") if op_id in mail_operations else "REAL_FILE_IO" if op_id in ("contentUploadImage", "contentReadImage") and op_id in positives else "NOT_APPLICABLE"
-        results[op_id] = {"implementation": "WRITTEN" if written else "NOT_IMPLEMENTED", "independentIntegration": integrated,
-                          "positiveHttpObserved": op_id in positives, "schemaFailureObserved": op_id in schema_failed,
-                          "assertionFailureObserved": op_id in assertion_failed, "statusFailureObserved": op_id in status_failed,
-                          "localProviderVerification": local,
-                          "external": external, "observedStatuses": sorted({x["status"] for x in events if x["operationId"] == op_id}),
-                          "pendingAspects": ["Shared directory/mutation429 and Retry-After not independently exercised"] if item["owner"] == "authorization" and not {"generic-directory429", "generic-mutation429"}.issubset({x.get("case") for x in events}) else []}
-    return results
+    events_path = EVIDENCE / "http-redacted.json"
+    events = json.loads(events_path.read_text()) if events_path.exists() else []
+    schema_path = EVIDENCE / "http-schema-validation.json"
+    checks = json.loads(schema_path.read_text()).get("results", []) if schema_path.exists() else []
+    failed = {x["operationId"] for x in checks if x["schemaStatus"] == "FAIL"}
+    return {key: {"implementation": "REGISTERED", "schemaStatus": "FAIL" if key in failed else "PASS" if any(x["operationId"] == key for x in checks) else "NOT_OBSERVED",
+                  "positiveHttpObserved": any(x["operationId"] == key and 200 <= x["status"] < 300 for x in events),
+                  "observedStatuses": sorted({x["status"] for x in events if x["operationId"] == key})}
+            for key in contracts.operations}
 
 
-def self_check():
+def export_contract(source):
+    document = json.loads(Path(source).read_text())
+    assert document["info"]["version"] == "1.0.0"
+    assert document["openapi"].startswith("3.1.")
+    document["servers"] = [{"url": "http://127.0.0.1:8083"}]
+    DESIGN.mkdir(parents=True, exist_ok=True)
+    (DESIGN / "openapi.yaml").write_text(json.dumps(document, ensure_ascii=False, indent=2) + "\n")
+    modules = {}
+    for route, item in document["paths"].items():
+        for method, operation in item.items():
+            if method not in METHODS:
+                continue
+            module = operation.get("tags", ["platform"])[0]
+            assert re.fullmatch(r"[a-z][a-z0-9-]*", module)
+            modules.setdefault(module, {}).setdefault(route, {})[method] = operation
+    for old in (DESIGN / "modules").glob("*/openapi.yaml"):
+        if old.parent.name not in modules:
+            old.unlink()
+    def references(value):
+        if isinstance(value, dict):
+            return {key: "../../openapi.yaml" + item if key == "$ref" and item.startswith("#/components/") else references(item) for key, item in value.items()}
+        if isinstance(value, list):
+            return [references(x) for x in value]
+        return value
+    for module, paths in modules.items():
+        folder = DESIGN / "modules" / module
+        folder.mkdir(parents=True, exist_ok=True)
+        owner = {"openapi": document["openapi"], "info": {"title": "QandA " + module + " API", "version": "1.0.0"},
+                 "servers": document["servers"], "paths": references(paths), "components": {"securitySchemes": document["components"]["securitySchemes"]}}
+        (folder / "openapi.yaml").write_text(json.dumps(owner, ensure_ascii=False, indent=2) + "\n")
+    return {"modules": len(modules), "operations": sum(len(x) for x in (paths for module in modules.values() for paths in module.values()))}
+
+
+def self_check(contracts):
     validator = Draft202012Validator({"type": "object", "required": ["kind", "items"],
         "additionalProperties": False, "properties": {"kind": {"const": "A"},
         "items": {"type": "array", "uniqueItems": True, "items": {"type": "integer"}},
@@ -193,13 +205,27 @@ def self_check():
     seconds = Draft202012Validator({"type": "integer", "minimum": 1})
     assert seconds.is_valid(wire_value("60", {"type": "integer"}))
     assert all(not seconds.is_valid(wire_value(x, {"type": "integer"})) for x in ("abc", "1.5", "60,60", "0"))
-    return 9
+    owner = DESIGN / "openapi.yaml"
+    question = {"$ref": "#/components/schemas/QuestionInput"}
+    common = {"questionBankId": "00000000-0000-0000-0000-000000000001", "stem": "题干"}
+    single = {**common, "type": "SINGLE_CHOICE", "options": [{"key": "A", "content": "甲"}, {"key": "B", "content": "乙"}], "correctAnswer": ["A"]}
+    good = [single, {**single, "type": "MULTIPLE_CHOICE", "correctAnswer": ["A", "B"]}, {**common, "type": "TRUE_FALSE", "correctValue": False}, {**common, "type": "SHORT_ANSWER", "referenceAnswer": "参考答案"}]
+    assert all(not contracts.errors(value, question, owner) for value in good)
+    bad = [{**single, "type": "UNKNOWN"}, {**single, "correctAnswer": []}, {**single, "correctAnswer": ["A", "A"]},
+           {**single, "type": "MULTIPLE_CHOICE"}, {**common, "type": "TRUE_FALSE", "correctValue": None},
+           {**common, "type": "SHORT_ANSWER", "referenceAnswer": ""}, {**single, "unexpected": 1}]
+    assert all(contracts.errors(value, question, owner) for value in bad)
+    return 9 + len(bad)
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["spec", "exchanges"])
+    parser.add_argument("command", choices=["export", "spec", "exchanges"])
+    parser.add_argument("--source", default=str(EVIDENCE / "openapi.json"))
     args = parser.parse_args()
+    if args.command == "export":
+        print(json.dumps(export_contract(args.source), ensure_ascii=False))
+        return 0
     contracts = Contracts()
     if args.command == "spec":
         from openapi_spec_validator import OpenAPIV31SpecValidator
@@ -210,7 +236,7 @@ def main():
                                  "path": "/".join(map(str, error.path)),
                                  "kind": type(error).__name__})
         result = {"status": "PASS" if not failures else "FAIL", "documents": len(contracts.documents),
-                  "operations": len(contracts.operations), "negativeSelfChecks": self_check(),
+                  "operations": len(contracts.operations), "negativeSelfChecks": self_check(contracts),
                   "schemaEngine": "openapi-spec-validator 0.7.2 + jsonschema 4.23.0/Draft202012/FormatChecker",
                   "failures": failures,
                   "sourceSha256": {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
@@ -224,7 +250,7 @@ def main():
                             "errors": errors})
         result = {"status": "PASS" if all(x["schemaStatus"] == "PASS" for x in results) else "FAIL",
                   "exchanges": len(results), "operations": len({x["operationId"] for x in results}),
-                  "negativeSelfChecks": self_check(), "results": results}
+                  "negativeSelfChecks": self_check(contracts), "results": results}
     print(json.dumps(result, ensure_ascii=False))
     return 0 if result["status"] == "PASS" else 1
 

@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, statSync, mkdirSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
 import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -47,6 +47,19 @@ function run(program, args) {
   });
 }
 
+function mavenSettings() {
+  const runtime = join(apiRoot, '.backend-runtime');
+  mkdirSync(runtime, { recursive: true });
+  const escape = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' })[c]);
+  const configured = process.env.HTTPS_PROXY || process.env.https_proxy;
+  const proxy = configured ? new URL(configured) : null;
+  if (proxy && !['http:', 'https:'].includes(proxy.protocol)) throw new Error('Maven代理须使用HTTP或HTTPS URL');
+  const proxies = proxy ? ['http', 'https'].map((protocol) => `<proxy><id>session-${protocol}</id><active>true</active><protocol>${protocol}</protocol><host>${escape(proxy.hostname)}</host><port>${escape(proxy.port || (proxy.protocol === 'https:' ? '443' : '80'))}</port><nonProxyHosts>localhost|127.*|[::1]</nonProxyHosts>${proxy.username ? `<username>${escape(decodeURIComponent(proxy.username))}</username><password>${escape(decodeURIComponent(proxy.password))}</password>` : ''}</proxy>`).join('') : '';
+  const path = join(runtime, 'maven-settings.xml');
+  writeFileSync(path, `<settings><proxies>${proxies}</proxies></settings>`, { mode: 0o600 });
+  return path;
+}
+
 try {
   if (command === 'init') {
     if (existsSync(config)) throw new Error('.env.backend 已存在，保留现有配置');
@@ -62,11 +75,12 @@ try {
     await run('docker', ['compose', '-p', 'qanda-backend', '--env-file', '.env.backend', '-f', 'compose.backend.yml', ...(command === 'deps' ? ['up', '-d', '--wait'] : ['stop'])]);
   } else if (command === 'capture') {
     await run('docker', ['compose', '-p', 'qanda-backend', '--env-file', '.env.backend', '-f', 'compose.backend.yml', '--profile', 'local-capture', 'up', '-d', 'mailpit']);
-  } else if (['build', 'test', 'postgresTest', 'compileKotlin', 'bootJar', 'platformAcceptanceTest', 'platformMailTest', 'platformFileTest', 'platformBoundaryTest', 'platformRateLimitTest', 'platformResponseCacheTest'].includes(command)) {
-    await run('./gradlew', ['--gradle-user-home', join(apiRoot, '.gradle-user-home'), '--no-daemon', command, ...process.argv.slice(3)]);
-  } else if (command === 'start' || command === 'bootstrap') {
-    await run(join(environment().JAVA_HOME, 'bin/java'), ['-Xmx512m', '-jar', 'build/libs/qanda-backend-0.1.0.jar', ...(command === 'bootstrap' ? ['bootstrap'] : [])]);
-  } else throw new Error('命令：init deps stop-deps build test postgresTest platformMailTest platformFileTest start bootstrap');
+  } else if (['build', 'test', 'verify', 'postgresTest'].includes(command)) {
+    const goal = { build: 'package', test: 'test', verify: 'verify', postgresTest: 'verify' }[command];
+    await run('./mvnw', ['-s', mavenSettings(), goal, ...process.argv.slice(3)]);
+  } else if (['start', 'bootstrap', 'db-init', 'db-reset'].includes(command)) {
+    await run(join(environment().JAVA_HOME, 'bin/java'), ['-Xmx512m', '-jar', 'target/qanda-backend-1.0.0.jar', ...(command === 'start' ? [] : [command])]);
+  } else throw new Error('命令：init deps stop-deps capture build test verify start bootstrap db-init db-reset');
 } catch (error) {
   console.error(error.message);
   process.exitCode = 1;

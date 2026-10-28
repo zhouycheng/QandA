@@ -19,7 +19,7 @@ QandA 为学生提供课程题库浏览、练习与学习记录能力，并为�
 | --- | --- | --- |
 | 微信小程序 | 微信原生 JavaScript、WXML、WXSS | 题库浏览、练习、复盘和本地学习记录；身份适配层提供 HTTP Gateway 与本地降级，练习业务仍待联调 |
 | 管理端 | React、TypeScript、Vite、Arco Design | 内容与运营管理界面，当前使用浏览器本地 Mock 数据 |
-| 后端 API | Kotlin、Spring Boot、PostgreSQL、Flyway | 提供统一服务与 API 合同；101 项操作合同中 76 项已实现，25 项标记为 Draft |
+| 后端 API | Kotlin、Spring Boot、Maven、MyBatis-Plus、PostgreSQL | 110 项业务接口，覆盖账号、内容、练习、学习与运营 |
 | 用户 Web | — | 当前没有对应的运行实现；产品范围见 [Web MVP PRD](docs/prd/web-mvp.md) |
 
 小程序题库、练习进度和学习记录保存在本地。管理端数据使用浏览器本地 Mock。API 与客户端的业务联调尚未完成；实现范围和本地运行方式分别见 [小程序说明](apps/miniapp/README.md)、[管理端说明](apps/admin/README.md) 和 [API 说明](apps/api/README.md)。
@@ -30,10 +30,10 @@ QandA 为学生提供课程题库浏览、练习与学习记录能力，并为�
 | --- | --- |
 | `apps/miniapp` | 微信小程序前端、题库数据、资源脚本与自检 |
 | `apps/admin` | 管理端前端及 Mock 数据适配 |
-| `apps/api` | Kotlin 服务端、数据库迁移、模块化 API 合同、验收工具与 Postman 集合 |
+| `apps/api` | Kotlin 服务端、完整建表脚本、模块化 API 合同、验收工具与 Postman 集合 |
 | `docs` | 产品需求、系统架构、管理端交付记录与 Git 工作流 |
 
-API 合同由模块文档组成，聚合入口为 [apps/api/contracts/openapi.yaml](apps/api/contracts/openapi.yaml)。101 项合同包含已实现操作与明确标记为 Draft 的未来范围。
+API 合同由模块文档组成，聚合入口为 [apps/api/contracts/openapi.yaml](apps/api/contracts/openapi.yaml)。合同版本保持 `1.0.0`，覆盖当前服务实现。
 
 ## 本地开发
 
@@ -58,7 +58,10 @@ pnpm dev
 ```bash
 node apps/api/scripts/backend.mjs init
 node apps/api/scripts/backend.mjs deps
+node apps/api/scripts/backend.mjs capture
 node apps/api/scripts/backend.mjs build
+node apps/api/scripts/backend.mjs db-init
+node apps/api/scripts/backend.mjs bootstrap
 node apps/api/scripts/backend.mjs start
 ```
 

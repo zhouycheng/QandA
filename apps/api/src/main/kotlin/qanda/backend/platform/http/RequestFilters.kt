@@ -33,7 +33,7 @@ object RequestIds {
 }
 
 @Component
-@Order(Ordered.HIGHEST_PRECEDENCE)
+@Order(Ordered.HIGHEST_PRECEDENCE + 1)
 class RequestIdFilter(private val errors: ErrorWriter) : OncePerRequestFilter() {
     override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
         val values = request.getHeaders(RequestIds.HEADER).toList()
@@ -52,15 +52,10 @@ class RequestIdFilter(private val errors: ErrorWriter) : OncePerRequestFilter() 
     }
 }
 
-object RequestBodies {
-    const val MAX_JSON_BYTES = 8 * 1024 * 1024
-    internal const val ATTRIBUTE = "qanda.backend.rawJson"
-    fun bytes(request: HttpServletRequest): ByteArray = (request.getAttribute(ATTRIBUTE) as? ByteArray)?.clone()
-        ?: error("Raw JSON is available only after JsonBodyFilter")
-}
+private const val MAX_JSON_BYTES = 8 * 1024 * 1024
 
 @Component
-@Order(Ordered.HIGHEST_PRECEDENCE + 1)
+@Order(Ordered.HIGHEST_PRECEDENCE + 2)
 class JsonBodyFilter(private val errors: ErrorWriter) : OncePerRequestFilter() {
     override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
         if (!request.requestURI.startsWith("/api/v1/") || request.contentType?.substringBefore(';')?.trim()?.lowercase() != MediaType.APPLICATION_JSON_VALUE) {
@@ -68,14 +63,13 @@ class JsonBodyFilter(private val errors: ErrorWriter) : OncePerRequestFilter() {
             return
         }
         try {
-            if (request.contentLengthLong > RequestBodies.MAX_JSON_BYTES) throw tooLarge()
-            val body = request.inputStream.readNBytes(RequestBodies.MAX_JSON_BYTES + 1)
-            if (body.size > RequestBodies.MAX_JSON_BYTES) throw tooLarge()
+            if (request.contentLengthLong > MAX_JSON_BYTES) throw tooLarge()
+            val body = request.inputStream.readNBytes(MAX_JSON_BYTES + 1)
+            if (body.size > MAX_JSON_BYTES) throw tooLarge()
             val charset = MediaType.parseMediaType(request.contentType).charset
             if (charset != null && charset != Charsets.UTF_8) throw ApiException(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "UNSUPPORTED_MEDIA_TYPE", "JSON请求须使用UTF-8")
             val decoded = Charsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT).onUnmappableCharacter(CodingErrorAction.REPORT).decode(ByteBuffer.wrap(body))
             if (decoded.contains('\u0000')) throw ApiException(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", "请求JSON格式不正确")
-            request.setAttribute(RequestBodies.ATTRIBUTE, body)
             chain.doFilter(BufferedJsonRequest(request, body), response)
         } catch (_: CharacterCodingException) {
             errors.write(request, response, ApiException(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", "JSON请求须使用有效UTF-8"))
