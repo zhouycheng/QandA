@@ -148,6 +148,9 @@
           <text class="search-item-meta">{{item.typeText}}<text wx:if="{{item.sourceText}}"> · {{item.sourceText}}</text></text>
         </view>
 
+        <view wx:if="{{searchLoading}}" class="search-empty"><text>正在搜索…</text></view>
+        <view wx:if="{{searchHasMore && !searchLoading}}" class="search-item" bindtap="handleSearchMore" hover-class="search-item-hover" hover-start-time="0"><text>加载更多</text></view>
+
         <view class="search-empty" wx:if="{{searchSearched && searchResultCount === 0}}">
           <text class="search-empty-title">没有找到匹配的题目</text>
           <text class="search-empty-tip">试试更短的关键词，比如题干的头两个字</text>

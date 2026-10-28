@@ -1,6 +1,6 @@
 # QandA 微信小程序
 
-QandA 微信小程序面向课程复习与题库练习场景，基于微信原生技术构建。题库与学习记录当前保存在本地；身份适配层提供 HTTP Gateway 与本地降级，练习业务仍需与统一 API 完成联调。
+QandA 微信小程序面向课程复习与题库练习场景，基于微信原生技术构建。正式运行使用统一 `/api/v1`，目录与学习记录由后端维护。已下载的练习支持离线续答，答题草稿持久化到本机并在联网后同步。接口覆盖见[接入台账](../../docs/miniapp-api-integration.md)。
 
 - [小程序 MVP 产品需求](../../docs/prd/miniapp-mvp.md)
 - [API 实现与合同](../api/README.md)
@@ -32,9 +32,9 @@ QandA 微信小程序面向课程复习与题库练习场景，基于微信原�
 
 ## 数据与资源
 
-题库目录和题目同时保留 JavaScript 运行格式与 JSON 审阅格式。练习进度、错题、收藏、偏好及学习日志由本地存储维护。
+正式入口读取服务端目录、资料、收藏、错题及统计。练习创建时固定配置、修订和顺序；客户端判题数据留在模型层，页面按反馈模式展示。正式成绩由服务端计算。旧本地学习记录保留，在线账号使用独立缓存和草稿命名空间。
 
-身份功能通过 Gateway 适配 HTTP 请求，并在本地服务不可用时提供降级行为。题库、练习和学习记录目前由本地数据驱动；相关 API 合同见 [apps/api/contracts/openapi.yaml](../api/contracts/openapi.yaml)。
+开发场景保留静态题库与显式测试适配器。用户上传题库入口暂时关闭。相关 API 合同见 [apps/api/contracts/openapi.yaml](../api/contracts/openapi.yaml)。
 
 首页封面源素材保存在 `design/home-covers`，由 `scripts/prepare-home-covers.cjs` 生成 `miniprogram/assets/home` 中的运行资源。tabBar、首页和菜单图标也通过脚本生成。修改资源时请保留源素材，并通过对应脚本更新生成文件。
 
@@ -42,9 +42,13 @@ QandA 微信小程序面向课程复习与题库练习场景，基于微信原�
 
 使用微信开发者工具导入 `apps/miniapp` 目录并编译。项目运行不需要执行 `npm install` 或“构建 npm”。
 
+将 `miniprogram/ext.example.json` 复制为忽略的 `miniprogram/ext.json`，填写当前小程序 AppID 和 `extConfig.apiBaseUrl`（服务根地址）；App 通过 `wx.getExtConfigSync()` 读取配置。真机使用可访问的 HTTPS 服务和合法请求域名。接口地址或登录未配置成功时，页面会显示对应错误。
+
+已有后端数据库先按 API README 执行练习同步结构升级；新建隔离数据库直接使用完整 schema。开发配置、令牌和真实连接参数保存在忽略文件或仓库外。
+
 ## 检查
 
-仓库包含 24 个 Node 自检脚本。进入 `apps/miniapp` 目录后运行：
+仓库包含 Node 自检脚本和真实编译检查。进入 `apps/miniapp` 目录后运行：
 
 ```bash
 for f in tests/*.check.js; do

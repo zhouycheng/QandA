@@ -75,6 +75,11 @@ function getInitialPracticeViewData() {
   const durationSeconds = DEFAULT_TEST_DURATION_MINUTES * 60
 
   return {
+    loadError: '',
+    waitingForSync: false,
+    waitingSeconds: 0,
+    editingLocked: false,
+    answerText: '',
     mode: PRACTICE_MODES.PRACTICE,
     // 初始即给一份默认偏好：页面首帧就要读 preferences.showOverviewEntry / fontSize，
     // 缺了会让答题卡入口闪一下、字号也来不及生效
@@ -429,6 +434,19 @@ class PracticeSession {
       data.elapsedText = formatTimer(this.getElapsedSeconds())
     }
 
+    // 页面只接收展示投影，判题字段留在模型中。
+    data.questions = this.state.questions.map(q => ({ id: q.id }))
+    if (!data.isCompleted) {
+      data.resultItems = []
+      data.filteredResultItems = []
+      data.answers = []
+    }
+    if (!data.shouldRevealAnswer) {
+      data.currentCorrectAnswerText = ''
+      data.currentExplanation = ''
+      data.isCurrentAnswerCorrect = false
+      if (data.isTestMode && !data.isCompleted) data.overviewItems = (data.overviewItems || []).map(item => Object.assign({}, item, { isCorrect: false }))
+    }
     return data
   }
 
@@ -744,9 +762,11 @@ class PracticeSession {
         id: question.id,
         number: index + 1,
         typeText: question.typeText,
+        isShortAnswer: !!question.isShortAnswer,
+        selfAssessment: answer.selfAssessment || '',
         stem: question.stem,
-        selectedText: this.getAnswerText(question, answer.selectedKeys) || '未作答',
-        correctText: this.getAnswerText(question, question.answerKeys),
+        selectedText: answer.text || this.getAnswerText(question, answer.selectedKeys) || '未作答',
+        correctText: question.isShortAnswer ? question.referenceAnswer : this.getAnswerText(question, question.answerKeys),
         answered,
         isCorrect: answered && !!answer.isCorrect,
         explanation: this.getExplanation(question),
@@ -850,7 +870,7 @@ class PracticeSession {
     const question = this.state.questions[index]
     const savedAnswer = this.state.answers[index] || null
     const selectedKeys = savedAnswer ? savedAnswer.selectedKeys : []
-    const hasAnswered = !!savedAnswer
+    const hasAnswered = !!savedAnswer && savedAnswer.confirmed !== false
     // 模拟测试模式下不即时反馈，交卷后才统一公布答案
     const shouldRevealAnswer = this.state.isViewMode || (hasAnswered && !this.state.isTestMode)
     // 对错与正确答案照常给出，解析是否展开服从用户偏好（背题模式始终展开）
@@ -862,6 +882,7 @@ class PracticeSession {
       currentNumber: index + 1,
       currentQuestion: this.getQuestionView(question, selectedKeys, shouldRevealAnswer),
       selectedKeys,
+      answerText: savedAnswer ? savedAnswer.text || '' : '',
       hasAnswered,
       shouldRevealAnswer,
       shouldShowExplanation,
@@ -880,7 +901,7 @@ class PracticeSession {
   commitCurrentAnswer(selectedKeys) {
     const question = this.getCurrentBaseQuestion()
 
-    if (!question || !selectedKeys.length) {
+    if (!question || (!question.isShortAnswer && !selectedKeys.length)) {
       return null
     }
 
@@ -895,6 +916,11 @@ class PracticeSession {
       return
     }
 
+    if (question.isShortAnswer) {
+      const previous = this.state.answers[this.state.currentIndex] || {}
+      this.state.answers[this.state.currentIndex] = { questionId: question.id, text: this.state.answerText, selectedKeys: [], confirmed: true, selfAssessment: previous.selfAssessment || null, isCorrect: previous.selfAssessment === 'CORRECT' }
+      return
+    }
     const normalizedKeys = selectedKeys.slice().sort()
     const answerKeys = question.answerKeys.slice().sort()
     const isCorrect =
@@ -904,7 +930,8 @@ class PracticeSession {
     this.state.answers[this.state.currentIndex] = {
       questionId: question.id,
       selectedKeys: normalizedKeys,
-      isCorrect
+      isCorrect,
+      confirmed: true
     }
     this.state.hasAnswered = true
     this.state.shouldRevealAnswer = !this.state.isTestMode
@@ -917,10 +944,27 @@ class PracticeSession {
     this.state.primaryActionText = this.getPrimaryActionText(this.state.currentIndex, true, normalizedKeys)
   }
 
+  setAnswerText(text) {
+    const question = this.getCurrentBaseQuestion()
+    if (!question || !question.isShortAnswer || this.state.hasAnswered || this.state.isCompleted) return null
+    this.state.answerText = String(text || '').slice(0, 10000)
+    this.state.answers[this.state.currentIndex] = { questionId: question.id, text: this.state.answerText, selectedKeys: [], confirmed: false, isCorrect: false }
+    return { data: { primaryActionText: this.getPrimaryActionText(this.state.currentIndex, false, []) } }
+  }
+
+  assessShortAnswer(value) {
+    const question = this.getCurrentBaseQuestion()
+    const answer = this.state.answers[this.state.currentIndex]
+    if (!question || !question.isShortAnswer || !answer || !answer.confirmed || !this.state.shouldRevealAnswer) return null
+    answer.selfAssessment = value === 'CORRECT' ? 'CORRECT' : 'WRONG'
+    answer.isCorrect = value === 'CORRECT'
+    return this.showQuestionAtIndex(this.state.currentIndex)
+  }
+
   shouldConfirmCurrentAnswer() {
     const question = this.getCurrentBaseQuestion()
 
-    return !!question && question.isMultiple && !this.state.hasAnswered && this.state.selectedKeys.length > 0
+    return !!question && !this.state.hasAnswered && (question.isShortAnswer ? !!this.state.answerText.trim() : question.isMultiple && this.state.selectedKeys.length > 0)
   }
 
   updateState(patch, effects) {
@@ -942,7 +986,7 @@ class PracticeSession {
       return null
     }
 
-    return Object.assign({}, question, {
+    return Object.assign({ id: question.id, stem: question.stem, typeText: question.typeText, isShortAnswer: !!question.isShortAnswer, assetIds: question.assetIds || [] }, {
       options: question.options.map((option) => ({
         key: option.key,
         label: option.label,
@@ -970,7 +1014,7 @@ class PracticeSession {
 
   getUnansweredIndexes(answers) {
     return this.state.questions.reduce((items, question, index) => {
-      if (!answers[index]) {
+      if (!answers[index] || answers[index].confirmed === false) {
         items.push(index)
       }
 
@@ -1002,7 +1046,7 @@ class PracticeSession {
     if (!hasAnswered) {
       const question = this.state.questions[index]
 
-      if (question && question.isMultiple && selectedKeys.length) {
+      if (question && (question.isShortAnswer ? !!this.state.answerText.trim() : question.isMultiple && selectedKeys.length)) {
         return '确认答案'
       }
     }
@@ -1046,7 +1090,7 @@ class PracticeSession {
       return ''
     }
 
-    return `正确答案 ${question.answerKeys.join('')}`
+    return question.isShortAnswer ? question.referenceAnswer : `正确答案 ${question.answerKeys.join('')}`
   }
 
   getExplanation(question) {

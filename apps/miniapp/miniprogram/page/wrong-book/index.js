@@ -22,6 +22,7 @@ Page({
     }
 
     this.applyViewModelResult(this.viewModel.refresh({}))
+    this.applyViewModelResult(this.viewModel.refreshRemote())
   },
 
   onPullDownRefresh() {
@@ -31,6 +32,7 @@ Page({
     }
 
     this.applyViewModelResult(this.viewModel.refresh({}))
+    this.applyViewModelResult(this.viewModel.refreshRemote())
     setTimeout(() => {
       wx.stopPullDownRefresh()
     }, 400)
@@ -115,6 +117,9 @@ Page({
   },
 
   applyViewModelResult(result) {
+    if (result && typeof result.then === 'function') {
+      return result.then((value) => this.applyViewModelResult(value)).catch((error) => wx.showToast({ title: error.message || '请求失败', icon: 'none' }))
+    }
     if (!result) {
       return
     }

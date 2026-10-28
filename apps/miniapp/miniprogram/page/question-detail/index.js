@@ -8,6 +8,7 @@ Page({
       storage: createWxStorageAdapter()
     })
     this.applyViewModelResult(this.viewModel.load(options))
+    this.applyViewModelResult(this.viewModel.refreshRemote(options))
   },
 
   handleToggleFavorite() {
@@ -15,6 +16,9 @@ Page({
   },
 
   applyViewModelResult(result) {
+    if (result && typeof result.then === 'function') {
+      return result.then((value) => this.applyViewModelResult(value)).catch((error) => wx.showToast({ title: error.message || '请求失败', icon: 'none' }))
+    }
     if (!result) {
       return
     }

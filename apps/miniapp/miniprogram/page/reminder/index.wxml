@@ -4,7 +4,7 @@
   <view class="switch-row switch-row-tall">
     <view class="row-main">
       <text class="row-label">允许邮箱提醒</text>
-      <text class="row-desc">发送至 {{emailMasked || '未绑定邮箱'}}</text>
+      <text class="row-desc">本机偏好 · 邮件提醒待开放</text>
     </view>
     <switch
       class="switch"

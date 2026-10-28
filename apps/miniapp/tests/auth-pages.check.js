@@ -210,10 +210,10 @@ async function checkFlow() {
 
   const sent = await registerVm.sendCode('register')
 
-  assert('降级 - 未配域名也能发验证码（返回 cooldown）',
-    sent.command.type === 'cooldown' && sent.command.seconds > 0, JSON.stringify(sent.command))
-  assert('降级 - 明确告知验证码校验已跳过',
-    sent.command.title.indexOf('跳过') >= 0, sent.command.title)
+  assert('认证 - 未配域名时显示错误',
+    sent.command.type === 'toast', JSON.stringify(sent.command))
+  assert('认证 - 验证码失败原因可见',
+    sent.command.title.indexOf('未配置') >= 0, sent.command.title)
 
   const badEmailSend = await new RegisterViewModel({ storage: createMemoryStorage() }).sendCode('register')
 
@@ -232,9 +232,9 @@ async function checkFlow() {
   const registered = await okRegister.submit()
   const registeredAuth = authRepository.getAuth(registerStorage)
 
-  assert('降级 - 注册后直接进登录态', registeredAuth.loggedIn === true)
-  assert('降级 - 注册来源是邮箱', registeredAuth.provider === 'email', registeredAuth.provider)
-  assert('降级 - 注册后回到上一页', registered.command.type === 'back', JSON.stringify(registered.command))
+  assert('认证 - 断网注册保持未登录', registeredAuth.loggedIn === false)
+  assert('认证 - 断网注册没有身份来源', registeredAuth.provider === '', registeredAuth.provider)
+  assert('认证 - 注册失败停留原页', registered.command.type === 'toast', JSON.stringify(registered.command))
   assert('降级 - 注册不把密码写进 storage',
     JSON.stringify(registerStorage.raw).indexOf('abc12345') < 0)
 
@@ -262,15 +262,15 @@ async function checkFlow() {
 
   const reset = await resetVm.submit()
 
-  assert('降级 - 重置成功回登录页',
-    reset.command.type === 'navigate' && reset.command.url === '/page/login/index', JSON.stringify(reset.command))
+  assert('认证 - 断网重置停留原页',
+    reset.command.type === 'toast', JSON.stringify(reset.command))
   assert('降级 - 重置不产生登录态', authRepository.getAuth(resetStorage).loggedIn === false)
-  assert('降级 - 重置说明密码未实际修改', reset.command.title.indexOf('未实际修改') >= 0, reset.command.title)
+  assert('认证 - 重置失败原因可见', reset.command.title.indexOf('未配置') >= 0, reset.command.title)
 
   // 5) 后端可用时走真实返回
   authGateway.setAuthGateway({
     name: 'fake',
-    loginByEmail: () => ({ ok: true, userId: 'u-77', email: 'curry@test.com' })
+    loginByEmail: () => ({ ok: true, userId: 'u-77', token: 'tk77', email: 'curry@test.com' })
   })
 
   const realStorage = createMemoryStorage()
@@ -343,14 +343,14 @@ async function checkRegressions() {
 
   const offline = await offlineVm.submit()
 
-  assert('修复 - 没接上后端仍可本地登录',
-    authRepository.getAuth(offlineStorage).provider === 'email' && !!offline.data.degradedNote,
+  assert('认证 - 断网不会生成登录身份',
+    !authRepository.getAuth(offlineStorage).loggedIn && offline.command.type === 'toast',
     JSON.stringify(offline.data))
 
   // 3) 换到真后端登录成功后，降级说明必须消失（不能一直挂着上一轮的提示）
   authGateway.setAuthGateway({
     name: 'online',
-    loginByEmail: () => ({ ok: true, userId: 'u-9', email: 'curry@test.com' })
+    loginByEmail: () => ({ ok: true, userId: 'u-9', token: 'tk9', email: 'curry@test.com' })
   })
 
   const online = await offlineVm.submit()

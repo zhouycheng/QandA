@@ -1,7 +1,17 @@
 <!-- 答题页｜设计稿：练习模式 / 即时模式 / 答题卡 / 答题结果
      逻辑一律不放这里：改 UI 只动本文件与 index.wxss，处理函数名保持不变。 -->
 <view class="page practice-page font-{{preferences.fontSize}}">
-  <block wx:if="{{!isCompleted}}">
+  <view wx:if="{{loadError}}" class="pra-modal"><view class="pra-modal-panel"><text>{{loadError}}</text><view class="pra-btn" bindtap="returnBankDetail" hover-class="btn-flat-hover" hover-start-time="0">返回题库</view></view></view>
+  <view wx:if="{{waitingForSync}}" class="pra-modal">
+    <view class="pra-modal-panel">
+      <text class="pra-modal-title">等待同步</text>
+      <text class="pra-modal-desc">已等待 {{waitingSeconds}} 秒，请让原设备联网完成同步。</text>
+      <view class="pra-btn primary" bindtap="startNewPractice" hover-class="btn-flat-hover" hover-start-time="0">新练习</view>
+      <view class="pra-btn" bindtap="waitInBackground" hover-class="btn-flat-hover" hover-start-time="0">后台等待</view>
+    </view>
+  </view>
+  <view wx:if="{{editingLocked}}" class="pra-modal"><view class="pra-modal-panel"><text>正在交接练习，请保持联网</text></view></view>
+  <block wx:if="{{!isCompleted && !waitingForSync}}">
     <!-- ① 页内标题：题库名 + 模式副标题（返回走系统导航栏，页内不再自绘返回钮，避免双层返回栏） -->
     <view class="pra-head">
       <view class="pra-head-text">
@@ -28,6 +38,7 @@
       <view class="pra-content {{preferences.answerLayout === 'above' ? 'pra-content-above' : ''}}">
         <view class="pra-stem">{{currentQuestion.stem}}</view>
 
+        <textarea wx:if="{{currentQuestion.isShortAnswer}}" value="{{answerText}}" disabled="{{hasAnswered}}" maxlength="10000" placeholder="填写你的答案" bindinput="inputAnswerText" />
         <view class="pra-options">
           <view
             wx:for="{{currentQuestion.options}}"
@@ -47,8 +58,12 @@
 
       <!-- 解析：即时模式下展开在选项下方 -->
       <view class="pra-analysis" wx:if="{{shouldRevealAnswer}}">
+        <view wx:if="{{currentQuestion.isShortAnswer}}">
+          <view class="pra-btn" bindtap="assessShortAnswer" data-value="CORRECT" hover-class="btn-flat-hover" hover-start-time="0">自评：掌握</view>
+          <view class="pra-btn" bindtap="assessShortAnswer" data-value="WRONG" hover-class="btn-flat-hover" hover-start-time="0">自评：待复习</view>
+        </view>
         <view class="pra-analysis-head">
-          <text class="pra-result-tag {{isCurrentAnswerCorrect ? 'ok' : 'no'}}">{{isCurrentAnswerCorrect ? '答对啦' : '答错了'}}</text>
+          <text class="pra-result-tag {{isCurrentAnswerCorrect ? 'ok' : 'no'}}">{{currentQuestion.isShortAnswer ? '参考答案' : (isCurrentAnswerCorrect ? '答对啦' : '答错了')}}</text>
           <text class="pra-analysis-answer">{{currentCorrectAnswerText}}</text>
         </view>
 
@@ -313,6 +328,11 @@
           <view class="res-item-line">
             <text class="res-item-label">正确答案</text>
             <text class="res-item-value is-correct">{{item.correctText}}</text>
+            <view wx:if="{{item.isShortAnswer}}">
+              <text>自评：{{item.selfAssessment === 'CORRECT' ? '掌握' : (item.selfAssessment === 'WRONG' ? '待复习' : '待评价')}}</text>
+              <view class="pra-btn" bindtap="assessResult" data-id="{{item.id}}" data-value="CORRECT" hover-class="btn-flat-hover" hover-start-time="0">掌握</view>
+              <view class="pra-btn" bindtap="assessResult" data-id="{{item.id}}" data-value="WRONG" hover-class="btn-flat-hover" hover-start-time="0">待复习</view>
+            </view>
           </view>
           <view class="res-item-line">
             <text class="res-item-label">解析</text>

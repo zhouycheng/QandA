@@ -1,3 +1,4 @@
+const remoteData = require('../../repositories/remote-data-repository.js')
 const { ImportBankViewModel } = require('../../viewmodels/import-bank-viewmodel.js')
 const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
 // 超过这个体积的文件先提示，读进来也没法解析（真要导大题库请用开发者脚本）
@@ -7,6 +8,11 @@ Page({
   data: ImportBankViewModel.getInitialData(),
 
   onLoad() {
+    if (remoteData.isEnabled()) {
+      wx.showToast({ title: '题库由平台统一维护', icon: 'none' })
+      wx.switchTab({ url: '/page/bank-detail/index' })
+      return
+    }
     this.viewModel = new ImportBankViewModel({
       storage: createWxStorageAdapter()
     })

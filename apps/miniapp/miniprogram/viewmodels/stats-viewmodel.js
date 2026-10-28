@@ -89,7 +89,7 @@ function collectAnsweredIds(progress) {
 function getInitialStatsViewData() {
   return {
     identity: {
-      subtitle: '学习记录只存本机'
+      subtitle: '登录后同步学习记录'
     },
     entries: getInitialEntries(),
     // 区间切换：7d / 30d / all
@@ -149,6 +149,11 @@ class StatsViewModel {
     this.cache = null
   }
 
+  refreshRemote(subjectId) {
+    if (!this.repository.isRemoteEnabled || !this.repository.isRemoteEnabled()) return Promise.resolve(null)
+    return this.repository.refreshRemote(this.storage, 'all').then(() => this.load()).catch((error) => ({ command: { type: 'toast', title: error.message } }))
+  }
+
   static getInitialData() {
     return getInitialStatsViewData()
   }
@@ -165,6 +170,8 @@ class StatsViewModel {
     const overall = summarizeOverallProgress(progress, details)
     const days = this.getRecentPoints()
 
+    const serverStatistics = this.repository.isRemoteEnabled && this.repository.isRemoteEnabled() && this.repository.getRemoteStatistics(this.storage)
+    if (serverStatistics) { overall.answered = serverStatistics.answeredCount; overall.accuracy = Math.round(serverStatistics.objectiveAccuracy * 100) }
     this.cache = { overall, days, studySeconds: Number(studyTime.totalSeconds) || 0 }
 
     const favorites = this.repository.getFavorites(this.storage)
@@ -259,6 +266,10 @@ class StatsViewModel {
    * 因为日志只留半年，拿它算「累计」会漏掉更早的记录。
    */
   buildMetrics(option, cache) {
+    if (this.repository.isRemoteEnabled && this.repository.isRemoteEnabled()) {
+      const statistics = this.repository.getRemoteStatistics(this.storage, option.days === 7 ? 'WEEK' : option.days === 30 ? 'MONTH' : 'ALL')
+      return { answered: `${statistics && statistics.answeredCount || 0}`, accuracy: `${Math.round((statistics && statistics.objectiveAccuracy || 0) * 100)}`, duration: `${Math.floor((statistics && statistics.durationSeconds || 0) / 60)}` }
+    }
     if (option.days > 0) {
       const window = cache.days.slice(-option.days)
       const answered = window.reduce((sum, day) => sum + day.answered, 0)
@@ -308,7 +319,7 @@ class StatsViewModel {
         subtitle: view.college ? `${view.college} · ${name}` : name
       }
     } catch (error) {
-      return { subtitle: '学习记录只存本机' }
+      return { subtitle: '登录后同步学习记录' }
     }
   }
 

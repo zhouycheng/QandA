@@ -1,30 +1,13 @@
-/**
- * 登录态的取值与归一化规则。
- *
- * 只放纯计算，不碰 wx / storage —— 读写由 repositories/auth-repository.js 负责，
- * 这样本文件可以在 Node 里直接 require 跑断言。
- *
- * 三种身份来源（对齐 API PRD 第 19 节「Mock 原则」）：
- *   email  —— 邮箱密码登录：设计稿 763:567 的主路径，POST /api/auth/login
- *   wechat —— 真微信登录：wx.login 拿 code → 后端 code2session → 自有 token
- *   dev    —— 本地身份：后端还没接好时的降级身份（DevAuthProvider）
- *
- * 降级不是「登录失败」。用户点了登录就该进到已登录状态，
- * 只是身份由本地生成；把降级当成失败会让用户以为功能坏了。
- */
-
 const AUTH_STORAGE_KEY = 'qandaAuth'
 
 const AUTH_PROVIDER = {
   EMAIL: 'email',
-  WECHAT: 'wechat',
-  DEV: 'dev'
+  WECHAT: 'wechat'
 }
 
 const PROVIDER_LABEL = {
   email: '邮箱登录',
-  wechat: '微信登录',
-  dev: '本地身份'
+  wechat: '微信登录'
 }
 
 /** 微信昵称上限 32 个字符，超了在资料卡里会截断得很难看 */
@@ -44,10 +27,9 @@ const GUEST_NAME = '未登录'
  * 所以放在这里是唯一真源。
  */
 const AUTH_HINTS = {
-  guest: '未登录：做题进度、错题与收藏只存在本机，换设备不会同步',
-  email: '已通过邮箱登录。学习数据保存在本机，登录只用于标识身份',
-  wechat: '已通过微信登录。学习数据仍保存在本机，登录只用于标识身份',
-  dev: '后端接口未接入，已用本地身份继续。配好接口域名后会自动切换为真实登录'
+  guest: '登录后开始练习并同步学习记录',
+  email: '已通过邮箱登录，学习记录联网后同步',
+  wechat: '已通过微信登录，学习记录联网后同步'
 }
 
 function createEmptyAuth() {
@@ -77,7 +59,7 @@ function readText(value, maxLength) {
  * 归一化：storage 里的东西一律不可信。
  *
  * 这里坚持的两条判据：
- * 1. **loggedIn 必须由 provider + 身份 id 共同决定**，不能只信存储里的 loggedIn 字段。
+ * 1. **loggedIn 必须由 provider、服务端用户 ID 和令牌共同决定**，不能只信存储里的 loggedIn 字段。
  *    曾经出过「有 key 但读回来是空壳」的坑（存的时候被覆盖成空数组），
  *    只信字段会让界面显示成已登录、实际没有任何身份。
  * 2. 未知 provider 一律降级为未登录，而不是原样透传，避免后续代码出现第三种状态。
@@ -89,12 +71,12 @@ function normalizeAuth(raw) {
 
   const provider = readText(raw.provider)
   const isKnownProvider =
-    provider === AUTH_PROVIDER.WECHAT || provider === AUTH_PROVIDER.DEV || provider === AUTH_PROVIDER.EMAIL
+    provider === AUTH_PROVIDER.WECHAT || provider === AUTH_PROVIDER.EMAIL
   const userId = readText(raw.userId, USER_ID_MAX_LENGTH)
   const openId = readText(raw.openId, USER_ID_MAX_LENGTH)
   const email = readText(raw.email, EMAIL_MAX_LENGTH)
 
-  if (!isKnownProvider || (!userId && !openId && !email)) {
+  if (!isKnownProvider || !userId || !readText(raw.token, TOKEN_MAX_LENGTH)) {
     return createEmptyAuth()
   }
 
@@ -108,6 +90,8 @@ function normalizeAuth(raw) {
     nickname: readText(raw.nickname, NICKNAME_MAX_LENGTH),
     college: readText(raw.college, COLLEGE_MAX_LENGTH),
     avatarUrl: readText(raw.avatarUrl, 512),
+    profile: raw.profile || null,
+    version: Number(raw.version) || 0,
     loginAt: Number(raw.loginAt) > 0 ? Number(raw.loginAt) : 0
   }
 }
@@ -150,10 +134,6 @@ function getAuthHint(auth) {
     return AUTH_HINTS.guest
   }
 
-  if (normalized.provider === AUTH_PROVIDER.DEV) {
-    return AUTH_HINTS.dev
-  }
-
   return normalized.provider === AUTH_PROVIDER.EMAIL ? AUTH_HINTS.email : AUTH_HINTS.wechat
 }
 
@@ -176,49 +156,6 @@ function formatLoginTime(loginAt, now) {
 }
 
 /**
- * 本地身份 id。
- * 用时间戳 + 随机数拼，不引入 uuid 依赖（本项目是零依赖零构建）。
- * 带 `dev_` 前缀是为了一眼看出这是降级身份，不是真 openid。
- */
-function buildDevUserId(now, random) {
-  const stamp = (Number(now) > 0 ? Number(now) : Date.now()).toString(36)
-  const seed = typeof random === 'number' ? random : Math.random()
-  const salt = Math.floor(seed * 1e9).toString(36)
-
-  return `dev_${stamp}${salt}`
-}
-
-function buildDevAuth(options) {
-  const payload = options || {}
-
-  return normalizeAuth({
-    provider: AUTH_PROVIDER.DEV,
-    userId: payload.userId || buildDevUserId(payload.now, payload.random),
-    openId: '',
-    nickname: payload.nickname || '',
-    college: payload.college || '',
-    avatarUrl: payload.avatarUrl || '',
-    loginAt: Number(payload.now) > 0 ? Number(payload.now) : Date.now()
-  })
-}
-
-/**
- * 邮箱 → 稳定 id（djb2 哈希，不引依赖）。
- * 后端没接入时用它当本地身份 id：同一邮箱在任何时候都算出同一个 id，
- * 反复登录不会让本机数据看起来换了个人。
- */
-function hashEmail(email) {
-  const text = readText(email).trim().toLowerCase()
-  let hash = 5381
-
-  for (let index = 0; index < text.length; index += 1) {
-    hash = ((hash << 5) + hash + text.charCodeAt(index)) >>> 0
-  }
-
-  return hash.toString(36)
-}
-
-/**
  * 邮箱登录身份。
  * 注意：**密码永远不进这个对象**，也不落 storage —— 端上没有任何理由保存它。
  */
@@ -228,7 +165,7 @@ function buildEmailAuth(payload, now) {
 
   return normalizeAuth({
     provider: AUTH_PROVIDER.EMAIL,
-    userId: readText(data.userId || `email_${hashEmail(email)}`, USER_ID_MAX_LENGTH),
+    userId: readText(data.userId || '', USER_ID_MAX_LENGTH),
     email,
     token: readText(data.token || data.accessToken || '', TOKEN_MAX_LENGTH),
     nickname: readText(data.nickname || '', NICKNAME_MAX_LENGTH),
@@ -287,8 +224,6 @@ module.exports = {
   NICKNAME_MAX_LENGTH,
   PROVIDER_LABEL,
   applyProfile,
-  buildDevAuth,
-  buildDevUserId,
   buildEmailAuth,
   buildWechatAuth,
   createEmptyAuth,
@@ -296,7 +231,6 @@ module.exports = {
   formatLoginTime,
   getAuthHint,
   getProviderLabel,
-  hashEmail,
   isLoggedIn,
   normalizeAuth
 }

@@ -99,7 +99,7 @@ function runCompiler(bin, args) {
       stdio: ['ignore', 'pipe', 'pipe'],
     })
   } catch (err) {
-    return `${err.stdout || ''}${err.stderr || ''}`
+    return `COMPILER_PROCESS_FAILED ${err.message}\n${err.stdout || ''}${err.stderr || ''}`
   }
 }
 
@@ -126,7 +126,7 @@ console.log('--- WXSS ---')
 const wxssOut = runCompiler(exePath(wccDir, 'wcsc'), ['-lc', ...wxssFiles])
 const wxssErrs = wxssOut
   .split(/\r?\n/)
-  .filter((line) => /^ERR[:\s]/.test(line) || /error at token/.test(line))
+  .filter((line) => /^ERR[:\s]|COMPILER_PROCESS_FAILED/.test(line) || /error at token/.test(line))
 
 assert(
   `${wxssFiles.length} 个 .wxss 全部编译通过`,
@@ -139,7 +139,7 @@ const wxmlOut = runCompiler(exePath(wccDir, 'wcc'), wxmlFiles)
 // wcc 把报错写在一行 JSON 里，形如 {"error": ...} / "errMsg"
 const wxmlErrs = wxmlOut
   .split(/\r?\n/)
-  .filter((line) => /WXML_ERR|"errMsg"\s*:|Compile\s*error/i.test(line))
+  .filter((line) => /WXML_ERR|"errMsg"\s*:|Compile\s*error|\.wxml:\d+:\d+|COMPILER_PROCESS_FAILED/i.test(line))
 
 assert(
   `${wxmlFiles.length} 个 .wxml 全部编译通过`,

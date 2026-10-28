@@ -134,6 +134,11 @@ class WrongBookViewModel {
     }
   }
 
+  refreshRemote(subjectId) {
+    if (!this.repository.isRemoteEnabled || !this.repository.isRemoteEnabled()) return Promise.resolve(null)
+    return this.repository.refreshRemote(this.storage, 'all').then(() => this.refresh({})).catch((error) => ({ command: { type: 'toast', title: error.message } }))
+  }
+
   static getInitialData() {
     return getInitialWrongBookViewData()
   }
@@ -285,6 +290,8 @@ class WrongBookViewModel {
       return {
         id: entry.id,
         subjectId: entry.subjectId,
+        bankId: entry.bankId,
+        bankName: entry.bankName,
         subjectName: entry.subjectName,
         title: `${entry.subjectName} · ${entry.bankName}`,
         stem: entry.question.stem,
@@ -312,6 +319,8 @@ class WrongBookViewModel {
       return {
         id: entry.id,
         subjectId: entry.subjectId,
+        bankId: entry.bankId,
+        bankName: entry.bankName,
         subjectName: entry.subjectName,
         title: `${entry.subjectName} · ${entry.bankName}`,
         stem: entry.question.stem,
@@ -425,6 +434,14 @@ class WrongBookViewModel {
       }
     })
 
+    if (this.repository.isRemoteEnabled && this.repository.isRemoteEnabled()) {
+      items.forEach((item) => {
+        if (item.bankId && !seen[`bank:${item.bankId}`]) {
+          seen[`bank:${item.bankId}`] = true
+          options.push({ id: `bank:${item.bankId}`, name: `${item.subjectName} · ${item.bankName}` })
+        }
+      })
+    }
     return options
   }
 
@@ -446,7 +463,7 @@ class WrongBookViewModel {
     let result = items
 
     if (this.state.subjectFilter !== 'all') {
-      result = result.filter((item) => item.subjectId === this.state.subjectFilter)
+      result = result.filter((item) => this.state.subjectFilter.indexOf('bank:') === 0 ? `bank:${item.bankId}` === this.state.subjectFilter : item.subjectId === this.state.subjectFilter)
     }
 
     if (this.state.activeChip === 'repeat') {
@@ -546,6 +563,10 @@ class WrongBookViewModel {
       return null
     }
 
+    if (this.repository.isRemoteEnabled && this.repository.isRemoteEnabled()) {
+      if (this.state.type === TYPE_WRONG) return { command: { type: 'toast', title: '错题随复习结果更新，掌握后自动移出' } }
+      return this.repository.removeQuestionFavorites(this.storage, [questionId]).then(() => this.withToast('已取消收藏'))
+    }
     if (this.state.type === TYPE_WRONG) {
       this.repository.removeWrongQuestions(this.storage, [questionId])
     } else {
@@ -556,6 +577,10 @@ class WrongBookViewModel {
   }
 
   clearAll() {
+    if (this.repository.isRemoteEnabled && this.repository.isRemoteEnabled()) {
+      if (this.state.type === TYPE_WRONG) return { command: { type: 'toast', title: '错题随复习结果更新，掌握后自动移出' } }
+      return this.repository.clearFavorites(this.storage).then(() => this.withToast('已清空收藏'))
+    }
     const count = this.buildViewData().totalCount
 
     if (!count) {
@@ -600,6 +625,12 @@ class WrongBookViewModel {
       }
     }
 
+    if (this.repository.isRemoteEnabled && this.repository.isRemoteEnabled()) {
+      const entries = this.repository.findQuestionEntries(ids)
+      const bankIds = [...new Set(entries.map((entry) => entry.bankId))]
+      if (bankIds.length !== 1) return { command: { type: 'toast', title: '请先筛选同一题库的题目进行练习' } }
+      return { command: { type: 'navigate', url: `/page/practice/index?bankId=${bankIds[0]}&subjectId=${entries[0].subjectId}&ids=${encodeURIComponent(ids.join(','))}&selectionKind=${isWrong ? 'WRONG' : 'FAVORITE'}` } }
+    }
     this.repository.saveCustomQuiz(this.storage, ids, isWrong ? '错题重练' : '收藏练习')
 
     return {

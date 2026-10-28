@@ -153,6 +153,11 @@ class BankDetailViewModel {
     this.bankIndex = null
   }
 
+  refreshRemote(subjectId) {
+    if (!this.repository.isRemoteEnabled || !this.repository.isRemoteEnabled()) return Promise.resolve(null)
+    return this.repository.refreshRemote(this.storage, 'all').then(() => this.sheetTarget ? null : this.load(this.currentSubjectId || subjectId)).catch((error) => ({ command: { type: 'toast', title: error.message } }))
+  }
+
   static getInitialData() {
     return getInitialBankDetailViewData()
   }
@@ -269,6 +274,7 @@ class BankDetailViewModel {
    * 组装左栏、统计卡、章节列表。
    */
   buildViewData(subjects, detail) {
+    this.currentSubjectId = detail.id
     const progress = this.safeProgress()
     const subjectStats = summarizeSubjectProgress(progress, detail)
     const allRows = (detail.banks || []).map((bank, index) => {
@@ -462,6 +468,11 @@ class BankDetailViewModel {
    */
   openConfig(target) {
     const normalized = target || {}
+    if (this.repository.isRemoteEnabled && this.repository.isRemoteEnabled() && normalized.type !== 'bank') {
+      const subject = this.repository.getSubjectDetail(normalized.subjectId)
+      if (subject && subject.banks.length === 1) return this.openConfig({ type: 'bank', subjectId: subject.id, bankId: subject.banks[0].id })
+      return { command: { type: 'chooseBank', subjectId: normalized.subjectId, banks: subject ? subject.banks.filter((bank) => bank.questionCount > 0) : [] } }
+    }
     const detail = this.repository.getSubjectDetail(normalized.subjectId)
     const sheet = Object.assign({}, DEFAULT_SHEET)
 
@@ -705,6 +716,8 @@ class BankDetailViewModel {
       query.push(`subjectId=${encodeURIComponent(target.subjectId)}`)
       query.push('scope=subject')
     }
+
+    if (this.repository.isRemoteEnabled && this.repository.isRemoteEnabled() && this.sheet.onlyWrong) query.push('selectionKind=WRONG')
 
     if (wrongIds.length) {
       query.push(`ids=${encodeURIComponent(wrongIds.join(','))}`)

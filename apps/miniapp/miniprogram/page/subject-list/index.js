@@ -83,6 +83,7 @@ Page({
 
   refresh() {
     this.applyViewModelResult(this.viewModel.load())
+    this.applyViewModelResult(this.viewModel.refreshRemote())
   },
 
   handleContinueTap() {
@@ -134,15 +135,49 @@ Page({
    * （对比：题库导入页的 textarea 必须放 bindblur，那里解析的是整张表。）
    */
   handleSearchInput(e) {
-    this.applyViewModelResult(this.viewModel.searchQuestions(e.detail.value))
+    this.runSearch(e.detail.value, 300)
   },
 
   handleSearchConfirm(e) {
-    this.applyViewModelResult(this.viewModel.searchQuestions(e.detail.value))
+    this.runSearch(e.detail.value, 0)
+  },
+
+  runSearch(keyword, delay) {
+    if (!this.viewModel.repository.isRemoteEnabled || !this.viewModel.repository.isRemoteEnabled()) return this.applyViewModelResult(this.viewModel.searchQuestions(keyword))
+    if (this.searchTimer) clearTimeout(this.searchTimer)
+    const revision = (this.searchRevision || 0) + 1
+    this.searchRevision = revision
+    const execute = () => {
+      this.setData({ searchLoading: true })
+      Promise.resolve(this.viewModel.searchQuestions(keyword)).then((result) => {
+        if (this.searchRevision === revision) this.applyViewModelResult(result)
+      }).catch((error) => {
+        if (this.searchRevision === revision) wx.showToast({ title: error.message, icon: 'none' })
+      }).finally(() => { if (this.searchRevision === revision) this.setData({ searchLoading: false }) })
+    }
+    if (delay) this.searchTimer = setTimeout(execute, delay)
+    else execute()
+  },
+
+  handleSearchMore() {
+    if (this.data.searchLoading) return
+    this.setData({ searchLoading: true })
+    const revision = this.searchRevision
+    Promise.resolve(this.viewModel.loadMoreSearch()).then((result) => {
+      if (this.searchRevision === revision) this.applyViewModelResult(result)
+    }).catch((error) => wx.showToast({ title: error.message, icon: 'none' })).finally(() => { if (this.searchRevision === revision) this.setData({ searchLoading: false }) })
   },
 
   handleSearchClose() {
+    if (this.searchTimer) clearTimeout(this.searchTimer)
+    this.searchRevision = (this.searchRevision || 0) + 1
+    this.setData({ searchLoading: false })
     this.applyViewModelResult(this.viewModel.closeSearch())
+  },
+
+  onUnload() {
+    if (this.searchTimer) clearTimeout(this.searchTimer)
+    this.searchRevision = (this.searchRevision || 0) + 1
   },
 
   handleSearchResultTap(e) {
@@ -186,6 +221,9 @@ Page({
   },
 
   applyViewModelResult(result) {
+    if (result && typeof result.then === 'function') {
+      return result.then((value) => this.applyViewModelResult(value)).catch((error) => wx.showToast({ title: error.message || '请求失败', icon: 'none' }))
+    }
     if (!result) {
       return
     }
@@ -199,7 +237,40 @@ Page({
     }
   },
 
+  chooseBank(command, offset) {
+    const banks = command.banks || []
+    if (!banks.length) return wx.showToast({ title: '当前没有可练习题库', icon: 'none' })
+    const start = offset || 0
+    const page = banks.slice(start, start + 5)
+    const more = banks.length > 5
+    wx.showActionSheet({
+      itemList: page.map((bank) => bank.name).concat(more ? ['更多题库'] : []),
+      success: (result) => {
+        if (result.tapIndex === page.length) return this.chooseBank(command, start + 5 < banks.length ? start + 5 : 0)
+        const bank = page[result.tapIndex]
+        if (bank) this.applyViewModelResult(this.viewModel.openMock(bank.id))
+      }
+    })
+  },
+
+  choosePractice(command, offset) {
+    const start = offset || 0
+    const page = command.choices.slice(start, start + 5)
+    const hasNavigation = command.choices.length > 5
+    wx.showActionSheet({
+      itemList: page.map(item => item.label).concat(hasNavigation ? [start + 5 < command.choices.length ? '更多练习' : '返回第一组'] : []),
+      success: result => {
+        if (result.tapIndex === page.length) return this.choosePractice(command, start + 5 < command.choices.length ? start + 5 : 0)
+        const selected = page[result.tapIndex]
+        if (selected) this.applyViewModelResult(this.viewModel.openPractice(`/page/practice/index?sessionId=${encodeURIComponent(selected.id)}`, selected.label))
+      }
+    })
+  },
+
   handleViewModelCommand(command) {
+    if (command.type === 'choosePractice') return this.choosePractice(command, 0)
+    if (command.type === 'chooseBank') return this.chooseBank(command, 0)
+
     if (command.type === 'toast') {
       wx.showToast({
         title: command.title || '操作失败',

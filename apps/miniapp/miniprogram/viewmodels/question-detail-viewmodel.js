@@ -87,7 +87,9 @@ class QuestionDetailViewModel {
     const entries = typeof this.repository.findQuestionEntries === 'function'
       ? this.repository.findQuestionEntries([questionId])
       : []
-    const entry = entries && entries.length ? entries[0] : null
+    let entry = entries && entries.length ? entries[0] : null
+    const onlineContext = this.onlineContext(sessionId, questionId)
+    if (onlineContext) entry = Object.assign({}, entry || {}, { question: onlineContext.question })
 
     if (!entry) {
       return {
@@ -99,7 +101,9 @@ class QuestionDetailViewModel {
     }
 
     const question = entry.question
-    const answer = this.findSessionAnswer(sessionId, questionId)
+    const remote = this.repository.isRemoteEnabled && this.repository.isRemoteEnabled()
+    const answer = onlineContext ? onlineContext.answer : this.findSessionAnswer(sessionId, questionId)
+    const reveal = !remote || !!(onlineContext && onlineContext.reveal)
     const favoriteIds = typeof this.repository.getFavoriteIds === 'function'
       ? this.repository.getFavoriteIds(this.repository.getFavorites(this.storage))
       : []
@@ -118,19 +122,40 @@ class QuestionDetailViewModel {
           key: option.key,
           label: option.label || option.key,
           text: option.text || '',
-          isCorrectOption: question.answerKeys.indexOf(option.key) >= 0,
+          isCorrectOption: reveal && question.answerKeys.indexOf(option.key) >= 0,
           isSelected: selectedKeys.indexOf(option.key) >= 0
         })),
-        hasAnswer: !!answer,
+        hasAnswer: reveal && !!answer,
         answered: !!answer,
         isCorrect: answer ? !!answer.isCorrect : false,
-        selectedText: answer ? getAnswerText(question, answer.selectedKeys) || '未作答' : '',
-        correctText: getAnswerText(question, question.answerKeys),
-        explanation: question.explanation || '本题暂无解析。',
+        selectedText: answer ? answer.text || getAnswerText(question, answer.selectedKeys) || '未作答' : '',
+        correctText: reveal ? question.referenceAnswer || getAnswerText(question, question.answerKeys) : '',
+        explanation: reveal ? question.explanation || '本题暂无解析。' : '',
         isFavorite: favoriteIds.indexOf(question.id) >= 0,
         fontSize: this.readFontSize()
       }
     }
+  }
+
+  onlineContext(sessionId, questionId) {
+    if (!sessionId || !this.repository.isRemoteEnabled || !this.repository.isRemoteEnabled()) return null
+    const online = require('../repositories/online-practice.js')
+    const runtime = online.current()
+    if (!runtime) return null
+    const snapshot = runtime.get(sessionId)
+    if (!snapshot) return null
+    const item = ((snapshot.result && snapshot.result.items) || snapshot.items || []).find((item) => item.question.id === questionId)
+    if (!item) return null
+    const local = snapshot.localState || {}
+    const answer = (local.answers || []).find((answer) => answer && answer.questionId === questionId) || (item.answer ? { selectedKeys: item.answer.optionKeys || (typeof item.answer.value === 'boolean' ? [String(item.answer.value)] : []), text: item.answer.text || '', confirmed: item.confirmed, isCorrect: item.outcome === 'CORRECT' } : null)
+    const reveal = snapshot.status === 'SUBMITTED' || local.status === 'SUBMITTED' || (snapshot.feedback === 'IMMEDIATE' && answer && answer.confirmed)
+    return { question: online.mapQuestion(item, (snapshot.offlineGrading || []).find((grading) => grading.itemId === item.itemId)), answer, reveal }
+  }
+
+  refreshRemote(options) {
+    if (!this.repository.isRemoteEnabled || !this.repository.isRemoteEnabled()) return Promise.resolve(null)
+    if (options && options.sessionId && this.onlineContext(decodeOptionValue(options.sessionId), decodeOptionValue(options.id))) return Promise.resolve(this.load(options))
+    return this.repository.loadRemoteQuestion(this.storage, decodeOptionValue(options && options.id)).then(() => this.load(options))
   }
 
   /** 读偏好失败时退回标准字号：少一个字号不该让整页打不开 */
@@ -175,11 +200,8 @@ class QuestionDetailViewModel {
 
     const result = this.repository.toggleQuestionFavorite(this.storage, questionId)
 
-    return {
-      data: {
-        isFavorite: !!result.value
-      }
-    }
+    if (result && typeof result.then === 'function') return result.then((value) => ({ data: { isFavorite: !!value.value } }))
+    return { data: { isFavorite: !!result.value } }
   }
 }
 

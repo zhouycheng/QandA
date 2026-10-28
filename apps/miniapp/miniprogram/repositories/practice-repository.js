@@ -179,3 +179,18 @@ module.exports = {
   addReminderExam: reminderRepository.addReminderExam,
   removeReminderExam: reminderRepository.removeReminderExam
 }
+
+// 在线运行由 App 启用；开发场景继续使用显式的本地仓储。
+const remoteData = require('./remote-data-repository.js')
+;['addQuestionFavorite', 'removeQuestionFavorite', 'getSubjectSummaries', 'getSubjectDetail', 'getCatalogStats', 'getBankQuiz', 'getSubjectQuiz', 'getQuestionIndex', 'findQuestionEntries', 'getFavorites', 'getWrongBook', 'getDailyLog', 'getStudyTime', 'getProgress', 'getScopeMeta', 'toggleQuestionFavorite', 'removeQuestionFavorites', 'clearFavorites', 'removeWrongQuestions'].forEach((name) => {
+  const local = module.exports[name]
+  module.exports[name] = function () { return (remoteData.isEnabled() ? remoteData[name] : local).apply(null, arguments) }
+})
+module.exports.refreshRemote = remoteData.refresh
+module.exports.isRemoteEnabled = remoteData.isEnabled
+module.exports.getRemoteStatistics = remoteData.getStatistics
+module.exports.getRemoteRecent = remoteData.getRecent
+module.exports.getRemoteHistory = remoteData.getHistory
+module.exports.loadRemoteQuestion = remoteData.loadQuestion
+
+module.exports.searchRemoteQuestions = remoteData.searchQuestions

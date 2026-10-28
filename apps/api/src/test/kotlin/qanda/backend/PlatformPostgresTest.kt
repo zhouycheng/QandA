@@ -438,6 +438,16 @@ class PlatformPostgresTest {
         assertEquals(4,latest["total"].asInt());assertEquals("WRONG",latest["items"].first { it["questionId"]==single["question"]["id"] }["outcome"].asText())
     }
 
+    @Test fun `miniapp runtime uses real HTTP and PostgreSQL for a complete practice`() {
+        val s=student();val f=fixture()
+        val report=Path.of(".backend-runtime/verification/miniapp-live.json");Files.createDirectories(report.parent)
+        val builder=ProcessBuilder("node","../miniapp/tests/live-backend.cjs").redirectErrorStream(true).redirectOutput(report.toFile())
+        builder.environment().putAll(mapOf("QANDA_TEST_URL" to "http://127.0.0.1:$port","QANDA_TEST_TOKEN" to s.token,"QANDA_TEST_BANK_ID" to f.bank.toString(),"QANDA_TEST_USER_ID" to s.id.toString()))
+        val process=builder.start()
+        if(!process.waitFor(90,java.util.concurrent.TimeUnit.SECONDS)) { process.destroyForcibly();fail<Unit>("小程序真实HTTP验收超时") }
+        assertEquals(0,process.exitValue(),Files.readString(report));assertTrue(json.readTree(Files.readString(report))["passed"].asBoolean())
+    }
+
     @Test fun `OpenAPI contains current typed endpoints and version one`() {
         val response=http.send(HttpRequest.newBuilder(URI("http://127.0.0.1:$port/v3/api-docs")).GET().build(),HttpResponse.BodyHandlers.ofString())
         assertEquals(200,response.statusCode(),response.body());val spec=json.readTree(response.body())

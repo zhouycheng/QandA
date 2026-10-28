@@ -23,6 +23,7 @@ Page({
     // 底栏是四个 tab 共用的一条实例：别的页开着弹层切过来时可能还是隐藏态，这里兜底恢复
     this.setTabBarHidden(false)
     this.applyViewModelResult(this.viewModel.load())
+    this.applyViewModelResult(this.viewModel.refreshRemote())
   },
 
   /** 自定义 tabBar 不会自动跟随页面切换，选中态要由页面主动同步 */
@@ -81,6 +82,7 @@ Page({
     }
 
     this.applyViewModelResult(this.viewModel.load())
+    this.applyViewModelResult(this.viewModel.refreshRemote())
     this.finishPullDownRefresh()
   },
 
@@ -95,6 +97,9 @@ Page({
   },
 
   applyViewModelResult(result) {
+    if (result && typeof result.then === 'function') {
+      return result.then((value) => this.applyViewModelResult(value)).catch((error) => wx.showToast({ title: error.message || '请求失败', icon: 'none' }))
+    }
     if (!result) {
       return
     }

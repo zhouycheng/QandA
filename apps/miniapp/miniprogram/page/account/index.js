@@ -9,12 +9,14 @@ Page({
     })
 
     this.applyViewModelResult(this.viewModel.load())
+    this.applyViewModelResult(this.viewModel.refreshRemote())
   },
 
   /** 从登录 / 找回密码返回时资料可能变了；正在编辑就不覆盖用户输入 */
   onShow() {
     if (this.viewModel && !this.data.dirty) {
       this.applyViewModelResult(this.viewModel.load())
+    this.applyViewModelResult(this.viewModel.refreshRemote())
     }
   },
 
@@ -61,6 +63,10 @@ Page({
     }
   },
 
+  handleCollegeChange(e) {
+    this.applyViewModelResult(this.viewModel.selectCollege(e.detail.value))
+  },
+
   handleEmailTap() {
     this.applyViewModelResult(this.viewModel.tapEmail())
   },
@@ -78,6 +84,9 @@ Page({
   },
 
   applyViewModelResult(result) {
+    if (result && typeof result.then === 'function') {
+      return result.then((value) => this.applyViewModelResult(value)).catch((error) => wx.showToast({ title: error.message || '请求失败', icon: 'none' }))
+    }
     if (!result) {
       return
     }

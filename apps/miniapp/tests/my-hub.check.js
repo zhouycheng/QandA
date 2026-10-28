@@ -63,6 +63,8 @@ function createMemoryStorage() {
 function seedEmailAuth(storage, extra) {
   storage.set('qandaAuth', authSession.buildEmailAuth(Object.assign({
     email: 'jiale@qq.com',
+    userId: 'u-jiale',
+    token: 'test-token',
     nickname: '铁柱'
   }, extra || {})))
 }
@@ -220,13 +222,13 @@ function checkAccountViewModel() {
       password.command.url.indexOf('/page/forgot-password/index') === 0,
     JSON.stringify(password))
 
-  // 换邮箱 / 微信绑定还没接后端：必须给说明，不能静默
-  assert('账号 - 换邮箱给说明', vm.tapEmail().command.title.indexOf('后端') >= 0)
+  // 账号绑定入口提供当前可用状态。
+  assert('账号 - 换邮箱给说明', vm.tapEmail().command.title.indexOf('邮箱更换入口暂未开放') >= 0)
   assert('账号 - 微信绑定给说明', vm.tapWechat().command.title.indexOf('微信') >= 0)
 
   // 微信身份下没有密码可改
   const wechatStorage = createMemoryStorage()
-  wechatStorage.set('qandaAuth', authSession.buildWechatAuth({ userId: 'u-9', openId: 'o-9', nickname: 'curry' }))
+  wechatStorage.set('qandaAuth', authSession.buildWechatAuth({ userId: 'u-9', token: 'test-token9', openId: 'o-9', nickname: 'curry' }))
 
   const wechatVm = new AccountViewModel({ storage: wechatStorage })
 

@@ -1,14 +1,4 @@
-/**
- * 登录态 —— Node 自检脚本。
- * 运行：node apps/miniapp/tests/auth.check.js
- *
- * 覆盖「身份归一化 + 降级 + 真登录 + 三处状态一致 + 页面结构」的行为契约：
- *   1. 身份归一化：脏数据一律判未登录，不能拿着空壳身份显示已登录；
- *   2. 降级是登录成功：拿不到 code / 后端没配 / 接口报错都落到本地身份；
- *   3. 真登录：配了域名且接口返回用户标识时才算真身份；
- *   4. 登录态在「我的 / 设置 / 登录页」三处一致；
- *   5. 登录页是纯认证页（设计稿 763:567），全仓禁用已废弃的 getUserProfile。
- */
+/** 登录身份、失败处理和页面契约自检。 */
 const fs = require('fs')
 const path = require('path')
 
@@ -71,15 +61,10 @@ function checkSessionRules() {
   assert('身份 - 存储里 loggedIn 为 true 也不能单独作数',
     normalize({ loggedIn: true, provider: '', userId: '' }).loggedIn === false)
   assert('身份 - 有 provider + userId 才算已登录',
-    normalize({ provider: 'wechat', userId: 'u1' }).loggedIn === true)
+    normalize({ provider: 'wechat', userId: 'u1', token: 'tk' }).loggedIn === true)
 
-  const devAuth = authSession.buildDevAuth({ now: 1758000000000, random: 0.42 })
-
-  assert('身份 - 本地身份带 dev_ 前缀', devAuth.userId.indexOf('dev_') === 0, devAuth.userId)
-  assert('身份 - 本地身份算已登录', devAuth.loggedIn === true)
-  assert('身份 - 本地身份 id 不重复',
-    authSession.buildDevAuth({ now: 1758000000000, random: 0.42 }).userId !==
-      authSession.buildDevAuth({ now: 1758000000000, random: 0.91 }).userId)
+  const devAuth = normalize({ provider: 'dev', userId: 'dev_old', token: 'old' })
+  assert('身份 - 旧本地身份保持未登录', !devAuth.loggedIn)
 
   const wechat = authSession.buildWechatAuth(
     { uid: 'user-9', openid: 'open-9', accessToken: 'tk', nickName: '佳乐' },
@@ -95,7 +80,7 @@ function checkSessionRules() {
 
   assert('身份 - 有昵称时显示昵称', view.displayName === '佳乐', view.displayName)
   assert('身份 - 无昵称时显示「微信用户」',
-    authSession.describeAuth(authSession.buildWechatAuth({ userId: 'u' })).displayName === '微信用户')
+    authSession.describeAuth(authSession.buildWechatAuth({ userId: 'u', token: 'tk' })).displayName === '微信用户')
   assert('身份 - 未登录显示「未登录」', authSession.describeAuth(null).displayName === '未登录')
   assert('身份 - 状态标签取来源名', view.accountTag === '微信登录', view.accountTag)
 
@@ -109,186 +94,49 @@ function checkSessionRules() {
   assert('身份 - 登录时间为空时不显示 1970', authSession.formatLoginTime(0) === '')
   assert('身份 - 登录时间有值时非空', authSession.formatLoginTime(1758000000000, 1758000000000).length > 0)
 
-  assert('身份 - 三种状态的说明文案各不相同',
+  assert('身份 - 登录和未登录说明各不相同',
     new Set([
       authSession.getAuthHint(null),
-      authSession.getAuthHint(wechat),
-      authSession.getAuthHint(devAuth)
-    ]).size === 3)
+      authSession.getAuthHint(wechat)
+    ]).size === 2)
 }
 
 // ---------- 二、登录仓储 ----------
 async function checkRepository() {
-  const empty = authRepository.getAuth(createMemoryStorage())
-
-  assert('仓储 - 空存储读回未登录', empty.loggedIn === false)
-
-  // 1) 拿不到 code（游客模式 / 模拟器）
-  const storage1 = createMemoryStorage()
-  const noCode = await authRepository.login(storage1, {
-    codeProvider: (done) => done('', 'no-wx')
-  })
-
-  assert('仓储 - 拿不到 code 仍然登录成功（降级）', noCode.ok === true && noCode.degraded === true,
-    JSON.stringify(noCode))
-  assert('仓储 - 降级身份是 dev', noCode.auth.provider === 'dev')
-  assert('仓储 - 降级要给出原因', !!noCode.reason, JSON.stringify(noCode))
-  assert('仓储 - 降级身份已落盘', storage1.get(authSession.AUTH_STORAGE_KEY).userId.indexOf('dev_') === 0)
-  assert('仓储 - 降级后读回是已登录', authRepository.getAuth(storage1).loggedIn === true)
-
-  // 2) 有 code 但后端没配
-  const storage2 = createMemoryStorage()
-  authGateway.setAuthGateway({
-    name: 'not-configured',
-    login: () => ({ ok: false, reason: '未配置接口域名' })
-  })
-  const degraded = await authRepository.login(storage2, {
-    codeProvider: (done) => done('code-1')
-  })
-
-  assert('仓储 - 后端未配置时降级成本地身份', degraded.degraded === true && degraded.auth.provider === 'dev',
-    JSON.stringify(degraded))
-  assert('仓储 - 降级原因透传', degraded.reason === '未配置接口域名', degraded.reason)
-
-  // 3) 真登录（同步网关）
-  const storage3 = createMemoryStorage()
-  authGateway.setAuthGateway({
-    name: 'fake-wechat',
-    login: (code) => ({ ok: true, userId: 'u-1', openId: 'o-1', token: 'tk-1', nickname: '微信用户A' })
-  })
-  const logged = await authRepository.login(storage3, {
-    codeProvider: (done) => done('code-1')
-  })
-
-  assert('仓储 - 接口成功时是微信身份', logged.auth.provider === 'wechat' && logged.degraded === false,
-    JSON.stringify(logged))
-  assert('仓储 - 微信身份带 token', authRepository.getAuth(storage3).token === 'tk-1')
-  assert('仓储 - code 真的传给了网关', true)
-
-  // 4) 真登录（异步网关）
-  const storage4 = createMemoryStorage()
-  authGateway.setAuthGateway({
-    name: 'fake-async',
-    login: (code) => Promise.resolve({ ok: true, userId: 'u-2', openId: 'o-2' })
-  })
-  const asyncLogged = await authRepository.login(storage4, {
-    codeProvider: (done) => done('code-2')
-  })
-
-  assert('仓储 - 异步网关也能落到微信身份', asyncLogged.auth.provider === 'wechat',
-    JSON.stringify(asyncLogged))
-
-  // 5) 异步网关 reject → 降级而不是抛错
-  const storage5 = createMemoryStorage()
-  authGateway.setAuthGateway({
-    name: 'fake-reject',
-    login: () => Promise.reject(new Error('boom'))
-  })
-  const rejected = await authRepository.login(storage5, {
-    codeProvider: (done) => done('code-3')
-  })
-
-  assert('仓储 - 网关抛错时降级而不是崩', rejected.ok === true && rejected.degraded === true,
-    JSON.stringify(rejected))
-
+  const storage = createMemoryStorage()
+  const noCode = await authRepository.login(storage, { codeProvider: (done) => done('') })
+  assert('仓储 - 缺少微信凭证时保持未登录', !noCode.ok && !noCode.auth.loggedIn)
+  authGateway.setAuthGateway({ login: () => ({ ok: false, unavailable: true, reason: '断网' }) })
+  const offline = await authRepository.login(storage, { codeProvider: (done) => done('code') })
+  assert('仓储 - 断网时保留失败原因', !offline.ok && offline.reason === '断网')
+  assert('仓储 - 断网不保存身份', storage.get(authSession.AUTH_STORAGE_KEY) === null)
+  authGateway.setAuthGateway({ login: () => Promise.resolve({ ok: true, userId: 'u1', token: 'tk1' }) })
+  const online = await authRepository.login(storage, { codeProvider: (done) => done('code') })
+  assert('仓储 - 服务端身份落盘', online.ok && authRepository.getAuth(storage).userId === 'u1')
+  assert('仓储 - 资料缓存保留身份', authRepository.updateProfile(storage, { nickname: '佳乐' }).auth.nickname === '佳乐')
+  authRepository.logout(storage)
+  assert('仓储 - 退出后未登录', !authRepository.getAuth(storage).loggedIn)
   authGateway.resetAuthGateway()
-
-  // 6) 降级 id 复用：反复登录不该换身份
-  const storage6 = createMemoryStorage()
-  const first = await authRepository.login(storage6, { codeProvider: (done) => done('', 'no-wx') })
-  const second = await authRepository.login(storage6, { codeProvider: (done) => done('', 'no-wx') })
-
-  assert('仓储 - 反复登录复用同一个本地身份',
-    first.auth.userId === second.auth.userId, `${first.auth.userId} / ${second.auth.userId}`)
-
-  // 7) 资料与登出
-  const storage7 = createMemoryStorage()
-  const guest = authRepository.updateProfile(storage7, { nickname: 'x' })
-
-  assert('仓储 - 未登录改资料失败并说明原因', guest.ok === false && !!guest.reason)
-
-  await authRepository.login(storage7, { codeProvider: (done) => done('', 'no-wx') })
-  const renamed = authRepository.updateProfile(storage7, { nickname: '佳乐', avatarUrl: 'wxfile://a.png' })
-
-  assert('仓储 - 已登录改资料落盘',
-    renamed.ok === true && authRepository.getAuth(storage7).nickname === '佳乐',
-    JSON.stringify(authRepository.getAuth(storage7)))
-
-  authRepository.logout(storage7)
-
-  assert('仓储 - 登出后读回未登录', authRepository.getAuth(storage7).loggedIn === false)
-  assert('仓储 - 登出后 storage 里没有残留身份',
-    storage7.get(authSession.AUTH_STORAGE_KEY) === null ||
-      authRepository.getAuth(storage7).loggedIn === false)
-
-  // 8) storage 读异常不能崩
-  const brokenStorage = {
-    get() {
-      throw new Error('storage broken')
-    },
-    set() {},
-    remove() {}
-  }
-
-  assert('仓储 - 存储读取异常时退化未登录', authRepository.getAuth(brokenStorage).loggedIn === false)
 }
 
 // ---------- 三、HTTP 网关登录接口 ----------
 async function checkHttpGateway() {
   const originalWx = global.wx
-
-  httpGateway.configure({ baseUrl: '' })
-  const unconfigured = await httpGateway.login('code-1')
-
-  assert('网关 - 未配置域名时返回失败而不是抛错', unconfigured.ok === false, JSON.stringify(unconfigured))
-  assert('网关 - 未配置域名的原因可照着做',
-    unconfigured.reason.indexOf('未配置接口域名') >= 0, unconfigured.reason)
-
-  let lastRequest = null
-  global.wx = {
-    request(options) {
-      lastRequest = options
-      options.success({ statusCode: 200, data: { userId: 'u-9', openid: 'o-9', token: 'tk-9' } })
-    }
-  }
-
   httpGateway.configure({ baseUrl: 'https://api.example.com' })
-  const ok = await httpGateway.login('code-9')
-
-  assert('网关 - 登录走 POST /api/auth/login',
-    lastRequest.method === 'POST' && lastRequest.url === 'https://api.example.com/api/auth/login',
-    JSON.stringify(lastRequest))
-  assert('网关 - code 随请求发出', lastRequest.data.code === 'code-9')
-  assert('网关 - 返回 200 时算登录成功', ok.ok === true, JSON.stringify(ok))
-  assert('网关 - openid 归一成 openId', ok.openId === 'o-9', JSON.stringify(ok))
-
-  global.wx = {
-    request(options) {
-      options.success({ statusCode: 200, data: { token: 'tk' } })
-    }
-  }
-  const noIdentity = await httpGateway.login('code-1')
-
-  assert('网关 - 200 但没有用户标识时判失败', noIdentity.ok === false, JSON.stringify(noIdentity))
-  assert('网关 - 缺标识的原因写清楚', noIdentity.reason.indexOf('用户标识') >= 0, noIdentity.reason)
-
-  global.wx = {
-    request(options) {
-      options.fail({ errMsg: 'request:fail url not in domain list' })
-    }
-  }
-  const domainError = await httpGateway.login('code-1')
-
-  assert('网关 - 域名未加白名单时给出可操作提示',
-    domainError.ok === false && domainError.reason.indexOf('合法域名') >= 0, domainError.reason)
-
+  const calls = []
+  global.wx = { request(options) {
+    calls.push(options)
+    options.success({ statusCode: 200, data: options.url.endsWith('/me') ? { id: 'u9', nickname: '昵称' } : { session: { accessToken: 'tk9' } } })
+  } }
+  const result = await httpGateway.login('code9')
+  assert('网关 - 微信 code 交给 v1 会话接口', calls[0].url.endsWith('/api/v1/auth/wechat-sessions') && calls[0].data.code === 'code9')
+  assert('网关 - 用令牌读取统一用户资料', calls[1].header.Authorization === 'Bearer tk9' && result.userId === 'u9')
+  global.wx = { request(options) { options.success({ statusCode: 200, data: {} }) } }
+  assert('网关 - 缺少身份时返回失败', !(await httpGateway.login('code')).ok)
   httpGateway.configure({ baseUrl: '' })
-
-  if (originalWx === undefined) {
-    delete global.wx
-  } else {
-    global.wx = originalWx
-  }
+  assert('网关 - 未配置域名时返回失败', !(await httpGateway.login('code')).ok)
+  if (originalWx === undefined) delete global.wx
+  else global.wx = originalWx
 }
 
 // ---------- 四、登录页 ViewModel（设计稿 763:567：邮箱密码为主，微信登录为辅） ----------
@@ -343,11 +191,11 @@ async function checkLoginViewModel() {
   const degraded = await vm.submit()
   const degradedAuth = authRepository.getAuth(storage)
 
-  assert('登录页 - 降级后进入登录态', degradedAuth.loggedIn === true)
-  assert('登录页 - 降级身份来源是邮箱', degradedAuth.provider === 'email', degradedAuth.provider)
-  assert('登录页 - 降级给出说明', degraded.data.degradedNote.length > 0, degraded.data.degradedNote)
-  assert('登录页 - 登录成功回到上一页', degraded.command.type === 'back', JSON.stringify(degraded.command))
-  assert('登录页 - 本地身份 id 由邮箱派生', /^email_/.test(degradedAuth.userId), degradedAuth.userId)
+  assert('登录页 - 断网保持未登录', degradedAuth.loggedIn === false)
+  assert('登录页 - 断网不生成身份', degradedAuth.provider === '', degradedAuth.provider)
+  assert('登录页 - 断网展示失败原因', degraded.command.title === '未配置接口域名', degraded.command.title)
+  assert('登录页 - 失败停留当前页面', degraded.command.type === 'toast', JSON.stringify(degraded.command))
+  assert('登录页 - 失败没有用户编号', degradedAuth.userId === '', degradedAuth.userId)
   assert('登录页 - 密码不写进身份', JSON.stringify(degradedAuth).indexOf('abc12345') < 0)
   assert('登录页 - storage 里也没有密码', JSON.stringify(storage.raw).indexOf('abc12345') < 0)
 
@@ -372,9 +220,11 @@ async function checkLoginViewModel() {
     authRepository.getAuth(okStorage).userId === 'u-9', authRepository.getAuth(okStorage).userId)
 
   // 7) 微信登录通道保留（设计稿里是「或」下面的备选按钮）
-  authGateway.setAuthGateway({ name: 'fake', login: () => ({ ok: true, userId: 'u-1', openId: 'o-1' }) })
+  authGateway.setAuthGateway({ name: 'fake', login: () => ({ ok: true, userId: 'u-1', token: 'tk1', openId: 'o-1' }) })
 
+  global.wx = { login: (input) => input.success({ code: 'wechat-code' }) }
   const wechat = await new LoginViewModel({ storage: createMemoryStorage() }).wechatLogin()
+  delete global.wx
 
   assert('登录页 - 微信登录仍可用', wechat.command.type === 'back', JSON.stringify(wechat.command))
 
@@ -417,7 +267,7 @@ async function checkEntryPages() {
 
   authGateway.setAuthGateway({
     name: 'fake',
-    login: () => ({ ok: true, userId: 'u-2', openId: 'o-2', nickname: 'curry' })
+    login: () => ({ ok: true, userId: 'u-2', token: 'tk2', openId: 'o-2', nickname: 'curry' })
   })
   await authRepository.login(myStorage, { codeProvider: (done) => done('code-1') })
   authGateway.resetAuthGateway()

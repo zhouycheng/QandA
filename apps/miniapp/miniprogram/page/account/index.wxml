@@ -47,17 +47,9 @@
     <!-- 学院：设计稿「我的」页要显示这一行，所以得有个能填的地方 -->
     <view class="field">
       <text class="field-label">学院 / 单位</text>
-      <input
-        class="field-input"
-        type="text"
-        value="{{draft.college}}"
-        placeholder="选填，如：计算机科学与技术学院"
-        placeholder-class="field-placeholder"
-        maxlength="24"
-        data-key="college"
-        bindinput="handleFieldInput"
-        bindblur="handleFieldBlur"
-      />
+      <picker range="{{collegeOptions}}" range-key="name" value="{{collegeIndex}}" bindchange="handleCollegeChange">
+        <view class="field-input">{{collegeOptions[collegeIndex].name || '未选择'}}</view>
+      </picker>
     </view>
   </view>
 

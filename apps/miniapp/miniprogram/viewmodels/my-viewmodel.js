@@ -18,14 +18,14 @@ const REMINDER_URL = '/page/reminder/index'
 
 /** 协议正文：只有摘要，正式文本随发布版本补充，避免凭空编法务条款 */
 const AGREEMENT_TEXT = [
-  'QandA 是一款本地优先的刷题工具：题库与练习记录默认保存在本机。',
-  '你在使用中导入的题库内容由你自行负责，请勿上传侵权或违规材料。',
+  'QandA 提供课程复习与题库练习，登录后通过服务端保存学习记录。',
+  '练习草稿保存在当前设备，联网后同步到账号。',
   '完整协议文本将随正式版本一并发布。'
 ].join('\n')
 
 const PRIVACY_TEXT = [
-  '学习数据（进度、错题、收藏、时长）默认只写在本机，不上传服务端。',
-  '登录只用于标识身份；未接入后端时使用本地身份，不采集任何设备信息。',
+  '学习数据（进度、错题、收藏、时长）按账号保存并同步到服务端。',
+  '登录会创建用于身份验证与设备会话管理的服务端会话。',
   '完整隐私政策将随正式版本一并发布。'
 ].join('\n')
 
@@ -53,7 +53,7 @@ function createGuestAuthView() {
     college: '',
     emailMasked: '',
     subText: '未登录',
-    metaText: '点击登录，学习数据只存本机'
+    metaText: '点击登录，同步学习记录'
   }
 }
 
@@ -93,6 +93,11 @@ class MyViewModel {
     this.repository = normalizedOptions.repository || practiceRepository
     this.storage = normalizedOptions.storage || createNullStorage()
     this.version = ''
+  }
+
+  refreshRemote(subjectId) {
+    if (!this.repository.isRemoteEnabled || !this.repository.isRemoteEnabled()) return Promise.resolve(null)
+    return this.repository.refreshRemote(this.storage, 'profile').then(() => this.load()).catch((error) => ({ command: { type: 'toast', title: error.message } }))
   }
 
   static getInitialData() {

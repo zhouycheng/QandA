@@ -10,3 +10,6 @@ project.private.config.json
 
 # 图标自查渲染输出（scripts/preview-entry-icons.cjs 生成）
 apps/miniapp/.tmp-preview/
+
+# 小程序本机接口配置
+apps/miniapp/miniprogram/ext.json

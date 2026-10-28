@@ -28,6 +28,8 @@ Page({
       ? app.consumePendingSubjectId()
       : ''
 
+    this.applyViewModelResult(this.viewModel.refreshRemote(pendingSubjectId || this.data.subjectId))
+
     if (!this.hasLoadedOnce) {
       this.hasLoadedOnce = true
       this.applyViewModelResult(this.viewModel.load(pendingSubjectId || this.data.subjectId))
@@ -101,9 +103,7 @@ Page({
   },
 
   handleImportTap() {
-    wx.navigateTo({
-      url: '/page/import-bank/index'
-    })
+    wx.showToast({ title: '题库由平台统一维护', icon: 'none' })
   },
 
   /**
@@ -209,6 +209,9 @@ Page({
   },
 
   applyViewModelResult(result) {
+    if (result && typeof result.then === 'function') {
+      return result.then((value) => this.applyViewModelResult(value)).catch((error) => wx.showToast({ title: error.message || '请求失败', icon: 'none' }))
+    }
     if (!result) {
       return
     }
@@ -228,7 +231,25 @@ Page({
     }
   },
 
+  chooseBank(command, offset) {
+    const banks = command.banks || []
+    if (!banks.length) return wx.showToast({ title: '当前没有可练习题库', icon: 'none' })
+    const start = offset || 0
+    const page = banks.slice(start, start + 5)
+    const more = banks.length > 5
+    wx.showActionSheet({
+      itemList: page.map((bank) => bank.name).concat(more ? ['更多题库'] : []),
+      success: (result) => {
+        if (result.tapIndex === page.length) return this.chooseBank(command, start + 5 < banks.length ? start + 5 : 0)
+        const bank = page[result.tapIndex]
+        if (bank) this.applyViewModelResult(this.viewModel.openBankConfig(command.subjectId, bank.id))
+      }
+    })
+  },
+
   handleViewModelCommand(command) {
+    if (command.type === 'chooseBank') return this.chooseBank(command, 0)
+
     // 题库是 tabBar 页面，没有可返回的上一页，出错时只用 toast 提示
     if (command.type === 'toast') {
       wx.showToast({

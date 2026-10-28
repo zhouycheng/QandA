@@ -1,5 +1,5 @@
 {
-  "description": "QandA 小程序端项目配置。appid 已填真实 AppID：wx.login 才能拿到有效 code（占位值 touristappid 是游客模式，拿不到）。真微信登录还需后端 code2session 与小程序后台的 request 合法域名，两者都没配时登录会自动降级为本地身份。",
+  "description": "QandA 小程序端项目配置。真实微信登录需要后端身份配置与小程序合法请求域名；API 地址通过扩展配置 apiBaseUrl 提供。",
   "compileType": "miniprogram",
   "libVersion": "3.15.2",
   "appid": "wx11da32e72feccf06",

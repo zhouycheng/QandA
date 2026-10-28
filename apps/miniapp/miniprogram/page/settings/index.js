@@ -74,8 +74,8 @@ Page({
 
   handleClearRecords() {
     wx.showModal({
-      title: '清空学习数据',
-      content: '将清空本机的做题进度、错题本、收藏、学习时长与历史最佳成绩，且无法恢复。学习偏好与登录状态会保留。确定继续吗？',
+      title: '清理本机历史记录',
+      content: '清理旧版本保存在本机的学习记录。云端记录与待同步答题草稿保留。确定继续吗？',
       confirmText: '清空',
       confirmColor: '#f04438',
       success: (res) => {

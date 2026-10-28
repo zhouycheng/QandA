@@ -1,3 +1,4 @@
+const remoteData = require('../repositories/remote-data-repository.js')
 const practiceRepository = require('../repositories/practice-repository.js')
 const { describeAuth, getProviderLabel } = require('../utils/auth-session.js')
 const { maskEmail } = require('../utils/auth-form.js')
@@ -16,9 +17,9 @@ const FORGOT_URL = '/page/forgot-password/index'
  */
 
 const ACCOUNT_MESSAGES = {
-  email: '后端账号接口未接入，暂时不能更换绑定邮箱；可先用「找回密码」验证邮箱可用',
+  email: '邮箱更换入口暂未开放，可通过找回密码验证邮箱',
   wechatBound: '当前已是微信登录身份，无需重复绑定',
-  wechatGuest: '微信绑定需要后端账号接口，暂未接入'
+  wechatGuest: '微信绑定入口暂未开放'
 }
 
 function createNullStorage() {
@@ -54,7 +55,9 @@ function getInitialAccountViewData() {
     },
     // 有没有未保存的改动：没有改动时保存按钮置灰
     dirty: false,
-    saving: false
+    saving: false,
+    collegeOptions: [],
+    collegeIndex: 0
   }
 }
 
@@ -65,6 +68,13 @@ class AccountViewModel {
     this.storage = normalizedOptions.storage || createNullStorage()
     // 输入框刻意不受控：只在内存里攒改动，不回写 value，否则真机光标会跳到末尾
     this.pending = null
+    this.editRevision = 0
+  }
+
+  refreshRemote(subjectId) {
+    if (!this.repository.isRemoteEnabled || !this.repository.isRemoteEnabled()) return Promise.resolve(null)
+    const revision = this.editRevision
+    return this.repository.refreshRemote(this.storage, 'profile').then(() => revision === this.editRevision ? this.load() : null).catch((error) => ({ command: { type: 'toast', title: error.message } }))
   }
 
   static getInitialData() {
@@ -87,7 +97,9 @@ class AccountViewModel {
         profile,
         draft,
         dirty: false,
-        saving: false
+        saving: false,
+        collegeOptions: [{ id: '', name: '未选择' }].concat(remoteData.getColleges()),
+        collegeIndex: Math.max(0, [{ id: '' }].concat(remoteData.getColleges()).findIndex((item) => item.id === ((remoteData.getProfile(this.storage) || {}).collegeId || '')))
       }
     }
   }
@@ -99,7 +111,8 @@ class AccountViewModel {
       return {
         view: describeAuth(raw),
         // 编辑框要的是「用户真正填过的昵称」，不是带兜底的 displayName
-        nickname: raw && typeof raw.nickname === 'string' ? raw.nickname : ''
+        nickname: raw && typeof raw.nickname === 'string' ? raw.nickname : '',
+        profile: raw && raw.profile
       }
     } catch (error) {
       return { view: describeAuth(null), nickname: '' }
@@ -120,10 +133,18 @@ class AccountViewModel {
       college: view.college || '',
       emailMasked: maskEmail(view.email),
       providerLabel: getProviderLabel(view.provider) || view.accountTag,
-      // 邮箱登录 = 有密码；微信 / 本地身份没有密码可改
+      // 密码状态随邮箱登录能力显示。
       passwordStatus: view.provider === 'email' ? '已设置' : '未设置',
-      wechatStatus: view.provider === 'wechat' ? '已绑定' : '未绑定'
+      wechatStatus: (state.profile && state.profile.wechatBound) || view.provider === 'wechat' ? '已绑定' : '未绑定'
     }
+  }
+
+  selectCollege(index) {
+    this.editRevision += 1
+    const colleges = [{ id: '', name: '未选择' }].concat(remoteData.getColleges())
+    const college = colleges[Number(index)] || colleges[0]
+    this.pending = Object.assign({}, this.pending, { college: college.id ? college.name : '', collegeId: college.id || null })
+    return { data: { collegeIndex: Number(index), dirty: true } }
   }
 
   /** 输入：只记改动，不回写 value（回写会让光标跳到末尾） */
@@ -132,6 +153,7 @@ class AccountViewModel {
       return null
     }
 
+    this.editRevision += 1
     const text = typeof value === 'string' ? value : ''
 
     this.pending = Object.assign({}, this.pending || {}, { [key]: text })
@@ -173,6 +195,13 @@ class AccountViewModel {
     const nickname = typeof pending.nickname === 'string' ? pending.nickname.trim() : ''
     const college = typeof pending.college === 'string' ? pending.college.trim() : ''
 
+    if (this.repository.isRemoteEnabled && this.repository.isRemoteEnabled()) {
+      const profile = remoteData.getProfile(this.storage) || {}
+      return remoteData.saveProfile(this.storage, { nickname, collegeId: pending.collegeId === undefined ? profile.collegeId : pending.collegeId, majorId: pending.collegeId === undefined || pending.collegeId === profile.collegeId ? profile.majorId : null }).then(() => {
+        this.repository.updateAuthProfile(this.storage, { avatarUrl: pending.avatarUrl || '' })
+        return Object.assign({}, this.load(), { command: { type: 'toast', title: '资料已保存' } })
+      })
+    }
     this.repository.updateAuthProfile(this.storage, {
       nickname,
       college,
