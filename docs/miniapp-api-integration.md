@@ -79,7 +79,7 @@
 | `GET /api/v1/admin/users` | `Admin_users_GET` | 读取学生账号 | 管理端 / 管理员 | — | — | 其他端专用；随管理端接入验收 | 独立管理员令牌；Controller + OpenAPI |
 | `GET /api/v1/admin/users/{id}` | `Admin_user_GET` | 读取学生账号 | 管理端 / 管理员 | — | — | 其他端专用；随管理端接入验收 | 独立管理员令牌；Controller + OpenAPI |
 | `PUT /api/v1/admin/users/{id}/status` | `Admin_userStatus_PUT` | 更新status | 管理端 / 管理员 | — | — | 其他端专用；随管理端接入验收 | 独立管理员令牌；Controller + OpenAPI |
-| `GET /api/v1/announcements` | `Operations_announcements_GET` | 读取公告 | 小程序、用户 Web / 学生 | — | — | 无入口；按业务补充入口后接入 | 保持当前合同；Controller + OpenAPI |
+| `GET /api/v1/announcements` | `Operations_announcements_GET` | 读取公告 | 小程序、用户 Web / 学生 | 首页刷新、右侧喇叭查看公告 | subject-list → SubjectListViewModel → practice-repository → remote-data-repository → api-transport | 已接入待验收 | 沿用分页及端/用户可见性合同；remote-data 与 home-prototype 自检，待真机验收 |
 | `POST /api/v1/auth/email-challenges` | `Identity_requestPublicEmailChallenge_POST` | 验证码挑战 | 小程序、用户 Web / 公开挑战/注册或登录 | 注册/找回密码发送验证码 | register/forgot-password → AuthFormViewModel → auth-repository → auth-gateway → http-gateway → api-transport | 已接入待验收 | 版本及幂等规则；页面调用链，定向 Node 自检，待客户端真实业务验收 |
 | `POST /api/v1/auth/email-registrations` | `Identity_registerEmail_POST` | 邮箱注册 | 小程序、用户 Web / 公开挑战/注册或登录 | 注册页提交 | register → RegisterViewModel → auth-repository → auth-gateway → http-gateway → api-transport | 已接入待验收 | 版本及幂等规则；页面调用链，定向 Node 自检，待客户端真实业务验收 |
 | `POST /api/v1/auth/password-resets` | `Identity_resetPassword_POST` | 重置密码 | 小程序、用户 Web / 公开挑战/注册或登录 | 找回密码页提交 | forgot-password → ForgotPasswordViewModel → auth-repository → auth-gateway → http-gateway → api-transport | 已接入待验收 | 版本及幂等规则；页面调用链，定向 Node 自检，待客户端真实业务验收 |

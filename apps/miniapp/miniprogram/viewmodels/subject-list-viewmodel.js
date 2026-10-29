@@ -68,7 +68,8 @@ function getInitialSubjectListViewData() {
     exam: buildExamCountdown(null),
     // 四宫格上显示的计数 / 状态徽标
     entries: STUDY_ENTRIES.map((item) => Object.assign({}, item, { badge: '', disabled: false })),
-    // 公告弹层（内容取 home.tip，按学习状态推导，不是写死的一篇）
+    announcements: [],
+    hasAnnouncements: false,
     announcementSheetVisible: false,
     // 题目搜索
     searchVisible: false,
@@ -98,7 +99,12 @@ class SubjectListViewModel {
 
   refreshRemote(subjectId) {
     if (!this.repository.isRemoteEnabled || !this.repository.isRemoteEnabled()) return Promise.resolve(null)
-    return this.repository.refreshRemote(this.storage, 'all').then(() => this.load()).catch((error) => ({ command: { type: 'toast', title: error.message } }))
+    return this.repository.refreshRemote(this.storage, 'home').then(() => {
+      const result = this.load()
+      // 异步数据刷新保留用户当前打开的弹窗，与底栏可见性保持一致。
+      delete result.data.announcementSheetVisible
+      return result
+    }).catch((error) => ({ command: { type: 'toast', title: error.message } }))
   }
 
   static getInitialData() {
@@ -127,6 +133,7 @@ class SubjectListViewModel {
     }
 
     const lastPractice = this.buildLastPractice(progress)
+    const announcements = this.repository.getRemoteAnnouncements ? this.repository.getRemoteAnnouncements(this.storage) : []
 
     return {
       data: Object.assign(getInitialSubjectListViewData(), {
@@ -140,6 +147,8 @@ class SubjectListViewModel {
         }),
         exam: buildExamCountdown({ examName: preferences.examName, examDate: preferences.examDate }),
         entries: this.buildEntries(lastPractice),
+        announcements,
+        hasAnnouncements: announcements.length > 0,
         searchTotalText: overallStats.total > 0 ? `在全部 ${overallStats.total} 道题里查题干与选项` : '题库还是空的，先去导入或切换题库',
         lastPractice
       })
@@ -538,11 +547,6 @@ class SubjectListViewModel {
 
   // ---------- 公告 ----------
 
-  /**
-   * 公告内容就是 home.tip，由 buildHomeContent 按学习状态推导：
-   * 有错题 → 催复习；有进度 → 报剩余；全新用户 → 引导上手。
-   * 首页不再单独算一份文案，避免弹层与卡片口径不一致。
-   */
   openAnnouncement() {
     return {
       data: {

@@ -24,6 +24,7 @@ const homeJs = read('page/subject-list/index.js')
 
 const examCountdown = require(path.join(MINIPROGRAM, 'utils/exam-countdown.js'))
 const questionSearch = require(path.join(MINIPROGRAM, 'utils/question-search.js'))
+const { getInitialHomeHeaderData } = require(path.join(MINIPROGRAM, 'utils/home-header.js'))
 const { SubjectListViewModel, STUDY_ENTRIES } = require(path.join(MINIPROGRAM, 'viewmodels/subject-list-viewmodel.js'))
 
 const results = []
@@ -126,14 +127,34 @@ function checkStructure() {
     '底部升起会被 tabBar 压住')
   assert('公告 - 弹窗顶部带喇叭徽标', homeWxml.indexOf('notice-badge') >= 0)
 
-  // 小喇叭：大号 + 入场晃动
-  assert('公告 - 图标是喇叭且放大到 52rpx',
-    /\.hero-notice-icon\s*\{[^}]*width:\s*52rpx/.test(homeWxss))
-  assert('公告 - 图标带晃动动画', /\.hero-notice-icon\s*\{[^}]*animation:\s*notice-shake/.test(homeWxss))
+  assert('公告 - 保留 84rpx 白色圆底',
+    /\.hero-notice-circle\s*\{[^}]*width:\s*84rpx[^}]*border-radius:\s*50%[^}]*background:\s*#ffffff/.test(homeWxss))
+  assert('公告 - 喇叭作为前景层越出圆底', /\.hero-notice-icon\s*\{[^}]*position:\s*absolute[^}]*z-index:\s*1[^}]*width:\s*96rpx/.test(homeWxss))
+  assert('公告 - 圆钮允许喇叭完整伸出', /\.hero-notice-btn\s*\{[^}]*overflow:\s*visible/.test(homeWxss))
+  assert('公告 - 使用生成的图片且按公告状态摇动',
+    /<image[^>]*class="hero-notice-icon \{\{hasAnnouncements \? 'hero-notice-icon-active' : ''\}\}"[^>]*src="\/assets\/home\/announcement-megaphone.png"[^>]*mode="aspectFit"/.test(homeWxml))
+  const megaphone = fs.readFileSync(path.join(MINIPROGRAM, 'assets/home/announcement-megaphone.png'))
+  assert('公告 - 图片为带透明通道的小尺寸 PNG',
+    megaphone.toString('hex', 0, 8) === '89504e470d0a1a0a' && megaphone[25] === 6 && megaphone.length < 100000)
+  assert('公告 - 静止状态没有动画', !/\.hero-notice-icon\s*\{[^}]*animation:/.test(homeWxss))
+  assert('公告 - 有公告时持续摇动', /\.hero-notice-icon-active\s*\{[^}]*animation:\s*notice-shake 1\.4s ease-in-out infinite/.test(homeWxss))
   assert('公告 - 定义了 notice-shake 关键帧', /@keyframes\s+notice-shake/.test(homeWxss))
+  assert('公告 - 轻幅摇动及缩放循环', ['rotate(0deg) scale(1)', 'rotate(-6deg) scale(1.03)', 'rotate(5deg) scale(1.06)', 'rotate(-3deg) scale(1.03)'].every(frame => homeWxss.includes(frame)))
+  assert('公告 - 点击热区至少 96rpx', /\.hero-notice-btn\s*\{[^}]*width:\s*96rpx[^}]*height:\s*96rpx/.test(homeWxss))
+  assert('公告 - 标签与圆底为独立固定层', homeWxml.includes('<view class="hero-notice-circle"></view>') && homeWxml.includes('<text class="hero-notice-label">公告</text>'))
+  assert('公告 - 按压只缩放圆底', /\.hero-notice-hover \.hero-notice-circle\s*\{\s*transform: scale\(0\.96\)/.test(homeWxss))
+  assert('公告 - 展示公告列表与空态', homeWxml.includes('wx:for="{{announcements}}"') && homeWxml.includes('暂无公告'))
 
   // 顶部导航栏必须和头部同色，否则会出现用户截图里那条白色带
   const homeJson = JSON.parse(fs.readFileSync(path.join(MINIPROGRAM, 'page/subject-list/index.json'), 'utf8'))
+  assert('顶部 - 使用自定义导航将品牌与胶囊同行', homeJson.navigationStyle === 'custom' && homeWxml.includes('class="hero-navigation"'))
+  assert('顶部 - 状态栏与导航高度来自实际设备', homeWxml.includes('homeStatusBarHeight') && homeWxml.includes('homeNavigationBarHeight') && homeJs.includes('wx.getMenuButtonBoundingClientRect()'))
+  const iphoneHeader = getInitialHomeHeaderData({ statusBarHeight: 44 }, { top: 50, height: 32 })
+  const androidHeader = getInitialHomeHeaderData({ statusBarHeight: 24 }, { top: 32, height: 32 })
+  assert('顶部 - 刘海屏按胶囊位置计算高度', iphoneHeader.homeStatusBarHeight === 44 && iphoneHeader.homeNavigationBarHeight === 44)
+  assert('顶部 - 安卓屏幕按胶囊位置计算高度', androidHeader.homeStatusBarHeight === 24 && androidHeader.homeNavigationBarHeight === 48)
+  assert('顶部 - 系统未返回尺寸时使用有效布局', getInitialHomeHeaderData().homeNavigationBarHeight === 44 && getInitialHomeHeaderData({ statusBarHeight: 44 }, { top: 0, height: 0 }).homeNavigationBarHeight === 44)
+  assert('顶部 - 全屏状态保留零高度状态栏', getInitialHomeHeaderData({ statusBarHeight: 0 }, { top: 4, height: 32 }).homeStatusBarHeight === 0)
 
   assert('顶部 - 导航栏背景改为品牌蓝', String(homeJson.navigationBarBackgroundColor).toLowerCase() === '#4a7bfb',
     homeJson.navigationBarBackgroundColor)
@@ -286,7 +307,6 @@ function checkWiring() {
     'handleSearchClose',
     'handleAnnouncementTap',
     'handleAnnouncementClose',
-    'handleAnnouncementAction'
   ]
   const absent = expected.filter((name) => handlers.has(name) === false)
 

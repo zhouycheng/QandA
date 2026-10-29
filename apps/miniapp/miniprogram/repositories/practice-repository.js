@@ -191,6 +191,7 @@ module.exports.isRemoteEnabled = remoteData.isEnabled
 module.exports.getRemoteStatistics = remoteData.getStatistics
 module.exports.getRemoteRecent = remoteData.getRecent
 module.exports.getRemoteHistory = remoteData.getHistory
+module.exports.getRemoteAnnouncements = remoteData.getAnnouncements
 module.exports.loadRemoteQuestion = remoteData.loadQuestion
 
 module.exports.searchRemoteQuestions = remoteData.searchQuestions

@@ -8,18 +8,20 @@ let state = empty()
 let catalogRequest = null
 let learningRequest = null
 let profileRequest = null
+let announcementsRequest = null
+let announcementsAt = 0
 let profileAt = 0
 let catalogAt = 0
 let learningAt = 0
-function empty() { return { subjects: [], progressRows: [], banks: [], chapters: {}, questions: {}, favorites: [], wrong: [], mastered: [], recent: [], history: [], days: [], statistics: null, periodStatistics: {}, profile: null, colleges: [], majors: [] } }
-function enable(value) { enabled = value !== false; owner = ''; activeStorage = null; state = empty(); catalogAt = 0; learningAt = 0; profileAt = 0; catalogRequest = null; learningRequest = null; profileRequest = null }
+function empty() { return { subjects: [], progressRows: [], banks: [], chapters: {}, questions: {}, favorites: [], wrong: [], mastered: [], recent: [], history: [], days: [], statistics: null, periodStatistics: {}, profile: null, colleges: [], majors: [], announcements: [] } }
+function enable(value) { enabled = value !== false; owner = ''; activeStorage = null; state = empty(); catalogAt = 0; learningAt = 0; profileAt = 0; announcementsAt = 0; catalogRequest = null; learningRequest = null; profileRequest = null; announcementsRequest = null }
 function isEnabled() { return enabled }
 function bind(storage) {
   activeStorage = storage || activeStorage
   storage = activeStorage
   const auth = authRepository.getAuth(storage)
   const id = auth && auth.token && auth.userId || ''
-  if (id !== owner) { owner = id; state = empty(); catalogRequest = null; learningRequest = null; catalogAt = 0; learningAt = 0; profileAt = 0; profileRequest = null }
+  if (id !== owner) { owner = id; state = empty(); catalogRequest = null; learningRequest = null; catalogAt = 0; learningAt = 0; profileAt = 0; profileRequest = null; announcementsAt = 0; announcementsRequest = null }
   return id
 }
 function checked(response) { if (!response.ok) throw new Error(response.reason || '请求失败'); return response.data }
@@ -69,11 +71,25 @@ function refreshProfile(storage) {
   return profileRequest
 }
 function invalidateLearning() { learningAt = 0 }
+function refreshAnnouncements(storage) {
+  if (!enabled || !bind(storage)) return Promise.resolve()
+  if (announcementsRequest) return announcementsRequest
+  if (Date.now() - announcementsAt < 10000) return Promise.resolve()
+  const user = owner
+  announcementsRequest = all('/announcements').then((items) => {
+    bind(storage)
+    if (owner !== user) return
+    state.announcements = items; announcementsAt = Date.now()
+  }).finally(() => { if (owner === user) announcementsRequest = null })
+  return announcementsRequest
+}
+function getAnnouncements(storage) { bind(storage); return enabled ? state.announcements : [] }
 function getBankMeta(id) { bind(activeStorage); return state.banks.find((b) => b.id === id) || null }
 function refresh(storage, kind) {
   if (!enabled) return Promise.resolve()
   bind(storage)
   const requests = kind === 'profile' ? [refreshProfile(storage)] : kind === 'catalog' ? [refreshCatalog(storage)] : [refreshCatalog(storage), refreshLearning(storage)]
+  if (kind === 'home') requests.push(refreshAnnouncements(storage))
   return Promise.all(requests)
 }
 function mapQuestion(q) {
@@ -142,3 +158,4 @@ function getColleges() { return state.colleges }
 function loadMajors(id) { return all(`/colleges/${id}/majors`).then((items) => { state.majors = items; return items }) }
 function saveProfile(storage, patch) { const profile = getProfile(storage); if (!profile) return Promise.reject(new Error('请先刷新账号资料')); return mutate('PUT', '/me/profile', Object.assign({ expectedVersion: profile.version, nickname: profile.nickname, collegeId: profile.collegeId, majorId: profile.majorId, enrollmentYear: profile.enrollmentYear }, patch)).then(() => { profileAt = 0; return refreshProfile(storage) }) }
 module.exports = { searchQuestions, addQuestionFavorite, removeQuestionFavorite, getBankMeta, invalidateLearning, enable, isEnabled, bind, refresh, refreshCatalog, refreshLearning, refreshProfile, mapQuestion, cacheQuestions, loadQuestion, getSubjectSummaries, getSubjectDetail, getCatalogStats, getBankQuiz, getSubjectQuiz, getQuestionIndex, findQuestionEntries, getFavorites, getWrongBook, getDailyLog, getStudyTime, getStatistics, getProgress, getRecent, getHistory, getScopeMeta, toggleQuestionFavorite, removeQuestionFavorites, clearFavorites, removeWrongQuestions, getProfile, getColleges, loadMajors, saveProfile }
+module.exports.getAnnouncements = getAnnouncements

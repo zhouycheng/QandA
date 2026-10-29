@@ -1,19 +1,31 @@
 const { SubjectListViewModel } = require('../../viewmodels/subject-list-viewmodel.js')
 const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
+const { getInitialHomeHeaderData } = require('../../utils/home-header.js')
 const ROUTE_LOADING_DELAY = 240
 
 Page({
-  data: SubjectListViewModel.getInitialData(),
+  data: Object.assign(SubjectListViewModel.getInitialData(), getInitialHomeHeaderData()),
 
   isNavigating: false,
 
   hasLoadedOnce: false,
 
   onLoad() {
+    this.updateHeaderLayout()
     this.viewModel = new SubjectListViewModel({
       storage: createWxStorageAdapter()
     })
     this.refresh()
+  },
+
+  onResize() {
+    this.updateHeaderLayout()
+  },
+
+  updateHeaderLayout() {
+    const windowInfo = typeof wx.getWindowInfo === 'function' ? wx.getWindowInfo() : null
+    const menuButton = typeof wx.getMenuButtonBoundingClientRect === 'function' ? wx.getMenuButtonBoundingClientRect() : null
+    this.setData(getInitialHomeHeaderData(windowInfo, menuButton))
   },
 
   onShow() {
@@ -202,18 +214,6 @@ Page({
   handleAnnouncementClose() {
     this.setTabBarHidden(false)
     this.applyViewModelResult(this.viewModel.closeAnnouncement())
-  },
-
-  /** 公告里的行动按钮：按文案层给的 action 决定去向 */
-  handleAnnouncementAction() {
-    const tip = this.data.home && this.data.home.tip
-
-    this.setTabBarHidden(false)
-    this.applyViewModelResult(this.viewModel.closeAnnouncement())
-
-    if (tip) {
-      this.applyViewModelResult(this.viewModel.openTipAction(tip.action))
-    }
   },
 
   handleRouteLoadingHide() {

@@ -7,6 +7,7 @@ const repository = require('../miniprogram/repositories/practice-repository.js')
 const values = {}
 const storage = { get: (k) => values[k], set: (k,v) => { values[k] = v }, remove: (k) => delete values[k] }
 const calls = []
+let announcements = [{ id: 'n1', title: '课程通知', body: '公告正文', status: 'PUBLISHED' }]
 api.getAll = async (path, query) => {
   calls.push(path)
   const values = {
@@ -17,7 +18,7 @@ api.getAll = async (path, query) => {
     '/me/recent-learning': [{ id: 'p1', questionBankId: 'b1', status: 'IN_PROGRESS' }],
     '/me/question-progress': [{ questionId: 'q1', questionBankId: 'b1', outcome: 'CORRECT', lastPracticedAt: '2026-10-28T01:00:00Z' }], '/me/practice-history': [], '/colleges': [{ id: 'c1', name: '学院一' }]
   }
-  return { ok: true, data: values[path] || [] }
+  return { ok: true, data: path === '/announcements' ? announcements : values[path] || [] }
 }
 api.request = async (method, path, body) => {
   calls.push([method,path,body])
@@ -32,8 +33,26 @@ api.request = async (method, path, body) => {
 async function main() {
   auth.saveAuth(storage, { provider: 'email', userId: 'u1', token: 'token', nickname: '同学' })
   remote.enable(true)
-  await Promise.all([remote.refresh(storage), remote.refresh(storage)])
+  const { SubjectListViewModel } = require('../miniprogram/viewmodels/subject-list-viewmodel.js')
+  const homeVm = new SubjectListViewModel({ repository, storage })
+  assert.strictEqual(homeVm.load().data.hasAnnouncements, false, '公告加载前保持静止')
+  await Promise.all([homeVm.refreshRemote(), homeVm.refreshRemote()])
+  assert.strictEqual(calls.filter((c) => c === '/announcements').length, 1, '合并并发公告请求')
   assert.strictEqual(calls.filter((c) => c === '/subjects').length, 1, '合并并发目录请求')
+  assert.strictEqual(homeVm.load().data.hasAnnouncements, true, '有可见公告时持续摇动')
+  assert.strictEqual(homeVm.load().data.announcements[0].body, '公告正文')
+  assert.strictEqual(homeVm.openAnnouncement().data.announcementSheetVisible, true)
+  assert.strictEqual(homeVm.closeAnnouncement().data.announcementSheetVisible, false)
+  assert.strictEqual(homeVm.load().data.hasAnnouncements, true, '关闭公告后仍持续摇动')
+  const openSheet = Object.assign({}, homeVm.openAnnouncement().data, (await homeVm.refreshRemote()).data)
+  assert.strictEqual(openSheet.announcementSheetVisible, true, '异步刷新保留打开的公告弹窗，底栏继续让位')
+  assert.strictEqual(calls.filter((c) => c === '/announcements').length, 1, '复用十秒内的公告快照')
+  const originalNow = Date.now
+  announcements = []
+  Date.now = () => originalNow() + 10001
+  try {
+    assert.strictEqual((await homeVm.refreshRemote()).data.hasAnnouncements, false, '公告撤下后恢复静止')
+  } finally { Date.now = originalNow }
   assert.strictEqual(remote.getSubjectSummaries()[0].questionCount, 3)
   assert.strictEqual(remote.getBankMeta('b1').contentVersion, 8)
   assert.strictEqual(remote.getProgress(storage).b1.answers.q1, 1)
@@ -60,7 +79,6 @@ async function main() {
   snapshot.status = 'SUBMITTED'; runtime.put('p1', snapshot)
   assert.strictEqual(detail.load({ id: 'q1', sessionId: 'p1' }).data.explanation, '确认后解析', '交卷后显示')
   runtime.queue.stop()
-  const { SubjectListViewModel } = require('../miniprogram/viewmodels/subject-list-viewmodel.js')
   const pendingSearch = {}
   const searchVm = new SubjectListViewModel({ storage, repository: { isRemoteEnabled: () => true, searchRemoteQuestions: (storage, text) => new Promise((resolve) => { pendingSearch[text] = resolve }) } })
   const oldSearch = searchVm.searchQuestions('旧词')
@@ -92,6 +110,16 @@ async function main() {
   resolveProfile({ ok: true, data: { id: 'u2', nickname: '旧账号资料', version: 9 } })
   await pendingProfile
   assert.strictEqual(auth.getAuth(storage).nickname, '第三个账号', '切换账号后迟到的资料响应不得写入新身份')
+
+  const originalGetAll = api.getAll
+  let resolveAnnouncements
+  api.getAll = (path, query) => path === '/announcements' ? new Promise((resolve) => { resolveAnnouncements = resolve }) : originalGetAll(path, query)
+  const pendingHome = homeVm.refreshRemote()
+  auth.saveAuth(storage, { provider: 'email', userId: 'u4', token: 'fourth' })
+  resolveAnnouncements({ ok: true, data: [{ id: 'old', title: '旧账号公告' }] })
+  await pendingHome
+  assert.deepStrictEqual(remote.getAnnouncements(storage), [], '迟到公告不得显示到新账号')
+  assert.strictEqual(homeVm.load().data.hasAnnouncements, false)
 
   remote.enable(false)
   console.log('remote-data checks passed')

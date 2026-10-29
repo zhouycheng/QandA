@@ -1,9 +1,11 @@
 <!-- 首页（原型 552:1410）
-     结构：蓝色头部（品牌 + 搜索 + 每日一句圆钮）→ 白色圆角内容区（倒计时卡 + 四宫格）
+     结构：蓝色头部（品牌 + 搜索 + 公告圆钮）→ 白色圆角内容区（倒计时卡 + 四宫格）
      头部与内容区之间靠负 margin 咬合，内容区圆角把蓝底"切"出一道弧，不需要额外装饰图。 -->
 <view class="page home-page stagger">
-  <view class="hero">
-    <view class="hero-brand">QandA</view>
+  <view class="hero" style="padding-top: {{homeStatusBarHeight}}px;">
+    <view class="hero-navigation" style="height: {{homeNavigationBarHeight}}px;">
+      <view class="hero-brand">QandA</view>
+    </view>
 
     <view class="hero-search">
       <view
@@ -27,15 +29,19 @@
         <view class="search-icon"></view>
       </view>
 
-      <!-- 小喇叭 = 公告入口（不是每日一句）。每日一句已经挪到下面的蓝色倒计时卡里。 -->
+      <!-- 有可见公告时，喇叭持续摇动。 -->
       <view
         class="hero-notice-btn"
+        aria-role="button"
+        aria-label="{{hasAnnouncements ? '查看公告' : '暂无公告'}}"
         bindtap="handleAnnouncementTap"
         hover-class="hero-notice-hover"
         hover-start-time="0"
         hover-stay-time="240"
       >
-        <view class="hero-notice-icon"></view>
+        <view class="hero-notice-circle"></view>
+        <image class="hero-notice-icon {{hasAnnouncements ? 'hero-notice-icon-active' : ''}}" src="/assets/home/announcement-megaphone.png" mode="aspectFit"></image>
+        <text class="hero-notice-label">公告</text>
       </view>
     </view>
   </view>
@@ -164,28 +170,22 @@
     </view>
   </view>
 
-  <!-- 公告：内容由当前学习状态推导（错题堆积 / 进行中 / 新用户三种口径）。
-       placement="center" 是关键：底部升起会被自定义 tabBar 压住（tabBar 是独立图层，
-       z-index 再大也盖不过），居中弹窗从根上避开底部那一条。 -->
+  <!-- 公告使用居中弹窗，打开时收起自定义 tabBar。 -->
   <bottom-sheet
     visible="{{announcementSheetVisible}}"
-    title="{{home.tip.tag}}"
+    title="公告"
     placement="center"
     bind:close="handleAnnouncementClose"
   >
-    <view class="notice-sheet" wx:if="{{home.tip}}">
+    <view class="notice-sheet">
       <view class="notice-badge">
-        <view class="notice-badge-icon"></view>
+        <image class="notice-badge-icon" src="/assets/home/announcement-megaphone.png" mode="aspectFit"></image>
       </view>
-      <text class="notice-title">{{home.tip.text}}</text>
-      <text class="notice-body">{{home.tip.detail}}</text>
-      <view
-        class="notice-btn"
-        bindtap="handleAnnouncementAction"
-        hover-class="notice-btn-hover"
-        hover-start-time="0"
-        hover-stay-time="240"
-      >{{home.tip.actionText}}</view>
+      <view class="notice-item" wx:for="{{announcements}}" wx:key="id">
+        <text class="notice-title">{{item.title}}</text>
+        <text class="notice-body">{{item.body || item.summary}}</text>
+      </view>
+      <text class="notice-empty" wx:if="{{!hasAnnouncements}}">暂无公告</text>
     </view>
   </bottom-sheet>
 

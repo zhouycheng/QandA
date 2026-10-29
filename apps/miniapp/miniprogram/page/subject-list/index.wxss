@@ -8,25 +8,27 @@
 
 /* ==================== 蓝色头部 ==================== */
 
-/**
- * 顶部导航栏已改成 #4A7BFB（见 index.json），这里必须用**垂直**渐变，
- * 且第一站就是同一个 #4A7BFB，否则导航栏和头部的交界处会露出一道色差。
- * 原来用的 160deg 是斜的，右上角已经过渡到偏深，接缝一眼能看出来。
- */
+/* 状态栏、品牌栏与搜索共用垂直蓝色渐变。 */
 .hero {
-  padding: 40rpx 36rpx 56rpx;
+  padding: 0 36rpx 44rpx;
   background: linear-gradient(180deg, #4a7bfb 0%, #3566f0 62%, #2a58e6 100%);
+}
+
+.hero-navigation {
+  display: flex;
+  align-items: center;
 }
 
 .hero-brand {
   font-size: 46rpx;
   font-weight: 700;
   letter-spacing: 1rpx;
+  line-height: 1.25;
   color: #ffffff;
 }
 
 .hero-search {
-  margin-top: 32rpx;
+  margin-top: 16rpx;
   display: flex;
   align-items: center;
 }
@@ -71,68 +73,70 @@
   background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWYyYTM3IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS13aWR0aD0iMi4yIj48Y2lyY2xlIGN4PSIxMC42IiBjeT0iMTAuNiIgcj0iNi42Ii8+PGxpbmUgeDE9IjE1LjYiIHkxPSIxNS42IiB4Mj0iMjAuNSIgeTI9IjIwLjUiLz48L3N2Zz4=");
 }
 
-/* 右上角圆钮：公告（小喇叭）。每日一句已移到倒计时卡里。 */
+/* 热区、圆底与前景独立，按压反馈只缩放圆底。 */
 .hero-notice-btn {
+  position: relative;
+  z-index: 1;
+  overflow: visible;
   flex: none;
+  width: 96rpx;
+  height: 96rpx;
+  margin-left: 16rpx;
+}
+
+.hero-notice-circle {
+  position: absolute;
+  left: 6rpx;
+  top: 6rpx;
   width: 84rpx;
   height: 84rpx;
-  margin-left: 20rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   border-radius: 50%;
   background: #ffffff;
+  box-shadow: 0 4rpx 12rpx rgba(28, 51, 124, 0.16);
+  transition: transform 120ms ease-out;
 }
 
-.hero-notice-hover {
-  opacity: 0.82;
+.hero-notice-hover .hero-notice-circle {
+  transform: scale(0.96);
 }
 
-/* 大喇叭：比常规图标大一号（52rpx），一进页面就晃，用来吸引注意。
-   晃动的是图标本身而不是整个白圆 —— 白圆是正圆，转起来看不出动静。 */
 .hero-notice-icon {
-  width: 52rpx;
-  height: 52rpx;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 100% 100%;
-  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTMuNCA5LjZINi40TDE1LjQgNC42QTEuNCAxLjQgMCAwIDEgMTcuNCA1Ljg2VjE4LjE0QTEuNCAxLjQgMCAwIDEgMTUuNCAxOS40TDYuNCAxNC40SDMuNEExLjQgMS40IDAgMCAxIDIgMTNWMTFBMS40IDEuNCAwIDAgMSAzLjQgOS42WiIgZmlsbD0iIzJiN2ZmYyIvPjxwYXRoIGQ9Ik0xNy44IDguOGE0LjYgNC42IDAgMCAxIDAgNi40IiBmaWxsPSJub25lIiBzdHJva2U9IiMyYjdmZmMiIHN0cm9rZS13aWR0aD0iMS45IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMjAuNCA2LjZhNy42IDguMiAwIDAgMSAwIDEwLjgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzJiN2ZmYyIgc3Ryb2tlLXdpZHRoPSIxLjkiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjwvc3ZnPg==");
-  animation: notice-shake 5s ease-in-out infinite;
+  position: absolute;
+  z-index: 1;
+  left: 6rpx;
+  top: -12rpx;
+  display: block;
+  width: 96rpx;
+  height: 96rpx;
+  transform-origin: 30% 61%;
+  pointer-events: none;
 }
 
-/**
- * 晃动节奏：前 1.8s 里左右摆三次并轻微放大，剩下 3.2s 完全静止。
- * 不做「一直匀速抖」——那种会让人烦，而且整页都在动会干扰读搜索框。
- */
+.hero-notice-label {
+  position: absolute;
+  z-index: 2;
+  right: 0;
+  bottom: -1rpx;
+  padding: 0 10rpx;
+  border: 2rpx solid #ffffff;
+  border-radius: 12rpx;
+  background: #982f28;
+  color: #ffffff;
+  font-size: 20rpx;
+  font-weight: 600;
+  line-height: 28rpx;
+  pointer-events: none;
+}
+
+.hero-notice-icon-active {
+  animation: notice-shake 1.4s ease-in-out infinite;
+}
+
 @keyframes notice-shake {
-  0%,
-  100% {
-    transform: rotate(0deg);
-  }
-
-  6% {
-    transform: rotate(-14deg) scale(1.06);
-  }
-
-  12% {
-    transform: rotate(12deg) scale(1.08);
-  }
-
-  18% {
-    transform: rotate(-9deg) scale(1.04);
-  }
-
-  24% {
-    transform: rotate(6deg);
-  }
-
-  30% {
-    transform: rotate(-3deg);
-  }
-
-  36% {
-    transform: rotate(0deg);
-  }
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(-6deg) scale(1.03); }
+  50% { transform: rotate(5deg) scale(1.06); }
+  75% { transform: rotate(-3deg) scale(1.03); }
 }
 
 /* ==================== 白色内容区 ==================== */
@@ -526,12 +530,22 @@
 }
 
 .notice-badge-icon {
-  width: 52rpx;
-  height: 52rpx;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 100% 100%;
-  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTMuNCA5LjZINi40TDE1LjQgNC42QTEuNCAxLjQgMCAwIDEgMTcuNCA1Ljg2VjE4LjE0QTEuNCAxLjQgMCAwIDEgMTUuNCAxOS40TDYuNCAxNC40SDMuNEExLjQgMS40IDAgMCAxIDIgMTNWMTFBMS40IDEuNCAwIDAgMSAzLjQgOS42WiIgZmlsbD0iIzJiN2ZmYyIvPjxwYXRoIGQ9Ik0xNy44IDguOGE0LjYgNC42IDAgMCAxIDAgNi40IiBmaWxsPSJub25lIiBzdHJva2U9IiMyYjdmZmMiIHN0cm9rZS13aWR0aD0iMS45IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMjAuNCA2LjZhNy42IDguMiAwIDAgMSAwIDEwLjgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzJiN2ZmYyIgc3Ryb2tlLXdpZHRoPSIxLjkiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjwvc3ZnPg==");
+  display: block;
+  width: 80rpx;
+  height: 80rpx;
+}
+
+.notice-item + .notice-item {
+  margin-top: 32rpx;
+  padding-top: 32rpx;
+  border-top: 1rpx solid var(--line);
+}
+
+.notice-empty {
+  display: block;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 28rpx;
 }
 
 .notice-title {
@@ -550,21 +564,4 @@
   line-height: 1.8;
   color: var(--text-sub);
   white-space: pre-wrap;
-}
-
-.notice-btn {
-  margin-top: 36rpx;
-  height: 88rpx;
-  line-height: 88rpx;
-  text-align: center;
-  border-radius: 999rpx;
-  background: linear-gradient(135deg, #4f7dfb, #2b7ffc);
-  color: #ffffff;
-  font-size: 28rpx;
-  font-weight: 600;
-  box-shadow: 0 12rpx 24rpx rgba(43, 127, 252, 0.28);
-}
-
-.notice-btn-hover {
-  opacity: 0.86;
 }
