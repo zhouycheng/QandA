@@ -92,8 +92,8 @@ function checkStructure() {
   assert('结构 - 头部含搜索框', homeWxml.indexOf('class="search-box"') >= 0)
   assert('结构 - 搜索框为真实 input', /<input[\s\S]{0,400}?class="search-input"/.test(homeWxml))
   // 右上角小喇叭是「公告」入口，不是每日一句——每日一句已挪进蓝色倒计时卡
-  assert('结构 - 头部圆钮是公告入口', homeWxml.indexOf('class="hero-notice-btn"') >= 0)
-  assert('结构 - 公告圆钮绑定公告处理函数', homeWxml.indexOf('handleAnnouncementTap') >= 0)
+  assert('结构 - 头部展示公告入口', homeWxml.indexOf('class="hero-notice-btn"') >= 0)
+  assert('结构 - 公告入口绑定公告处理函数', homeWxml.indexOf('handleAnnouncementTap') >= 0)
   assert('结构 - 不再有「每日一句」圆钮', homeWxml.indexOf('hero-quote-btn') < 0)
 
   // 倒计时卡四种状态互斥，顺序必须是「已结束 → 就在今天 → 还有 N 天 → 未设置」。
@@ -127,10 +127,8 @@ function checkStructure() {
     '底部升起会被 tabBar 压住')
   assert('公告 - 弹窗顶部带喇叭徽标', homeWxml.indexOf('notice-badge') >= 0)
 
-  assert('公告 - 保留 84rpx 白色圆底',
-    /\.hero-notice-circle\s*\{[^}]*width:\s*84rpx[^}]*border-radius:\s*50%[^}]*background:\s*#ffffff/.test(homeWxss))
-  assert('公告 - 喇叭作为前景层越出圆底', /\.hero-notice-icon\s*\{[^}]*position:\s*absolute[^}]*z-index:\s*1[^}]*width:\s*96rpx/.test(homeWxss))
-  assert('公告 - 圆钮允许喇叭完整伸出', /\.hero-notice-btn\s*\{[^}]*overflow:\s*visible/.test(homeWxss))
+  assert('公告 - 喇叭直接浮于透明页头', !homeWxml.includes('hero-notice-circle') && !homeWxss.includes('.hero-notice-circle'))
+  assert('公告 - 喇叭素材透明且完整显示', /\.hero-notice-icon\s*\{[^}]*position:\s*absolute[^}]*width:\s*108rpx[^}]*height:\s*108rpx/.test(homeWxss) && /hero-notice-btn\s*\{[^}]*overflow:\s*visible/.test(homeWxss))
   assert('公告 - 使用生成的图片且按公告状态摇动',
     /<image[^>]*class="hero-notice-icon \{\{hasAnnouncements \? 'hero-notice-icon-active' : ''\}\}"[^>]*src="\/assets\/home\/announcement-megaphone.png"[^>]*mode="aspectFit"/.test(homeWxml))
   const megaphone = fs.readFileSync(path.join(MINIPROGRAM, 'assets/home/announcement-megaphone.png'))
@@ -141,8 +139,9 @@ function checkStructure() {
   assert('公告 - 定义了 notice-shake 关键帧', /@keyframes\s+notice-shake/.test(homeWxss))
   assert('公告 - 轻幅摇动及缩放循环', ['rotate(0deg) scale(1)', 'rotate(-6deg) scale(1.03)', 'rotate(5deg) scale(1.06)', 'rotate(-3deg) scale(1.03)'].every(frame => homeWxss.includes(frame)))
   assert('公告 - 点击热区至少 96rpx', /\.hero-notice-btn\s*\{[^}]*width:\s*96rpx[^}]*height:\s*96rpx/.test(homeWxss))
-  assert('公告 - 标签与圆底为独立固定层', homeWxml.includes('<view class="hero-notice-circle"></view>') && homeWxml.includes('<text class="hero-notice-label">公告</text>'))
-  assert('公告 - 按压只缩放圆底', /\.hero-notice-hover \.hero-notice-circle\s*\{\s*transform: scale\(0\.96\)/.test(homeWxss))
+  assert('公告 - 标签水平居中并固定在喇叭下方', homeWxml.includes('<text class="hero-notice-label">公告</text>') && /\.hero-notice-label\s*\{[^}]*left:\s*50%[^}]*transform:\s*translateX\(-50%\)/.test(homeWxss))
+  assert('公告 - 标签文案始终水平单行', /\.hero-notice-label\s*\{[^}]*white-space:\s*nowrap/.test(homeWxss))
+  assert('公告 - 按压入口时提供轻量反馈', /\.hero-notice-hover\s*\{\s*opacity:\s*0\.82/.test(homeWxss))
   assert('公告 - 展示公告列表与空态', homeWxml.includes('wx:for="{{announcements}}"') && homeWxml.includes('暂无公告'))
 
   // 顶部导航栏必须和头部同色，否则会出现用户截图里那条白色带

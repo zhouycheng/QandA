@@ -39,7 +39,6 @@
         hover-start-time="0"
         hover-stay-time="240"
       >
-        <view class="hero-notice-circle"></view>
         <image class="hero-notice-icon {{hasAnnouncements ? 'hero-notice-icon-active' : ''}}" src="/assets/home/announcement-megaphone.png" mode="aspectFit"></image>
         <text class="hero-notice-label">公告</text>
       </view>

@@ -185,7 +185,7 @@ ${combineCss()}
           <input class="search-input" placeholder="搜索题目、关键词">
           <div class="search-icon"></div>
         </div>
-        <div class="hero-notice-btn" role="button" aria-label="查看公告"><div class="hero-notice-circle"></div><img class="hero-notice-icon${noticeData.hasAnnouncements ? ' hero-notice-icon-active' : ''}" src="${megaphoneUri}"><span class="hero-notice-label">公告</span></div>
+        <div class="hero-notice-btn" role="button" aria-label="查看公告"><img class="hero-notice-icon${noticeData.hasAnnouncements ? ' hero-notice-icon-active' : ''}" src="${megaphoneUri}"><span class="hero-notice-label">公告</span></div>
       </div>
     </div>
 

@@ -73,7 +73,7 @@
   background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWYyYTM3IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS13aWR0aD0iMi4yIj48Y2lyY2xlIGN4PSIxMC42IiBjeT0iMTAuNiIgcj0iNi42Ii8+PGxpbmUgeDE9IjE1LjYiIHkxPSIxNS42IiB4Mj0iMjAuNSIgeTI9IjIwLjUiLz48L3N2Zz4=");
 }
 
-/* 热区、圆底与前景独立，按压反馈只缩放圆底。 */
+/* 透明背景喇叭直接浮在页头，标签居中固定。 */
 .hero-notice-btn {
   position: relative;
   z-index: 1;
@@ -84,47 +84,42 @@
   margin-left: 16rpx;
 }
 
-.hero-notice-circle {
-  position: absolute;
-  left: 6rpx;
-  top: 6rpx;
-  width: 84rpx;
-  height: 84rpx;
-  border-radius: 50%;
-  background: #ffffff;
-  box-shadow: 0 4rpx 12rpx rgba(28, 51, 124, 0.16);
-  transition: transform 120ms ease-out;
-}
-
-.hero-notice-hover .hero-notice-circle {
-  transform: scale(0.96);
+.hero-notice-hover {
+  opacity: 0.82;
 }
 
 .hero-notice-icon {
   position: absolute;
   z-index: 1;
-  left: 6rpx;
-  top: -12rpx;
+  left: -6rpx;
+  top: -20rpx;
   display: block;
-  width: 96rpx;
-  height: 96rpx;
-  transform-origin: 30% 61%;
+  width: 108rpx;
+  height: 108rpx;
+  transform-origin: 10% 72%;
   pointer-events: none;
 }
 
 .hero-notice-label {
   position: absolute;
   z-index: 2;
-  right: 0;
-  bottom: -1rpx;
-  padding: 0 10rpx;
-  border: 2rpx solid #ffffff;
-  border-radius: 12rpx;
-  background: #982f28;
-  color: #ffffff;
-  font-size: 20rpx;
-  font-weight: 600;
-  line-height: 28rpx;
+  left: 50%;
+  bottom: 0;
+  width: 68rpx;
+  height: 36rpx;
+  box-sizing: border-box;
+  padding: 0;
+  border: 3rpx solid #173462;
+  border-radius: 10rpx;
+  background: #fff3d9;
+  color: #173462;
+  font-size: 22rpx;
+  font-weight: 800;
+  line-height: 30rpx;
+  box-shadow: 0 2rpx 0 #fff3d9;
+  text-align: center;
+  white-space: nowrap;
+  transform: translateX(-50%);
   pointer-events: none;
 }
 
