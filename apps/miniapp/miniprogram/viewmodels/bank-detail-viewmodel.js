@@ -824,7 +824,7 @@ class BankDetailViewModel {
       query.push('scope=subject')
     }
 
-    if (this.repository.isRemoteEnabled && this.repository.isRemoteEnabled() && this.sheet.onlyWrong) query.push('selectionKind=WRONG')
+    if (remote && this.sheet.onlyWrong) query.push('selectionKind=WRONG')
 
     if (wrongIds.length) {
       query.push(`ids=${encodeURIComponent(wrongIds.join(','))}`)
@@ -839,9 +839,7 @@ class BankDetailViewModel {
 
     query.push(`seed=${Date.now()}`)
 
-    const count = wrongIds.length || target.questionCount || 0
-
-    return {
+    const buildCommand = (count) => ({
       data: {
         configSheetVisible: false
       },
@@ -855,7 +853,23 @@ class BankDetailViewModel {
             : `${count} 题 · ${target.title || target.name || '全部题目'}`
         }
       }
+    })
+
+    if (remote && this.sheet.onlyWrong) {
+      return this.repository.previewRemotePracticeScope(this.storage, {
+        questionBankId: target.bankId,
+        count: 1000,
+        selectionKind: 'WRONG',
+        collectionChip: 'all'
+      }).then(preview => {
+        const availableCount = Math.min(Number(preview.availableCount) || 0, 1000)
+        if (!availableCount) return { command: { type: 'toast', title: '当前筛选下没有可练习的错题' } }
+        query.push(`count=${availableCount}`)
+        return buildCommand(availableCount)
+      })
     }
+
+    return buildCommand(wrongIds.length || target.questionCount || 0)
   }
 
   getShareMessage(subjectId) {
