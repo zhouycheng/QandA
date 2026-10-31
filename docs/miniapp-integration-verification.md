@@ -1,6 +1,6 @@
 # 小程序联调验收记录
 
-验收日期：2026-10-28。后端与合同版本：`1.0.0`。逐接口使用位置和待接入能力见[接口接入台账](miniapp-api-integration.md)。
+验收日期：2026-10-29。后端与合同版本：`1.0.0`。逐接口使用位置和待接入能力见[接口接入台账](miniapp-api-integration.md)。
 
 ## 当前结果
 
@@ -8,9 +8,9 @@
 | --- | --- |
 | 小程序自动检查 | 29 个 `tests/*.check.js` 套件通过，覆盖原有页面及新增请求、缓存、答案展示、同步与重放 |
 | 微信官方离线编译器 | 23 个 WXSS、20 个 WXML 通过；校验编译进程失败及 WXML 行列诊断 |
-| 后端 Maven verify | 8 项单元测试、25 项隔离 PostgreSQL 集成测试通过，包含打包程序初始化检查 |
-| 合同与 HTTP | 117 项操作均有成功 HTTP 记录；558 次 HTTP 观察通过 Schema 校验，16 项反例自检通过 |
-| OpenAPI / Postman | 聚合及 9 个模块文档通过；Postman 官方 Schema 和 234 段脚本语法通过 |
+| 后端 Maven verify | 9 项单元测试、26 项隔离 PostgreSQL 集成测试通过，包含打包程序初始化检查 |
+| 合同与 HTTP | 115 项操作均有成功 HTTP 记录；548 次 HTTP 观察通过 Schema 校验，16 项反例自检通过 |
+| OpenAPI / Postman | 聚合及 9 个模块文档通过；Postman 官方 Schema 和 230 段脚本语法通过 |
 | 真实客户端代码连接后端 | Node 执行小程序请求层、在线仓储与 PracticeViewModel，微信请求适配到真实 HTTP；24 次请求完成四类题目的创建、作答、进度确认、交卷、自评及最近记录查询 |
 
 真实客户端检查使用临时后端与 PostgreSQL，验证 3 道客观题正确、1 道简答题完成自评。微信 UI、设备存储与生命周期由 Node 适配器替代，此证据不能代替真机验收。报告位于忽略目录 `apps/api/.backend-runtime/verification/miniapp-live.json`。
@@ -28,9 +28,17 @@
 
 ## 请求开销观察
 
-隔离 PostgreSQL 上使用 4 题练习，两种响应各执行 30 次串行进度保存，并发为 1。精简确认接口平均响应 314 字节，完整练习响应平均 2916 字节；该次观察的墙钟时间分别为 333/661 毫秒，JVM 进程 CPU 时间为 432/739 毫秒。
+隔离 PostgreSQL 上使用 4 题练习执行 30 次串行进度保存，并发为 1。精简确认平均响应 314 字节；单次完整练习读取响应 2916 字节。本次保存累计墙钟时间 355 毫秒，JVM 进程 CPU 时间 342 毫秒。
 
-该结果说明精简确认减少了本场景的响应数据。进程 CPU 包含同期运行开销，时间结果会随环境波动；本记录不提供容量或生产并发承诺。原始结果位于 `apps/api/.backend-runtime/verification/practice-sync-observation.json`。
+CPU 包含同期运行开销，时间会随环境波动；本记录不提供容量或生产并发承诺。原始结果位于 `apps/api/.backend-runtime/verification/practice-sync-observation.json`。
+
+## Docker 运行核验
+
+- API、PostgreSQL 和 Mailpit 容器健康；API 使用非 root 用户，服务端口仅发布到本机。
+- 运行镜像内的 JAR 与最后一次重建产物 SHA-256 一致，文件资源卷可写。
+- 本地验证码注册及邮箱登录通过，示例题库含四类题型。真实小程序运行时连接 Docker API，24 次请求完成四题练习和自评。
+- 再次执行清理重建和 Compose 更新后，测试账号、题库、题目、练习及结果数量与重建前一致。
+- 核验记录位于忽略目录的 `docker-readiness.json`、`docker-miniapp-smoke.json` 和 `docker-verification-summary.json`。
 
 ## 首页页头与公告提示
 
@@ -44,6 +52,5 @@
 ## 使用与后续验收
 
 - 本机接口配置见[小程序 README](../apps/miniapp/README.md)，连接参数填写在忽略的扩展配置中。真实微信登录需要官方身份配置、合法域名与可访问的 HTTPS 服务。
-- 已有数据库使用[练习同步升级脚本](../apps/api/src/main/resources/db/upgrades/20261028-practice-sync.sql)，执行前备份；本次验证使用临时数据库，未更改已有开发库。
 - 待设备验收：登录与账号切换、切后台及杀进程恢复、断网续答和交卷重试、两设备交接、存储空间不足、四类题目的展示时机。
 - 待外部环境验收：官方微信身份服务、正式邮件、生产规模负载。管理端和用户 Web 页面按各自接入阶段验收，复用本轮协议。

@@ -1,6 +1,6 @@
 # apps/miniapp — Agent Notes
 
-WeChat mini program. **Native JS, zero npm, zero build.** Architecture and file map live in
+WeChat mini program. **Native JS and native routing, MobX shared resource state.** Architecture and file map live in
 `README.md` next to this file; the requirement baseline is `../../docs/prd/miniapp-mvp.md`.
 This file only covers two things: **how to verify a change**, and **traps already paid for**.
 
@@ -9,10 +9,10 @@ This file only covers two things: **how to verify a change**, and **traps alread
 Run everything from `apps/miniapp/`.
 
 ```sh
-# 1) Offline self-checks (24 suites, plain Node, no devtools needed)
-for f in tests/*.check.js; do
-  node "$f" || exit 1
-done
+# 1) Install locked dependencies, build WeChat npm modules, and run self-checks
+npm ci
+npm run build
+npm test
 
 # 2) The real compiler (fixed path on Windows + Git Bash)
 WCC="/d/Program Files x86/微信web开发者工具/resources/app.asar.unpacked/node_modules/wcc-exec"
@@ -42,7 +42,7 @@ Three counter-intuitive details:
 
 ## 2. Hard rules
 
-1. **No `package.json`** anywhere (repo root or `miniprogram/`). No TypeScript.
+1. Keep dependencies in `apps/miniapp/package.json` with exact versions and a lockfile. Run the official npm build after dependency changes. Native JavaScript remains the runtime language.
 2. Modules loaded with `require` must be **flat files** — WeChat does not compile `<dir>/index.js`.
 3. `require` has no dynamic paths. New question banks must be registered in
    `utils/question-bank-catalog.js` → `BANK_LOADERS`.
@@ -58,14 +58,14 @@ Three counter-intuitive details:
 
 ### Custom tabBar (highest risk)
 
-- **It always paints above page content; `z-index` never wins.** Any page-level `position: fixed`
-  overlay (`bottom-sheet`, `route-loading`) gets covered.
-  Fix: use `bottom-sheet`'s `placement="center"`, and call `getTabBar().setHidden(true)` while an
-  overlay is open — with `display: none`, not `opacity: 0` (that stays invisible but still eats taps).
-  Every page that hides it must call `setHidden(false)` in `onShow` as a safety net.
-- **It reserves no bottom space.** The native tabBar did. Tab pages need
-  `padding-bottom: 272rpx` (plus `env(safe-area-inset-bottom)`); `bank-detail` uses
-  `height: calc(100vh - 272rpx)`.
+- Shared overlays use `root-portal` with a full-screen mask that intercepts taps and touchmove.
+  The custom tabBar stays rendered beneath the dimmed mask. Pages close overlays on hide through
+  `utils/page-lifecycle.js`; verify the actual layer ordering in DevTools after overlay changes.
+- Portal content cannot rely on CSS variables inherited from `page`. Apply `portal-theme` to
+  page-owned overlay content; isolated components must provide their own color defaults.
+- **It reserves no bottom space.** Tab pages need `padding-bottom: 272rpx` plus
+  `env(safe-area-inset-bottom)`. The full-height bank page puts this clearance inside both
+  scroll contents, keeping the two column backgrounds visible beneath the floating bar.
 - **Selected state does not follow the page.** All four tab pages must call
   `getTabBar().setSelected('<page path>')` in `onShow`, or the highlight sticks to the wrong tab.
 - **Never let an absolutely positioned layer span the full bar.** `.continue-label` (the 「继续答题」
@@ -79,6 +79,8 @@ Three counter-intuitive details:
 
 ### Layout and visuals
 
+- Secondary pages use the shared white page and native window backgrounds. Keep contrast on cards
+  and inputs through local surface colors rather than a separate page theme.
 - **`mode="aspectFill"` requires the image ratio to equal the container ratio**, otherwise edges are
   cropped. The three `assets/home/cover-*.jpg` are cut to the card's 686:320; changing the card height
   means re-running `scripts/prepare-home-covers.cjs`. `tests/home-prototype.check.js` decodes each JPEG
@@ -87,8 +89,10 @@ Three counter-intuitive details:
   the exact horizontal range the text occupies.
 - Frosted glass with `blur` alone reads gray — pair it with `saturate()`.
 - Stacking a light glyph on a light glyph merges into one blob; separate with a stroke or a value step.
-- Tappable elements need `hover-class` **and** `hover-start-time="0"` (the 50ms default swallows quick
-  taps). The full feedback rules sit in a comment block in `app.wxss` — read it before changing them.
+- Tappable elements use `hover-class`, `hover-start-time="0"`, and `hover-stay-time="80"`.
+  Rows use a subtle background change; buttons, cards, and icons use opacity. Press feedback preserves
+  geometry and persistent selection, validation, and answer-state colors. Shared rules live in
+  `app.wxss`; isolated components define equivalent feedback locally.
 
 ### Data and import
 
@@ -124,13 +128,8 @@ Three counter-intuitive details:
   52px field height → 97rpx, 48px button → 90rpx, 12px radius → 22rpx).
 - Validation is a single pure module: `utils/auth-form.js` (`validateLogin` / `validateRegister` /
   `validateReset`). Don't re-implement rules inside pages.
-- **Degrade only when the backend is `unavailable`.** Every gateway result carries `unavailable`
-  (`true` = never connected: no `baseUrl`, network fail, gateway threw). Only that case falls back to a
-  local identity derived from the email (`email_<hash>`). A real rejection — HTTP 4xx/5xx with a body —
-  must surface the server message and **must not create a login**, otherwise a wrong password would
-  silently log the user in once a backend exists. `sendCode` follows the same rule: `unavailable` →
-  "verification skipped" + cooldown; real rejection → toast with the reason and **no cooldown**
-  (a cooldown would white-lock the button for 60s).
+- Authentication requires a successful server response. Network and server errors preserve the
+  signed-out state; verification-code cooldown begins only after a successful send.
 - **Passwords are never written to storage** — the self-check asserts it.
 - The verification-code cooldown is driven by an **absolute end time** (`utils/cooldown.js`,
   `page.cooldownEndAt`), never by `cooldown - 1` per tick. `onHide` stops the interval only; `onShow`
@@ -146,21 +145,27 @@ Three counter-intuitive details:
 
 ### Settings hub: `page/my` + `page/account` + `page/reminder` (Figma 781:1922 / 781:2123 / 781:2043)
 
-- **`page/my` is the only entry point.** It is a navigation hub (profile header, 账号管理, 学习设置,
-  其他, 法律协议). Account state must not be duplicated elsewhere — `page/settings` deliberately has no
+- **`page/my` is the only entry point.** It is a navigation hub (profile header, account management,
+  learning settings, and legal links). About is the last learning-settings row. Account state must not be duplicated elsewhere — `page/settings` deliberately has no
   account group any more, and `tests/my-hub.check.js` asserts it stays that way.
-- Rows are built in `MyViewModel` (`learnRows` / `otherRows` / `links`); the trailing value ("即时答案",
-  "选项在下", "已开启") always comes from the real preference, never a hardcoded label.
-- 退出登录 is the only destructive row; the page wraps it in `wx.showModal` first. It is hidden for
-  guests so a tap never returns "当前没有登录状态".
+- Rows are built in `MyViewModel` (`learnRows` / `links`); trailing values such as
+  "即时答案", "默认布局", and "已开启" come from the actual preferences.
+- Logout is a separate button below learning settings, visible only when authenticated and confirmed
+  through `wx.showModal`. Personal-page navigation preserves stored learning data.
 - Shared layout lives in `miniprogram/styles/list-page.wxss` (same 750/402 scale as the auth pages:
   22px → 41rpx margin, 54px → 101rpx row, 48px → 90rpx button). Each page WXSS only carries deltas.
-- **About / 用户协议 / 隐私政策 are center sheets** (`placement="center"`) on the tab page, and the tabbar
-  must be hidden while they are open — `page/my` calls `setTabBarHidden(!!this.data.sheet)` right after
-  `setData`, and re-shows it in `onShow`.
-- `answerLayout` (`below` / `above`) is a real preference: `page/practice` swaps 题干/选项 with flex
-  `order`, **never by reordering the DOM** — reordering children of the `scroll-view` resets scroll
-  position.
+- About and legal agreements use center sheets (`placement="center"`) through the shared portal.
+  MobX refreshes preserve the open sheet and form drafts.
+- Answer preferences, layout, reminders, and exam countdown have separate pages. Their entry paths
+  read local data only. Version and developer tools are in About.
+- `moduleOrder` contains exactly `info`, `stem`, `response`, `analysis`, and `tools`. The shared
+  practice templates use stable nodes with CSS `order`; old `answerLayout` values normalize to the
+  equivalent order. Preference reset and layout reset each preserve the other settings.
+- Layout editing uses a local answered example and the actual practice templates/styles. Each module
+  has an outline and a top-right grip with an 88rpx touch target; reset is at the scroll content end. WXS moves
+  the dragged module; JS measures insertion targets and edge scrolling, then persists only on drop.
+  Measure content height before the first scroll. Cancellation restores position; failed saves
+  restore the previous order. The editor does not create learning records or use trial quota.
 - Email reminders (`utils/reminder-settings.js` + `repositories/reminder-repository.js`) store *intent*
   only (`qandaReminder`); sending is a backend job. Every control saves immediately, so `保存设置` is an
   idempotent confirm + back. `advanceDays` keeps at least one entry; exam name/date are validated in the
@@ -211,15 +216,18 @@ Rewritten against the 2026-10-27 design board (练习模式 / 即时模式 / 答
 prefixed `pra-` (question flow) and `res-` (result page); the old `question-area` / `option` /
 `footer-btn` / `sheet-*` names are gone.
 
-- Fixed three-band layout: 页内标题 + 细进度条 + 信息行 (no scroll) + `scroll-view.pra-body` (scrolls) +
-  `.pra-footer` (no scroll). `flex: 1; min-height: 0` on the middle band, never `height: calc()` — the
-  keyboard and safe-area resize break the math.
+- Fixed navigation and progress, `scroll-view.pra-body` for the five sortable modules, and a fixed
+  `.pra-footer` for previous/next actions. Use `flex: 1; min-height: 0` for the scrolling band.
+  Shared markup lives in `templates/practice-*.wxml`, shared styles in `styles/practice.wxss`.
+  Audits expand includes; the WXML compiler receives external WXS files as well.
 - 系统导航标题留空（`index.json` 的 `navigationBarTitleText: ""`），标题由页内 `.pra-head` 画：
   返回箭头 + 题库名 + `practiceSubtitle`（`MODE_LABELS` + 题数，**不要写死章节名**，题库里没有章节字段）。
-- 题干/选项 order is switched with **flex `order`** on `.pra-content-above`, not by reordering the DOM:
-  reordering `scroll-view` children resets the scroll position.
-- 底部结构是「工具行（收藏 / 答题卡 / 标记）+ 两个等宽按钮」。收藏和答题卡从顶部移到这里，
-  所以顶部只剩 `7/12` 纯文字题号 —— 别再把图标塞回题号胶囊。
+- Apply module order with CSS, preserving answers and input nodes. The tools module participates
+  in sorting; previous/next actions remain fixed. Answer visibility is independent of module order.
+- Guest trials use `trial-practice.js` and the same `PracticeSession`. Save the complete snapshot
+  and used quota atomically before entering; two starts are shared across all modes. Local restore,
+  results and account changes preserve quota. Guest trials never enter
+  the account sync queue, favorites, wrong-question records, or server statistics.
 - Prefer `opacity`-only hover classes here (`pra-option-hover`, `chip-flat-hover`, `btn-flat-hover`).
   `interaction-audit.check.js` fails on **any** `transform:` inside a hover class that lives in a
   scroll-view — `transform: none` does not satisfy it, the declaration has to be absent.
@@ -241,19 +249,21 @@ prefixed `pra-` (question flow) and `res-` (result page); the old `question-area
 - 答题卡按钮是**三态**（对应设计稿三个面板）：还有未答 → 确认结束(红描边) + 继续答题(蓝)；
   已答完且有标记 → 继续答题 + 含标记，前往查看(橙)，确认结束另起一行；已答完无标记 →
   继续答题 + 确认结束(橙实心，交卷是唯一主操作)。改文案/顺序时三态要一起看。
-- `scripts/preview-practice.cjs` 渲染 6 个面板（练习模式 / 即时模式 / 三个答题卡 / 结果）。
-  它把 app+page+component 三份 WXSS 拼进同一个 HTML，**看不出组件样式隔离的问题** —— 组件类名缺失
-  只能靠 `interaction-audit.check.js` 第 7 项查。
+- `scripts/preview-practice.cjs` renders seven panels: practice, immediate feedback, three answer
+  sheets, results, and layout editing. Its combined styles cannot verify component isolation;
+  `interaction-audit.check.js` check 7 covers missing component classes.
 
 ### 题库 page (`page/bank-detail`)
 
 Rewritten against the 2026-10-27 board (章节列表 + 答题配置抽屉). Old `mode-seg` / `action-row` /
 `list-head` / `option-chip` / `confirm-btn` blocks are **gone**; parameters now live in the sheet.
 
-- 页内标题「题库」+ 搜索 + 筛选，`index.json` 的 `navigationBarTitleText` 留空。页头是
-  `.bank-detail-page`（flex column）的第一段，`.workbench` 用 `flex: 1; min-height: 0` 吃掉剩下的高度 ——
-  `custom-tabbar.check.js` 同时要求 `.bank-detail-page` 里有 `height: calc(`、`.workbench` 里有 `height: 100%`
-  （`flex: 1` 的 basis 是 0，`height` 不参与主轴计算，留着是为了那条断言，别删）。
+- All four tabs use custom navigation and `home-header.js` metrics. The header owns status-bar
+  padding once. Home is blue; the other tabs have white headers and status areas, declared in both
+  page JSON and WXSS. The native WeChat capsule is not recreated by app markup.
+- The bank page fills `100vh`; `.workbench` fills the remainder below the header. Keep bottom
+  clearance inside both scroll contents (`rail-inner`, `panel-inner`), so their backgrounds extend
+  beneath the floating tab bar and their last rows can scroll above it.
 - 左栏 = 最近在刷 / 我的错题 / 我的收藏 / 科目… / 导入题库。选中项**白底 + 蓝色左条**（与右侧白面板同色，
   侧边标签页的常见做法），选中文字是深色粗体而不是品牌蓝。
 - 列表**一行一章**：`components/bank-list-item` 现在是一条灰条（`chapter-row`），只显示
@@ -261,17 +271,19 @@ Rewritten against the 2026-10-27 board (章节列表 + 答题配置抽屉). Old 
   （「第一单元」）时不再叠一层。点一行 = 配这一章的参数。
 - **抽屉里的开关都是「本次答题」的参数，不写学习偏好**。「解析自动展开 / 答对自动翻页」这类偏好只在
   「我的」页维护 —— 同一个状态两处能改，迟早出现「我明明关了又自己开了」。
-- ⚠️ 整科 + 只答错题时**不能**带 `scope=subject`：答题页先判 `scope === 'subject'` 再判 `ids`，
-  带上就把错题筛选静默吃掉。只答错题一律走 `ids=`（取卷后与错题本求交，题目 id 和题库 id 不同前缀，
-  不能靠字符串前缀过滤）。
+- Online wrong/favorite practice uses server `selectionKind` and `collectionChip`; pagination must preserve the whole matching scope. Local fixtures use explicit question IDs and must not combine `scope=subject` with a custom ID selection.
 - 背题模式固定原顺序，顺序项变灰并在点击时 toast 说明；模拟考默认开限时（5/10/15/20 分钟）。
-- 搜索是跨科目的（索引由目录一次性建成）。`handleSearchInput` **不把 `searchKeyword` 写回 data**：
-  回写的是 trim 过的值，敲空格时光标会被拽回行尾。
+- Online catalog search reads 20 summaries per page after a 250 ms input debounce. Preserve raw input and ignore stale results; local previews use their fixture index.
 - `scripts/preview-bank-detail.cjs` 渲染 3 个面板（章节列表 / 搜索 / 答题配置），数据来自真实
   `BankDetailViewModel`，底栏是静态还原（只为看位置与比例）。
 
 ### 复盘 page (`page/stats`, tab caption 复盘)
 
+- Guests see the empty review structure blurred behind a login prompt. Do not read personal cache or
+  request statistics until authenticated. Login uses native navigation; returning rechecks identity.
+  Signing out clears the projected metrics, charts, and cached summaries.
+- The guest review veil covers the page from the status-area background to the bottom. Blur the app
+  title and content, keep native system chrome intact, and reserve prompt clearance for tab navigation.
 - Shape: range switcher (近 7 天 / 近 30 天 / 累计) + three metrics + **错题本 / 收藏本两张入口卡** +
   half-year heatmap + trend curve.
   `StatsViewModel` keeps `overall` / `wrongCount` / `favoriteCount` for other callers, but the page no
@@ -315,9 +327,9 @@ Rewritten against the 2026-10-27 board (章节列表 + 答题配置抽屉). Old 
 | `scripts/preview-home-covers.cjs` | The countdown card × three day-parts side by side (checks nothing jumps) |
 | `scripts/preview-practice.cjs` | 答题页四态并排（答对 / 答错 / 答题卡 / 结果），跑真实 `PracticeViewModel` |
 | `scripts/preview-bank-detail.cjs` | 题库页三态并排（章节列表 / 搜索 / 答题配置），跑真实 `BankDetailViewModel` |
-| `scripts/preview-review.cjs` | 复盘 / 错题本 / 收藏本 三面板并排，全部跑真实 ViewModel（含真实 SVG 图） |
+| `scripts/preview-review.cjs` | Guest review, authenticated review, wrong questions, and favorites from real ViewModels |
 | `scripts/preview-auth.cjs` | Renders login / register / forgot-password side by side at the 402px design width |
-| `scripts/preview-my.cjs` | Renders 我的 / 账号管理 / 邮箱提醒 side by side at 402×874 (Figma 781:1922 / 781:2123 / 781:2043) |
+| `scripts/preview-my.cjs` | Renders My at rest and pressed, account, and reminders at 402×874 |
 | `scripts/import-question-bank.cjs` | CSV/TSV/JSON → `data/banks/` |
 | `scripts/generate-tabbar-icons.cjs` | tabBar icon PNGs |
 

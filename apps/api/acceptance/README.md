@@ -1,6 +1,6 @@
 # 后端接口验收
 
-当前 `1.0.0` 合同包含 117 个操作，聚合入口为 [`../contracts/openapi.yaml`](../contracts/openapi.yaml)，9 个模块合同引用其中的共享模型。合同从运行中的 Controller 和 DTO 导出；实际 HTTP 观察另行验证路径、参数、请求体、状态、响应媒体、全部响应头值和响应体。
+当前 `1.0.0` 合同包含 118 个操作，聚合入口为 [`../contracts/openapi.yaml`](../contracts/openapi.yaml)，9 个模块合同引用其中的共享模型。合同从运行中的 Controller 和 DTO 导出；实际 HTTP 观察另行验证路径、参数、请求体、状态、响应媒体、全部响应头值和响应体。
 
 ## Maven 验收
 
@@ -26,7 +26,7 @@ node apps/api/scripts/backend.mjs verify
 | `http-schema-validation.json` | 逐次 HTTP Schema 校验 |
 | `operation-coverage.json` | 逐操作成功观察与 Schema 状态 |
 | `miniapp-live.json` | 真实小程序请求层、Repository、ViewModel 对接临时 PostgreSQL 与 HTTP 的练习闭环 |
-| `practice-sync-observation.json` | 4 题练习各 30 次串行保存的响应大小、进程 CPU 与用时观察 |
+| `practice-sync-observation.json` | 4 题练习 30 次串行保存的响应大小、进程 CPU 与用时观察 |
 
 已注册、实际成功观察、Schema 通过是不同证据。台账依据当前运行文件生成，缺少记录时显示未观察；不会依据接口存在自动声称验收通过。构建报告位于 `target/surefire-reports/` 和 `target/failsafe-reports/`。
 

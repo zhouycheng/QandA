@@ -5,6 +5,7 @@
 - [后端架构与数据库](backend-architecture.md)：模块分层、档案与业务关系、初始化及指标口径。
 - [后端接口进度](backend-progress.md)：当前 117 项接口、Q01 历史计划对照与验收边界。
 - [小程序接口接入台账](miniapp-api-integration.md)：逐接口的用途、页面调用位置、使用状态及缺失入口。
+- [小程序页面加载](miniapp-page-loading.md)：15 个页面的加载矩阵、缓存、原生导航、弹层与实测记录。
 - [小程序联调验收记录](miniapp-integration-verification.md)：同步规则、自动检查、真实 HTTP 和设备验收边界。
 - [Git 工作流](git-workflow.md)：分支、提交、PR 与合并要求。
 - [管理端学生平台改造说明](admin-student-platform-implementation.md)：管理端当前实现、验证记录与实际边界。
