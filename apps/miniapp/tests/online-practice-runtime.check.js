@@ -17,6 +17,7 @@ async function main() {
   let failProgressResponse = false
   let finishLost = false
   let ratingLost = false
+  let takeoverSnapshotLost = true
   let submitted = false
   let version = 1
   const replies = {}
@@ -38,6 +39,11 @@ async function main() {
   assert.strictEqual(unified.getViewData().currentCorrectAnswerText, '')
   assert.strictEqual(unified.forceSubmit().data.overviewItems[0].isCorrect, true, '统一反馈交卷后展示判定')
   const result = { id: 'result1', sessionId: 's1', version: 3, totalCount: 1, answeredCount: 1, durationSeconds: 1, objective: { count: 1, answered: 1, correct: 1, wrong: 0, unanswered: 0, accuracy: 1 }, shortAnswer: { count: 0, answered: 0, rated: 0, correct: 0, wrong: 0, unrated: 0 }, items: snapshot.items, submittedAt: new Date().toISOString() }
+  const takeoverWriter = Object.assign({}, writer, { writerToken: 'renewed-writer', version: 7 })
+  const takeoverSnapshot = Object.assign({}, copy(snapshot), { id: 's5', version: 7, writer: takeoverWriter })
+  takeoverSnapshot.items[0].answer = { optionKeys: ['B'] }
+  takeoverSnapshot.items[0].confirmed = true
+  takeoverSnapshot.items[0].outcome = 'WRONG'
   global.wx = { request(input) {
     requests.push({ url: input.url, method: input.method, data: copy(input.data), header: copy(input.header) })
     if (offline) { input.fail({ errMsg: 'request:fail offline' }); return }
@@ -59,8 +65,17 @@ async function main() {
       body = result
       if (finishLost) { finishLost = false; input.fail({ errMsg: 'request:fail timeout' }); return }
     } else if (input.url.endsWith('/self-assessment')) {
-      body = Object.assign({}, result, { version: 4, sessionId: input.url.match(/\/practice\/sessions\/([^/]+)/)[1] })
+      const match = input.url.match(/\/practice\/sessions\/([^/]+)\/items\/([^/]+)\/self-assessment/)
+      const items = storage.get(`qandaOnline:u1:${match[1]}`).items
+      items.find(item => item.itemId === match[2]).selfAssessment = input.data.assessment
+      body = Object.assign({}, result, { version: input.data.expectedVersion + 1, sessionId: match[1], items })
       if (ratingLost) { ratingLost = false; input.fail({ errMsg: 'request:fail timeout' }); return }
+    } else if (input.url.endsWith('/practice/sessions/s5/writer-state?deviceId=device1') || input.url.endsWith('/practice/sessions/s5/writer-acquire')) {
+      body = takeoverWriter
+    } else if (input.url.endsWith('/practice/sessions/s5/snapshot?deviceId=device1')) {
+      assert.strictEqual(input.header['X-Practice-Writer'], takeoverWriter.writerToken)
+      body = takeoverSnapshot
+      if (takeoverSnapshotLost) { takeoverSnapshotLost = false; input.fail({ errMsg: 'request:fail timeout' }); return }
     } else throw new Error(`Unexpected route ${input.url}`)
     input.success({ statusCode: 200, data: copy(body) })
   } }
@@ -132,6 +147,7 @@ async function main() {
   assert.strictEqual(restarted.get('s2').assessmentCommands.i1, undefined)
   const shortSnapshot = Object.assign({}, copy(ratedSnapshot), {
     id: 's4',
+    route: { bankId: 'b1', mode: 'practice' },
     items: copy(ratedSnapshot.items),
     result: Object.assign({}, result, { sessionId: 's4' }),
     assessmentCommands: {},
@@ -139,14 +155,20 @@ async function main() {
   })
   shortSnapshot.items[0].itemId = 'i4'
   shortSnapshot.items[0].question.type = 'SHORT_ANSWER'
+  shortSnapshot.items[0].question.options = []
+  shortSnapshot.items[0].answer = { text: '我的作答' }
+  shortSnapshot.items[0].confirmed = true
+  shortSnapshot.items[0].outcome = 'SELF_RATED'
+  shortSnapshot.items[0].selfAssessment = 'WRONG'
   restarted.put('s4', shortSnapshot)
   const assessmentVm = new PracticeViewModel({ storage, repository: { getPreferences: () => ({}) } })
   assessmentVm.online = restarted
-  assessmentVm.session = {
-    meta: { sessionId: 's4' },
-    state: { isCompleted: true, resultItems: [], resultFilter: 'all' },
-    setResultFilter: () => ({ data: {} })
-  }
+  const assessmentState = restarted.restored(shortSnapshot)
+  assessmentVm.session = new PracticeSession({ quiz: restarted.quiz(shortSnapshot), restored: assessmentState, mode: 'practice' })
+  assessmentVm.session.reset()
+  assessmentVm.session.restore(assessmentState)
+  assessmentVm.session.finish()
+  assessmentVm.session.setResultFilter('wrong')
   ratingLost = true
   await assert.rejects(() => assessmentVm.assessResult('q1', 'CORRECT'), /请求超时/)
   const pendingAssessment = restarted.get('s4').assessmentCommands.i4
@@ -158,6 +180,30 @@ async function main() {
   assert.deepStrictEqual(resultAssessmentRequests[0].data, resultAssessmentRequests[1].data)
   assert.strictEqual(restarted.get('s4').assessmentCommands.i4, undefined)
   assert.strictEqual(restarted.get('s4').assessed.i4, 'CORRECT')
+  assert.strictEqual(assessmentVm.session.state.answers[0].selfAssessment, 'CORRECT')
+  assert.strictEqual(assessmentVm.session.state.overviewItems[0].isCorrect, true)
+  assert.deepStrictEqual(assessmentVm.session.state.wrongQuestionIds, [])
+  assert.strictEqual(assessmentVm.session.state.hasWrongQuestions, false)
+  assert.strictEqual(assessmentVm.session.state.resultFilter, 'wrong')
+  assert.strictEqual(assessmentVm.session.state.filteredResultItems.length, 0)
+  await assessmentVm.assessResult('q1', 'WRONG')
+  assert.strictEqual(assessmentVm.session.state.answers[0].isCorrect, false)
+  assert.strictEqual(assessmentVm.session.state.overviewItems[0].isCorrect, false)
+  assert.deepStrictEqual(assessmentVm.session.state.wrongQuestionIds, ['q1'])
+  assert.strictEqual(assessmentVm.session.state.wrongCount, 1)
+  assert.strictEqual(assessmentVm.session.state.filteredResultItems.length, 1)
+  const staleTakeover = Object.assign({}, copy(snapshot), { id: 's5', version: 2, route: { bankId: 'b1', mode: 'practice' } })
+  restarted.put('s5', staleTakeover)
+  restarted.rememberWaiting('s5', staleTakeover.route, Object.assign({}, writer, { state: 'WAITING', writerToken: null }))
+  await restarted.poll('s5')
+  assert.strictEqual(restarted.get('s5').writer.writerToken, takeoverWriter.writerToken)
+  await assert.rejects(() => restarted.prepare({ sessionId: 's5' }), /请求超时/)
+  assert(restarted.getWaiting('s5'), '快照下载失败时保留接管等待记录')
+  const takenOver = await restarted.prepare({ sessionId: 's5' })
+  assert.strictEqual(takenOver.version, 7)
+  assert.deepStrictEqual(takenOver.items[0].answer.optionKeys, ['B'])
+  assert.strictEqual(requests.filter(r => r.url.endsWith('/practice/sessions/s5/snapshot?deviceId=device1')).length, 2)
+  assert.strictEqual(restarted.getWaiting('s5'), null)
   submitted = false
   finishLost = true
   const restoreRuntime = onlinePractice.enable(storage)

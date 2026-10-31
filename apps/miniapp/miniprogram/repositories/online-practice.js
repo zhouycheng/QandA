@@ -76,8 +76,8 @@ class OnlinePractice {
           return this.remember(remote, options)
         }
       }
-      if (cached && cached.writer && cached.writer.deviceId === this.deviceId() && cached.writer.writerToken) {
-        // 草稿始终先恢复；写入权变化由状态查询与服务端凭证校验收敛。
+      if (cached && cached.writer && cached.writer.deviceId === this.deviceId() && cached.writer.writerToken && !this.getWaiting(id)) {
+        // 原写入权恢复本机草稿，接管续答读取最新快照。
         return cached
       }
       const writer = await this.required('POST', `/practice/sessions/${id}/writer-acquire`, { deviceId: this.deviceId() }, { idempotencyKey: http.uuid() })
@@ -86,10 +86,11 @@ class OnlinePractice {
         this.rememberWaiting(id, route, writer)
         return { id, waiting: true, writer, route }
       }
-      this.forgetWaiting(id)
       const snapshot = await this.required('GET', `/practice/sessions/${id}/snapshot?deviceId=${this.deviceId()}`, null, { headers: { 'X-Practice-Writer': writer.writerToken } })
       snapshot.writer = writer
-      return this.remember(snapshot, options)
+      const prepared = this.remember(snapshot, options)
+      this.forgetWaiting(id)
+      return prepared
     }
     return this.createPractice(options)
   }

@@ -703,16 +703,26 @@ class PracticeViewModel {
    */
   applyOfficialResult(official) {
     const state = this.session.state
-    state.correctCount = official.objective.correct
-    state.score = official.objective.count ? Math.round(official.objective.accuracy * 100) : 0
-    state.resultItems.forEach(item => {
-      const remote = official.items.find(row => row.question.id === item.id)
-      if (!remote) return
-      item.isCorrect = remote.question.type === 'SHORT_ANSWER' ? remote.selfAssessment === 'CORRECT' : remote.outcome === 'CORRECT'
-      item.answered = !!remote.answer
-      item.selfAssessment = remote.selfAssessment || ''
+    const resultFilter = state.resultFilter
+    const items = new Map(official.items.map(item => [item.question.id, item]))
+    state.answers = state.questions.map((question, index) => {
+      const item = items.get(question.id)
+      if (!item) return state.answers[index] || null
+      if (!item.answer) return null
+      return {
+        questionId: question.id,
+        selectedKeys: item.answer.optionKeys || (item.answer.value === null || item.answer.value === undefined ? [] : [String(item.answer.value)]),
+        text: item.answer.text || '',
+        confirmed: item.confirmed,
+        selfAssessment: item.selfAssessment || null,
+        isCorrect: item.question.type === 'SHORT_ANSWER' ? item.selfAssessment === 'CORRECT' : item.outcome === 'CORRECT'
+      }
     })
-    this.session.setResultFilter(state.resultFilter)
+    state.unansweredCount = this.session.getUnansweredIndexes(state.answers).length
+    this.session.finish()
+    this.session.state.correctCount = official.objective.correct
+    this.session.state.score = official.objective.count ? Math.round(official.objective.accuracy * 100) : 0
+    this.session.setResultFilter(resultFilter)
   }
 
   resolveSubmitOutcome(result) {
