@@ -678,7 +678,16 @@ class WrongBookViewModel {
       const facets = (summary && summary.facets || []).filter(item => (!options.subjectId || item.subjectId === options.subjectId) && (!options.questionBankId || item.questionBankId === options.questionBankId))
       if (!facets.length || !this.buildViewData().filteredCount) return { command: { type: 'toast', title: '当前没有可练习的题目' } }
       if (facets.length !== 1) return { command: { type: 'toast', title: '请先筛选同一题库的题目进行练习' } }
-      return { command: { type: 'navigate', url: `/page/practice/index?bankId=${facets[0].questionBankId}&subjectId=${facets[0].subjectId}&selectionKind=${options.kind}&collectionChip=${options.chip}&count=${Math.min(this.buildViewData().filteredCount, 1000)}` } }
+      return this.repository.previewRemotePracticeScope(this.storage, {
+        questionBankId: facets[0].questionBankId,
+        count: 1000,
+        selectionKind: options.kind,
+        collectionChip: options.chip
+      }).then(preview => {
+        const count = Math.min(Number(preview.availableCount) || 0, 1000)
+        if (!count) return { command: { type: 'toast', title: '当前没有可练习的题目' } }
+        return { command: { type: 'navigate', url: `/page/practice/index?bankId=${facets[0].questionBankId}&subjectId=${facets[0].subjectId}&selectionKind=${options.kind}&collectionChip=${options.chip}&count=${count}` } }
+      })
     }
     const items = this.applyFilters(
       isWrong ? this.buildWrongItems(this.readSources()) : this.buildFavoriteItems(this.readSources()),

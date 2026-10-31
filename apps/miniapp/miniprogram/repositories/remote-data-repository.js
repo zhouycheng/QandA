@@ -85,6 +85,14 @@ function loadBank(storage, id, options) {
     if (!state.subjects.some(s => s.id === data.subjectId)) state.subjects = state.subjects.concat({ id: data.subjectId, name: data.subjectName || '' })
   }, options && options.force)
 }
+function previewPracticeScope(storage, scope) {
+  const user = bind(storage)
+  if (!user) return Promise.reject(new Error('请先登录'))
+  return api.request('POST', '/practice/scope-preview', scope).then(checked).then(data => {
+    if (bind(storage) !== user) throw new Error('账号已切换，请重新发起练习')
+    return data
+  })
+}
 function loadChapters(storage, id) {
   return resource(storage, 'chapters:' + id, {}, TTL.catalog, '/question-banks/' + encodeURIComponent(id) + '/chapters', data => { state.chapters = Object.assign({}, state.chapters, { [id]: data }) })
 }
@@ -256,4 +264,4 @@ function saveProfile(storage, patch) {
 module.exports = { searchQuestions, addQuestionFavorite, removeQuestionFavorite, getBankMeta, invalidateLearning, enable, isEnabled, bind, refresh, refreshCatalog, refreshProfile, mapQuestion, cacheQuestions, loadQuestion, getSubjectSummaries, getSubjectDetail, getCatalogStats, getBankQuiz, getSubjectQuiz, getQuestionIndex, findQuestionEntries, getFavorites, getWrongBook, getDailyLog, getStudyTime, getStatistics, getProgress, getRecent, getHistory, getScopeMeta, toggleQuestionFavorite, removeQuestionFavorites, clearFavorites, removeWrongQuestions, getProfile, getColleges, loadMajors, saveProfile }
 module.exports.getAnnouncements = getAnnouncements
 
-Object.assign(module.exports, { refreshOverview, refreshSubjects, refreshBanks, refreshAnnouncements, refreshRecent, refreshCollection, refreshStatistics, getOverview, getCollection, getCollectionSummary, getCatalogPage, getSubjectPage, getResourceState, getAnnouncementTotal, loadColleges, loadBank, loadChapters })
+Object.assign(module.exports, { refreshOverview, refreshSubjects, refreshBanks, refreshAnnouncements, refreshRecent, refreshCollection, refreshStatistics, getOverview, getCollection, getCollectionSummary, getCatalogPage, getSubjectPage, getResourceState, getAnnouncementTotal, loadColleges, loadBank, loadChapters, previewPracticeScope })

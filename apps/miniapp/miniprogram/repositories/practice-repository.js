@@ -178,3 +178,4 @@ module.exports.loadRemoteSubjects = remoteData.refreshSubjects
 module.exports.loadRemoteBanks = remoteData.refreshBanks
 module.exports.loadRemoteBank = remoteData.loadBank
 module.exports.loadRemoteChapters = remoteData.loadChapters
+module.exports.previewRemotePracticeScope = remoteData.previewPracticeScope
