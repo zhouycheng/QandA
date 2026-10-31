@@ -1,5 +1,6 @@
 const { buildAnswerRecords } = require('../utils/practice-progress.js')
 const { normalizePreferences } = require('../utils/preferences.js')
+const { ranks } = require('../utils/practice-layout.js')
 const {
   QUESTION_STATE,
   SESSION_STATUS,
@@ -76,6 +77,9 @@ function getInitialPracticeViewData() {
 
   return {
     loadError: '',
+    loadingPractice: false,
+    submitting: false,
+    favoriteSaving: false,
     waitingForSync: false,
     waitingSeconds: 0,
     editingLocked: false,
@@ -84,6 +88,12 @@ function getInitialPracticeViewData() {
     // 初始即给一份默认偏好：页面首帧就要读 preferences.showOverviewEntry / fontSize，
     // 缺了会让答题卡入口闪一下、字号也来不及生效
     preferences: normalizePreferences(null),
+    layoutRanks: ranks(),
+    editLayout: false,
+    dragId: '',
+    dragTarget: '',
+    moduleLabels: {},
+    trialNotice: '',
     // 会话状态（PRD 9）：页面用它判断"是否可恢复""是否待重传"
     sessionId: '',
     sessionStatus: SESSION_STATUS.IN_PROGRESS,
@@ -191,6 +201,7 @@ class PracticeSession {
       shouldRevealAnswer: isViewMode,
       shouldShowExplanation: isViewMode,
       preferences,
+      layoutRanks: ranks(preferences.moduleOrder),
       subjectId: quiz ? quiz.subjectId : '',
       bankId: quiz ? quiz.bankId : '',
       practiceTitle: quiz ? quiz.title : DEFAULT_PRACTICE_TITLE,

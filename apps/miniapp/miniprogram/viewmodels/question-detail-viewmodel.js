@@ -91,17 +91,17 @@ class QuestionDetailViewModel {
     const onlineContext = this.onlineContext(sessionId, questionId)
     if (onlineContext) entry = Object.assign({}, entry || {}, { question: onlineContext.question })
 
-    if (!entry) {
+    const remote = this.repository.isRemoteEnabled && this.repository.isRemoteEnabled()
+    if (!entry || (remote && entry.question.complete === false)) {
       return {
         data: Object.assign(getInitialQuestionDetailData(), {
-          ready: true,
-          emptyText: '题目不存在或已被移除'
+          ready: !remote,
+          emptyText: remote ? '' : '题目不存在或已被移除'
         })
       }
     }
 
     const question = entry.question
-    const remote = this.repository.isRemoteEnabled && this.repository.isRemoteEnabled()
     const answer = onlineContext ? onlineContext.answer : this.findSessionAnswer(sessionId, questionId)
     const reveal = !remote || !!(onlineContext && onlineContext.reveal)
     const favoriteIds = typeof this.repository.getFavoriteIds === 'function'
@@ -142,20 +142,23 @@ class QuestionDetailViewModel {
     const online = require('../repositories/online-practice.js')
     const runtime = online.current()
     if (!runtime) return null
-    const snapshot = runtime.get(sessionId)
+    const trial = require('../repositories/trial-practice.js').get(this.storage, sessionId)
+    const snapshot = trial || (this.repository.getAuth(this.storage).loggedIn ? runtime.get(sessionId) : null)
     if (!snapshot) return null
     const item = ((snapshot.result && snapshot.result.items) || snapshot.items || []).find((item) => item.question.id === questionId)
     if (!item) return null
     const local = snapshot.localState || {}
     const answer = (local.answers || []).find((answer) => answer && answer.questionId === questionId) || (item.answer ? { selectedKeys: item.answer.optionKeys || (typeof item.answer.value === 'boolean' ? [String(item.answer.value)] : []), text: item.answer.text || '', confirmed: item.confirmed, isCorrect: item.outcome === 'CORRECT' } : null)
-    const reveal = snapshot.status === 'SUBMITTED' || local.status === 'SUBMITTED' || (snapshot.feedback === 'IMMEDIATE' && answer && answer.confirmed)
+    const reveal = snapshot.status === 'SUBMITTED' || local.status === 'SUBMITTED' || (snapshot.route && snapshot.route.mode === 'view') || (snapshot.feedback === 'IMMEDIATE' && answer && answer.confirmed)
     return { question: online.mapQuestion(item, (snapshot.offlineGrading || []).find((grading) => grading.itemId === item.itemId)), answer, reveal }
   }
 
   refreshRemote(options) {
     if (!this.repository.isRemoteEnabled || !this.repository.isRemoteEnabled()) return Promise.resolve(null)
     if (options && options.sessionId && this.onlineContext(decodeOptionValue(options.sessionId), decodeOptionValue(options.id))) return Promise.resolve(this.load(options))
-    return this.repository.loadRemoteQuestion(this.storage, decodeOptionValue(options && options.id)).then(() => this.load(options))
+    if (!options || !options.id) return Promise.resolve(null)
+    return this.repository.loadRemoteQuestion(this.storage, decodeOptionValue(options.id)).then(() => this.load(options))
+      .catch(error => ({ data: { ready: true, emptyText: error.message || '题目加载失败，请重试' } }))
   }
 
   /** 读偏好失败时退回标准字号：少一个字号不该让整页打不开 */

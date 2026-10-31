@@ -113,6 +113,7 @@ class OnlinePractice {
       const bank = require('./remote-data-repository.js').getBankMeta(bankId) || await this.required('GET', `/question-banks/${bankId}`)
       if (this.identity().userId !== userId) throw new Error('账号已切换，请重新打开练习')
       const scope = { questionBankId: bankId, count: Math.min(Number(options.count) || bank.questionCount || 20, 1000), order: ['practice', 'test'].includes(options.mode) ? 'RANDOM' : 'SEQUENTIAL', selectionKind: options.selectionKind || 'NORMAL', chapterIds: options.chapterId ? [options.chapterId] : [] }
+      scope.collectionChip = options.collectionChip || 'all'
       if (options.ids) { scope.questionIds = String(options.ids).split(',').filter(Boolean); scope.count = scope.questionIds.length }
       intent = { routeKey, route: options, key: http.uuid(), title: bank.name, body: { scope, expectedContentVersion: bank.contentVersion, feedback: options.mode === 'test' ? 'AFTER_FINISH' : 'IMMEDIATE', deviceId: this.deviceId() } }
       intents = this.storage.get(storageKey) || []
@@ -220,7 +221,7 @@ class OnlinePractice {
       body = Object.assign({}, command.payload.progress, { items: changes, expectedVersion: snapshot.version, writerToken: snapshot.writer.writerToken, clientSequence: command.sequence })
       this.storage.set(key, body)
     }
-    const response = await http.request('PUT', `/practice/sessions/${id}/progress-ack`, body, { token: identity.token, idempotencyKey: command.idempotencyKey })
+    const response = await http.request('PUT', `/practice/sessions/${id}/progress-ack`, body, { token: identity.token, idempotencyKey: command.idempotencyKey, priority: 'background' })
     if (response.ok) {
       const latest = this.storage.get(snapshotKey)
       latest.version = response.data.version; latest.writer = response.data.writer
@@ -266,7 +267,7 @@ class OnlinePractice {
       const itemId = snapshot.items[index].itemId
       if (!answer || !answer.selfAssessment || snapshot.assessed[itemId] === answer.selfAssessment) continue
       if (!snapshot.assessmentCommands[itemId]) {
-        snapshot.assessmentCommands[itemId] = { key: http.uuid(), body: { expectedVersion: snapshot.version, assessment: answer.selfAssessment, writerToken: snapshot.writer.writerToken } }
+        snapshot.assessmentCommands[itemId] = { key: http.uuid(), body: { expectedVersion: snapshot.version, assessment: answer.selfAssessment } }
         this.put(id, snapshot)
       }
       const command = snapshot.assessmentCommands[itemId]

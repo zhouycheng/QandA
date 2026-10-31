@@ -1,6 +1,7 @@
 const practiceRepository = require('../repositories/practice-repository.js')
 const progressRepository = require('../repositories/progress-repository.js')
 const onlinePractice = require('../repositories/online-practice.js')
+const trials = require('../repositories/trial-practice.js')
 const {
   DEFAULT_TEST_DURATION_MINUTES,
   PRACTICE_MODES,
@@ -42,6 +43,7 @@ class PracticeViewModel {
   }
 
   async loadOnline(options) {
+    this.trial = false
     this.online = onlinePractice.current()
     this.ownerId = this.online.identity().userId
     this.routeOptions = options || {}
@@ -57,7 +59,7 @@ class PracticeViewModel {
     const restored = this.online.restored(snapshot)
     this.session = new PracticeSession({ quiz, restored, mode: snapshot.feedback === 'AFTER_FINISH' ? 'test' : (options.mode || 'practice'),
       config: snapshot.route, durationMinutes: Number(snapshot.route.duration) || DEFAULT_TEST_DURATION_MINUTES, preferences: this.repository.getPreferences(this.storage),
-      favoriteQuestionIds: this.repository.getFavoriteIds(this.repository.getFavorites(this.storage)) })
+      favoriteQuestionIds: snapshot.favoriteQuestionIds || [] })
     this.session.reset()
     this.session.restore(restored)
     this.editingLocked = false
@@ -107,7 +109,11 @@ class PracticeViewModel {
    * 再用 questionIds + questionOrder 还原题序——这样题库更新后也不会读到脏题。
    */
   load(options) {
-    if (onlinePractice.current()) return this.loadOnline(options || {})
+    if (onlinePractice.current()) {
+      const route = options || {}
+      const savedTrial = route.sessionId && trials.get(this.storage, route.sessionId)
+      return savedTrial || !this.repository.getAuth(this.storage).loggedIn ? this.loadTrial(route) : this.loadOnline(route)
+    }
     const normalizedOptions = options || {}
     const saved = this.readSavedSession(normalizedOptions)
     const effectiveOptions = saved ? this.optionsFromConfig(saved.config) : normalizedOptions
@@ -159,6 +165,26 @@ class PracticeViewModel {
       startTimer: !!baseResult.startTimer,
       stopTimer: true
     }
+  }
+
+  async loadTrial(options) {
+    this.online = null
+    this.trial = true
+    this.routeOptions = options
+    let snapshot
+    try { snapshot = await trials.prepare(this.storage, options) } catch (error) {
+      if (error.code === 'TRIAL_LIMIT') return { data: { loadError: error.message }, command: { type: 'trialLogin' } }
+      throw error
+    }
+    this.routeOptions = snapshot.route
+    const restored = trials.restored(snapshot)
+    this.session = new PracticeSession({ quiz: trials.quiz(snapshot), restored, config: snapshot.route, mode: snapshot.route.mode || 'practice', durationMinutes: Number(snapshot.route.duration) || DEFAULT_TEST_DURATION_MINUTES, preferences: this.repository.getPreferences(this.storage) })
+    this.session.reset()
+    this.session.restore(restored)
+    if (restored.status === SESSION_STATUS.SUBMITTED) this.session.finish()
+    this.session.updateSyncStatus(SYNC_STATUS.LOCAL_ONLY)
+    this.session.state.trialNotice = `游客试答 · 记录保存在本机 · 剩余 ${trials.remaining(this.storage)} 次`
+    return { data: Object.assign(this.session.getViewData(), { loadError: '' }), startTimer: this.session.state.isTestMode && !this.session.state.isCompleted }
   }
 
   /** 读取可恢复的会话。取不到或已提交一律返回 null，走新建路径 */
@@ -274,7 +300,7 @@ class PracticeViewModel {
       return null
     }
 
-    if (this.online) return this.loadOnline(Object.assign({}, this.routeOptions, { sessionId: '', resume: '' }))
+    if (this.online || this.trial) return this.load(Object.assign({}, this.routeOptions, { sessionId: '', resume: '' }))
     const result = this.session.reset()
 
     // 「再练一次」是一轮新练习，立即覆盖掉上一份会话
@@ -341,6 +367,8 @@ class PracticeViewModel {
       return null
     }
 
+    if (this.online || this.trial) return { command: { type: 'navigate', url: `/page/practice/index?bankId=${encodeURIComponent(this.routeOptions.bankId)}&mode=practice&ids=${encodeURIComponent(ids.join(','))}` } }
+
     this.repository.saveCustomQuiz(this.storage, ids, '错题重练')
 
     return {
@@ -392,6 +420,17 @@ class PracticeViewModel {
   }
 
   async assessResult(questionId, value) {
+    if (this.trial && this.session && this.session.state.isCompleted) {
+      if (!['CORRECT', 'WRONG'].includes(value)) return null
+      const index = this.session.state.questions.findIndex(question => question.id === questionId && question.isShortAnswer)
+      const answer = this.session.state.answers[index]
+      if (!answer) return null
+      answer.selfAssessment = value
+      answer.isCorrect = value === 'CORRECT'
+      this.session.finish()
+      this.persistSession(true)
+      return { data: this.session.getViewData() }
+    }
     if (!this.online || !this.session || !this.session.state.isCompleted) return null
     const snapshot = this.online.get(this.session.meta.sessionId)
     const item = snapshot.items.find(row => row.question.id === questionId)
@@ -405,6 +444,7 @@ class PracticeViewModel {
   }
 
   toggleFavoriteQuestion() {
+    if (this.trial) return { command: { type: 'toast', title: '登录后可在正式练习中收藏题目' } }
     if (!this.session) {
       return null
     }
@@ -413,14 +453,21 @@ class PracticeViewModel {
 
     if (result && result.saveFavorite) {
       const payload = result.saveFavorite
-
-      if (payload.value) {
-        const saved = this.repository.addQuestionFavorite(this.storage, payload.id)
-        if (saved && saved.then) return saved.then(() => result)
-      } else {
-        const saved = this.repository.removeQuestionFavorite(this.storage, payload.id)
-        if (saved && saved.then) return saved.then(() => result)
-      }
+      const saved = payload.value ? this.repository.addQuestionFavorite(this.storage, payload.id) : this.repository.removeQuestionFavorite(this.storage, payload.id)
+      if (saved && saved.then) return saved.then(() => {
+        if (this.online) {
+          const snapshot = this.online.get(this.session.meta.sessionId)
+          snapshot.favoriteQuestionIds = this.session.state.favoriteQuestionIds.slice()
+          this.online.put(snapshot.id, snapshot)
+        }
+        return { data: this.session.getViewData(), value: payload.value }
+      }, error => {
+        const ids = this.session.state.favoriteQuestionIds.filter(id => id !== payload.id)
+        if (!payload.value) ids.push(payload.id)
+        const current = this.session.getCurrentBaseQuestion()
+        this.session.updateState({ favoriteQuestionIds: ids, isCurrentQuestionFavorite: !!current && ids.indexOf(current.id) >= 0 })
+        throw error
+      })
     }
 
     return result
@@ -601,6 +648,7 @@ class PracticeViewModel {
       return
     }
 
+    if (this.trial) { trials.save(this.storage, this.session); return }
     if (this.session.state.isViewMode) {
       return
     }
@@ -662,6 +710,7 @@ class PracticeViewModel {
   }
 
   resolveSubmitOutcome(result) {
+    if (this.trial) return this.applySubmitOutcome(result, { ok: true, syncStatus: SYNC_STATUS.LOCAL_ONLY })
     if (this.online) {
       return this.online.finish(this.session).then((official) => {
         require('../repositories/remote-data-repository.js').invalidateLearning()
@@ -709,6 +758,7 @@ class PracticeViewModel {
    * 「重试成功」只能这样模拟，等价于网络恢复后重发一次。
    */
   retrySubmit() {
+    if (this.trial && this.session) return this.resolveSubmitOutcome({ data: this.session.getViewData() })
     if (this.online && this.session) return this.resolveSubmitOutcome({ data: this.session.getViewData() })
     if (!this.session || typeof this.repository.retrySubmit !== 'function') {
       return null
@@ -759,7 +809,7 @@ class PracticeViewModel {
   }
 
   withSideEffects(result) {
-    if (this.online) return result
+    if (this.online || this.trial) return result
     if (result && result.saveBestScore) {
       this.storage.set(result.saveBestScore.key, result.saveBestScore.value)
     }
@@ -805,8 +855,13 @@ class PracticeViewModel {
       return null
     }
 
+    const preferences = this.repository.getPreferences(this.storage)
+    this.session.preferences = preferences
+    this.session.state.preferences = preferences
+    this.session.state.layoutRanks = require('../utils/practice-layout.js').ranks(preferences.moduleOrder)
     if (this.online && this.session) this.online.activeId = this.session.meta.sessionId
-    return this.session.resumeStudy()
+    this.session.resumeStudy()
+    return { data: this.session.getViewData() }
   }
 }
 

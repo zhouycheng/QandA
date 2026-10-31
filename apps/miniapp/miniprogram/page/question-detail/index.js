@@ -1,6 +1,7 @@
+const { withPageLifecycle } = require('../../utils/page-lifecycle.js')
 const { QuestionDetailViewModel } = require('../../viewmodels/question-detail-viewmodel.js')
 const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
-Page({
+Page(withPageLifecycle({
   data: QuestionDetailViewModel.getInitialData(),
 
   onLoad(options) {
@@ -27,4 +28,4 @@ Page({
       this.setData(result.data)
     }
   }
-})
+}))

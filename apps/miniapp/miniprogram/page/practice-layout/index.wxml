@@ -1,0 +1,10 @@
+<wxs module="layoutDrag" src="../../utils/layout-drag.wxs" />
+<view class="page practice-page layout-editor font-{{preferences.fontSize}}" drag-scroll="{{dragScroll}}" change:drag-scroll="{{layoutDrag.scroll}}" drag-reset="{{dragReset}}" change:drag-reset="{{layoutDrag.clear}}">
+  <include src="../../templates/practice-head.wxml" />
+  <scroll-view class="pra-body" scroll-y scroll-top="{{scrollTop}}" bindscroll="handleScroll" enhanced bounces="{{false}}" show-scrollbar="{{false}}">
+    <include src="../../templates/practice-content.wxml" />
+    <view class="layout-end" wx:if="{{dragTarget === 'end'}}">松手放在这里</view>
+    <view class="layout-reset" bindtap="handleResetLayout" hover-class="chip-flat-hover" hover-start-time="0" hover-stay-time="80" aria-role="button">恢复默认布局</view>
+  </scroll-view>
+  <view class="pra-footer"><include src="../../templates/practice-actions.wxml" /></view>
+</view>

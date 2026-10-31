@@ -41,11 +41,7 @@ function savePreferences(storage, preferences) {
   const adapter = getStorageAdapter(storage)
   const normalized = normalizePreferences(preferences)
 
-  try {
-    adapter.set(PREFERENCE_STORAGE_KEY, normalized)
-  } catch (error) {
-    return normalized
-  }
+  adapter.set(PREFERENCE_STORAGE_KEY, normalized)
 
   return normalized
 }
@@ -63,9 +59,10 @@ function updatePreferenceText(storage, key, value) {
   return savePreferences(storage, setPreferenceText(getPreferences(storage), key, value))
 }
 
-/** 恢复默认：偏好属于「设置」，清空学习数据时不该一并抹掉，因此单独提供重置入口 */
+/** 答题偏好独立恢复默认，保留布局与考试倒计时。 */
 function resetPreferences(storage) {
-  return savePreferences(storage, normalizePreferences(null))
+  const current = getPreferences(storage)
+  return savePreferences(storage, Object.assign(normalizePreferences(null), { moduleOrder: current.moduleOrder, examName: current.examName, examDate: current.examDate }))
 }
 
 module.exports = {

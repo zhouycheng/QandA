@@ -15,6 +15,7 @@ const MP = path.join(ROOT, 'miniprogram')
 const OUT_DIR = path.join(ROOT, '.tmp-preview')
 const STAGE_W = 402
 const STAGE_H = 874
+const header = require('../miniprogram/utils/home-header.js').getInitialHomeHeaderData({ statusBarHeight: 47 }, { top: 51, height: 32 })
 
 const read = (relative) => fs.readFileSync(path.join(MP, relative), 'utf8')
 
@@ -110,7 +111,7 @@ const PREVIEW_BASE = `
 body { margin: 0; background: #fff; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", Arial, sans-serif; }
 .stage { width: ${STAGE_W}px; height: ${STAGE_H}px; position: relative; overflow: hidden; background: #fff; }
 /* 页面高度按画板算：100vh 在预览里是整个浏览器窗口，不是这块画板 */
-.stage .bank-detail-page { height: calc(${STAGE_H}px - 272rpx); }
+.stage .bank-detail-page { height: ${STAGE_H}px; }
 /* 底栏与抽屉都是 position:fixed，预览里要相对画板 */
 .stage .tabbar-wrap { position: absolute; bottom: 0; }
 .stage .config-sheet { position: absolute; }
@@ -124,7 +125,7 @@ img.tab-icon { object-fit: contain; }
 `
 
 function buildCss() {
-  const app = read('app.wxss').replace(/^page\s*\{/m, 'body {')
+  const app = read('app.wxss').replace(/^page(?=\s*[,\{])/gm, 'body')
   const page = read('page/bank-detail/index.wxss')
   const row = read('components/bank-list-item/index.wxss')
   const tabBar = read('custom-tab-bar/index.wxss')
@@ -146,8 +147,8 @@ function head(data) {
   const clear = data.searchActive ? '<div class="bk-search-clear">×</div>' : ''
 
   return `
-  <div class="bk-head">
-    <div class="bk-title">题库</div>
+  <div class="bk-head" style="padding-top:${header.homeStatusBarHeight}px">
+    <div class="bk-navigation" style="height:${header.homeNavigationBarHeight}px"><div class="bk-title">题库</div></div>
     <div class="bk-tools">
       <div class="bk-search">
         <div class="bk-search-icon"></div>
@@ -302,7 +303,7 @@ function configSheet(data) {
   const wrongHint = data.sheetWrongCount ? '' : '<span class="config-inline-hint">暂无错题</span>'
 
   return `
-  <div class="config-sheet">
+  <div class="config-sheet portal-theme">
     <div class="config-mask"></div>
     <div class="config-panel">
       <div class="config-grip"></div>

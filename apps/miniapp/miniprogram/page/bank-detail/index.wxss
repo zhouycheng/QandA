@@ -1,19 +1,19 @@
-/* 底部 272rpx 是留给自定义 tabBar 的（tabbar 232 + 40 呼吸位 + 安全区）：
-   原生 tabBar 由系统预留空间，100vh 正好；改成 custom 之后底栏是页面内的 fixed 组件，
-   不再预留 —— 不减掉这段，左右两栏最下面一截会被胶囊压住。 */
+/* 两栏背景铺满视口；滚动内容末尾为悬浮底栏留出可滚动空间。 */
+page { background: #fff; }
+.bk-navigation { display: flex; align-items: center; padding-right: 210rpx; }
 .bank-detail-page {
-  height: calc(100vh - 272rpx);
-  height: calc(100vh - 272rpx - env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: var(--page-bg);
+  background: #ffffff;
 }
 
 /* ---------- 页内标题 + 搜索 + 筛选 ---------- */
 .bk-head {
   flex: none;
-  padding: 10rpx 26rpx 20rpx;
+  padding: 0 26rpx 20rpx;
   background: #ffffff;
 }
 
@@ -113,7 +113,7 @@
 
 /* 只有 icon 的圆形按钮：按压只压透明度，避免整块位移 */
 .bk-icon-hover {
-  opacity: 0.62;
+  opacity: 0.72;
 }
 
 /* ---------- 左栏 + 右栏 ---------- */
@@ -132,7 +132,8 @@
 }
 
 .rail-inner {
-  padding: 12rpx 0 40rpx;
+  padding: 12rpx 0 272rpx;
+  padding-bottom: calc(272rpx + env(safe-area-inset-bottom));
 }
 
 .rail-item {
@@ -191,12 +192,8 @@
   color: var(--brand);
 }
 
-/* 左栏科目项在 scroll-view 里：不做 transform，否则会被当成内容尺寸变化、
-   滚动位置跟着跳。改用左侧色条 + 底色，按下时同样明显。 */
 .rail-item-hover {
-  background: rgba(70, 107, 255, 0.12);
-  box-shadow: inset 6rpx 0 0 0 var(--brand);
-  transition-duration: 100ms;
+  background: rgba(31, 42, 55, 0.04);
 }
 
 .panel {
@@ -207,7 +204,8 @@
 }
 
 .panel-inner {
-  padding: 24rpx 24rpx 48rpx;
+  padding: 24rpx 24rpx 272rpx;
+  padding-bottom: calc(272rpx + env(safe-area-inset-bottom));
 }
 
 /* ---------- 统计卡 ---------- */
@@ -335,7 +333,7 @@
 }
 
 .search-row-hover {
-  opacity: 0.68;
+  opacity: 0.86;
 }
 
 .empty-block {
@@ -352,7 +350,7 @@
   right: 0;
   top: 0;
   bottom: 0;
-  z-index: 900;
+  z-index: 10000;
 }
 
 .config-mask {

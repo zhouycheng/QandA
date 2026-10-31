@@ -1,7 +1,6 @@
 <view class="bank-detail-page">
-  <!-- 页内标题 + 搜索 + 筛选（系统导航标题留空，见 index.json） -->
-  <view class="bk-head">
-    <text class="bk-title">题库</text>
+  <view class="bk-head" style="padding-top: {{homeStatusBarHeight}}px;">
+    <view class="bk-navigation" style="height: {{homeNavigationBarHeight}}px;"><text class="bk-title">题库</text></view>
     <view class="bk-tools">
       <view class="bk-search">
         <view class="bk-search-icon"></view>
@@ -21,7 +20,7 @@
           bindtap="handleSearchClear"
           hover-class="bk-icon-hover"
           hover-start-time="0"
-          hover-stay-time="160"
+          hover-stay-time="80"
         >×</view>
       </view>
       <view
@@ -29,12 +28,16 @@
         bindtap="handleFilterToggle"
         hover-class="bk-icon-hover"
         hover-start-time="0"
-        hover-stay-time="160"
+        hover-stay-time="80"
       >
         <view class="bk-filter-icon"></view>
       </view>
     </view>
   </view>
+
+  <view class="load-note" wx:if="{{catalogLoading}}">正在读取题库…</view>
+  <view class="load-note" wx:if="{{catalogError}}" bindtap="handleRetryLoad" hover-class="chip-flat-hover" hover-start-time="0" hover-stay-time="80">{{catalogError}} · 点击重试</view>
+  <view class="load-note" wx:if="{{!catalogLoading && !catalogError && !subject}}">暂无已发布的题库</view>
 
   <view class="workbench" wx:if="{{subject}}">
     <scroll-view class="rail" scroll-y enhanced bounces show-scrollbar="{{false}}">
@@ -44,7 +47,7 @@
           bindtap="handleRecentTap"
           hover-class="rail-item-hover"
           hover-start-time="0"
-          hover-stay-time="200"
+          hover-stay-time="80"
         >
           <view class="rail-bar"></view>
           <view class="rail-body">
@@ -53,6 +56,7 @@
         </view>
 
         <view class="rail-divider"></view>
+        <view class="load-note" wx:if="{{subjectsHasMore}}" bindtap="handleSubjectsMore" hover-class="chip-flat-hover" hover-start-time="0" hover-stay-time="80">更多科目</view>
 
         <view
           wx:for="{{subjects}}"
@@ -62,7 +66,7 @@
           bindtap="handleSubjectSwitch"
           hover-class="rail-item-hover"
           hover-start-time="0"
-          hover-stay-time="200"
+          hover-stay-time="80"
         >
           <view class="rail-bar"></view>
           <view class="rail-body">
@@ -91,7 +95,7 @@
             bindtap="handleSearchResultTap"
             hover-class="search-row-hover"
             hover-start-time="0"
-            hover-stay-time="200"
+            hover-stay-time="80"
           >
             <view class="search-row-main">
               <text class="search-row-title">{{item.chapterTitle}}</text>
@@ -100,7 +104,9 @@
             <text class="search-row-arrow">›</text>
           </view>
 
-          <view class="empty-block" wx:if="{{searchEmptyText}}">
+          <view class="load-note" wx:if="{{searchLoading}}">正在搜索…</view>
+          <view class="load-note" wx:if="{{searchHasMore && !searchLoading}}" bindtap="handleSearchMore" hover-class="chip-flat-hover" hover-start-time="0" hover-stay-time="80">加载更多结果</view>
+          <view class="empty-block" wx:if="{{searchEmptyText && !searchLoading}}">
             <text>{{searchEmptyText}}</text>
           </view>
         </block>
@@ -111,7 +117,7 @@
             bindtap="handleStatTap"
             hover-class="stat-card-hover"
             hover-start-time="0"
-            hover-stay-time="200"
+            hover-stay-time="80"
           >
             <view class="stat-top">
               <text class="stat-scope">{{railMode === 'recent' ? '最近在刷 · ' : ''}}{{subject.name}}</text>
@@ -143,8 +149,9 @@
               bind:open="handleBankOpen"
             />
           </view>
+          <view class="load-note" wx:if="{{catalogHasMore}}" bindtap="handleBanksMore" hover-class="chip-flat-hover" hover-start-time="0" hover-stay-time="80">加载更多题库</view>
 
-          <view class="empty-block" wx:if="{{!rows.length}}">
+          <view class="empty-block" wx:if="{{!rows.length && !catalogLoading && !catalogError}}">
             <text>{{listEmptyText}}</text>
           </view>
         </block>
@@ -153,8 +160,9 @@
   </view>
 
   <!-- 答题配置抽屉：参数都是「本次答题」的，不写学习偏好 -->
-  <view class="config-sheet" wx:if="{{configSheetVisible}}">
-    <view class="config-mask" bindtap="handleSheetClose"></view>
+  <root-portal enable="{{true}}">
+  <view class="config-sheet portal-theme" wx:if="{{configSheetVisible}}">
+    <view class="config-mask" catchtouchmove="noop" catchtap="handleSheetClose"></view>
     <view class="config-panel">
       <view class="config-grip"></view>
 
@@ -175,7 +183,7 @@
               bindtap="handleSheetMode"
               hover-class="chip-flat-hover"
               hover-start-time="0"
-              hover-stay-time="160"
+              hover-stay-time="80"
             >{{item.label}}</view>
           </view>
         </view>
@@ -191,7 +199,7 @@
               bindtap="handleSheetOrder"
               hover-class="chip-flat-hover"
               hover-start-time="0"
-              hover-stay-time="160"
+              hover-stay-time="80"
             >{{item.label}}</view>
           </view>
         </view>
@@ -216,7 +224,7 @@
               bindtap="handleSheetDuration"
               hover-class="chip-flat-hover"
               hover-start-time="0"
-              hover-stay-time="160"
+              hover-stay-time="80"
             >{{item.label}}</view>
           </view>
         </view>
@@ -241,22 +249,18 @@
           bindtap="handleSheetClose"
           hover-class="btn-flat-hover"
           hover-start-time="0"
-          hover-stay-time="200"
+          hover-stay-time="80"
         >取消</view>
         <view
           class="config-btn primary"
           bindtap="handleConfigConfirm"
           hover-class="btn-flat-hover"
           hover-start-time="0"
-          hover-stay-time="200"
+          hover-stay-time="80"
         >{{sheetStartText}}</view>
       </view>
     </view>
   </view>
+  </root-portal>
 
-  <route-loading
-    visible="{{routeLoadingVisible}}"
-    title="{{routeLoadingTitle}}"
-    description="{{routeLoadingDescription}}"
-  />
 </view>

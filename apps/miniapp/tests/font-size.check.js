@@ -112,7 +112,7 @@ function checkSettings() {
   const wxss = readFile('page/settings/index.wxss')
 
   assert('设置 - 预览块绑了当前字号', wxml.indexOf('font-{{fontSize}}') >= 0)
-  assert('设置 - 预览只在字号项出现', wxml.indexOf("wx:if=\"{{item.key === 'fontSize'}}\"") >= 0)
+  assert('设置 - 字号预览仍在偏好页面', wxml.includes('{{fontPreviewText}}'))
   assert('设置 - 预览有两档字号规则',
     pickFontSize(wxss, 'small', 'font-preview-text') > 0 &&
       pickFontSize(wxss, 'large', 'font-preview-text') > 0)
@@ -120,7 +120,7 @@ function checkSettings() {
 
 // ---------- 三、答题页：三档差距要够大 ----------
 function checkPracticeScale() {
-  const wxss = readFile('page/practice/index.wxss')
+  const wxss = readFile('styles/practice.wxss')
   const wxml = readFile('page/practice/index.wxml')
 
   assert('答题页 - 根节点带 font-* 类', wxml.indexOf('font-{{preferences.fontSize}}') >= 0)
