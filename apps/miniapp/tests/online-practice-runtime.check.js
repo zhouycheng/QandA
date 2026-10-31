@@ -2,6 +2,8 @@ const assert = require('assert')
 const http = require('../miniprogram/repositories/http-gateway.js')
 const { OnlinePractice } = require('../miniprogram/repositories/online-practice.js')
 const { PracticeSession } = require('../miniprogram/models/practice-session.js')
+const onlinePractice = require('../miniprogram/repositories/online-practice.js')
+const { PracticeViewModel } = require('../miniprogram/viewmodels/practice-viewmodel.js')
 const copy = (v) => JSON.parse(JSON.stringify(v))
 async function main() {
   const data = { qandaAuth: { provider: 'email', userId: 'u1', token: 'token1' } }
@@ -18,6 +20,15 @@ async function main() {
   let submitted = false
   let version = 1
   const replies = {}
+  const routeStorageData = { qandaAuth: { provider: 'email', userId: 'route-user', token: 'route-token' }, qandaDeviceId: 'route-device' }
+  const routeStorage = { get: key => routeStorageData[key] && copy(routeStorageData[key]), set: (key, value) => { routeStorageData[key] = copy(value) }, remove: key => delete routeStorageData[key] }
+  const routeRuntime = new OnlinePractice(routeStorage)
+  routeRuntime.identity()
+  routeRuntime.put('route-session', { id: 'route-session', route: { mode: 'test', duration: '25', subjectId: 'subject-1' } })
+  const routed = routeRuntime.remember({ id: 'route-session', questionBankId: 'bank-1' }, { sessionId: 'route-session' })
+  assert.strictEqual(routed.route.duration, '25')
+  assert.strictEqual(routed.route.subjectId, 'subject-1')
+  routeRuntime.queue.stop()
   const snapshot = { id: 's1', questionBankId: 'b1', status: 'IN_PROGRESS', version: 1, currentIndex: 0, durationSeconds: 0, feedback: 'IMMEDIATE', configuration: { chapterIds: [], count: 1, order: 'SEQUENTIAL', selectionKind: 'NORMAL', feedback: 'IMMEDIATE', contentVersion: 1 }, writer, items: [{ itemId: 'i1', position: 0, question: { id: 'q1', revisionId: 'r1', questionBankId: 'b1', type: 'SINGLE_CHOICE', stem: '题干', options: [{ key: 'A', content: '选项甲' }, { key: 'B', content: '选项乙' }], correctAnswer: null, correctValue: null, referenceAnswer: null, explanation: null, assetIds: [] }, answer: null, confirmed: false, marked: false, outcome: null, selfAssessment: null }], offlineGrading: [{ itemId: 'i1', correctAnswer: ['A'], correctValue: null, referenceAnswer: null, explanation: '解析仅答后显示' }] }
   const unified = new PracticeSession({ quiz: new OnlinePractice(storage).quiz(Object.assign({ route: {} }, snapshot)), mode: 'test' })
   unified.reset()
@@ -119,6 +130,28 @@ async function main() {
   assert.strictEqual(ratingRequests[0].header['Idempotency-Key'], ratingRequests[1].header['Idempotency-Key'])
   assert.deepStrictEqual(ratingRequests[0].data, ratingRequests[1].data)
   assert.strictEqual(restarted.get('s2').assessmentCommands.i1, undefined)
+  submitted = false
+  finishLost = true
+  const restoreRuntime = onlinePractice.enable(storage)
+  restoreRuntime.identity()
+  const restoreSnapshot = Object.assign({}, copy(snapshot), { id: 's3', status: 'IN_PROGRESS', route: { mode: 'test', duration: '20', bankId: 'b1' }, result: null, finishCommand: null })
+  restoreSnapshot.writer = Object.assign({}, writer)
+  const restoreState = restoreRuntime.restored(restoreSnapshot)
+  restoreState.sessionId = 's3'
+  restoreState.status = 'SUBMITTED'
+  restoreState.config = restoreSnapshot.route
+  restoreState.answers[0] = { questionId: 'q1', selectedKeys: ['A'], confirmed: true, isCorrect: true }
+  restoreSnapshot.localState = restoreState
+  restoreRuntime.put('s3', restoreSnapshot)
+  const restoredVm = new PracticeViewModel({ storage, repository: { getPreferences: () => ({}), getAuth: value => Object.assign({ loggedIn: true }, value.get('qandaAuth')) } })
+  const restoreResult = await restoredVm.load({ sessionId: 's3' })
+  assert.strictEqual(restoreResult.submitOk, false)
+  assert(/重试/.test(restoreResult.submitError))
+  assert.strictEqual(restoreResult.data.isCompleted, true)
+  const retriedResult = await restoredVm.retrySubmit()
+  assert.strictEqual(retriedResult.submitOk, true, '恢复后的交卷可以通过页面重试完成')
+  assert.strictEqual(restoreRuntime.get('s3').status, 'SUBMITTED')
+  restoreRuntime.queue.stop()
   restarted.queue.stop()
   const beforeSwitch = requests.length
   storage.set('qandaAuth', { provider: 'email', userId: 'u2', token: 'token2' })

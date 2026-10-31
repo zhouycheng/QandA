@@ -82,7 +82,7 @@ class OnlinePractice {
       }
       const writer = await this.required('POST', `/practice/sessions/${id}/writer-acquire`, { deviceId: this.deviceId() }, { idempotencyKey: http.uuid() })
       if (writer.state !== 'ACTIVE' || !writer.writerToken) {
-        const route = Object.assign({}, options, { bankId: ordinary.questionBankId })
+        const route = Object.assign({}, ordinary.route || {}, options || {}, { bankId: ordinary.questionBankId })
         this.rememberWaiting(id, route, writer)
         return { id, waiting: true, writer, route }
       }
@@ -165,7 +165,8 @@ class OnlinePractice {
     this.storage.set(key, retained)
   }
   remember(snapshot, options) {
-    snapshot.route = options || {}
+    const previous = this.get(snapshot.id)
+    snapshot.route = Object.assign({}, previous && previous.route || {}, snapshot.route || {}, options || {})
     snapshot.formatVersion = 1
     this.put(snapshot.id, snapshot)
     this.storage.set(`qandaOnlineLast:${this.userId}`, snapshot.id)

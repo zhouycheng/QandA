@@ -66,6 +66,14 @@ class PracticeViewModel {
     if (restored.status === SESSION_STATUS.SUBMITTED) {
       this.session.finish()
       if (snapshot.result) this.applyOfficialResult(snapshot.result)
+      else if (snapshot.status !== 'SUBMITTED') {
+        const outcome = await this.resolveSubmitOutcome({ data: this.session.getViewData() })
+        return Object.assign({}, outcome, {
+          data: Object.assign(this.session.getViewData(), { waitingForSync: false, editingLocked: false, loadError: '' }),
+          startTimer: false,
+          stopTimer: true
+        })
+      }
     }
     return { data: Object.assign(this.session.getViewData(), { waitingForSync: false, editingLocked: false, loadError: '' }), startTimer: this.session.state.isTestMode }
   }
