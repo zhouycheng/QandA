@@ -59,7 +59,7 @@ async function main() {
       body = result
       if (finishLost) { finishLost = false; input.fail({ errMsg: 'request:fail timeout' }); return }
     } else if (input.url.endsWith('/self-assessment')) {
-      body = Object.assign({}, result, { version: 4, sessionId: 's2' })
+      body = Object.assign({}, result, { version: 4, sessionId: input.url.match(/\/practice\/sessions\/([^/]+)/)[1] })
       if (ratingLost) { ratingLost = false; input.fail({ errMsg: 'request:fail timeout' }); return }
     } else throw new Error(`Unexpected route ${input.url}`)
     input.success({ statusCode: 200, data: copy(body) })
@@ -130,6 +130,34 @@ async function main() {
   assert.strictEqual(ratingRequests[0].header['Idempotency-Key'], ratingRequests[1].header['Idempotency-Key'])
   assert.deepStrictEqual(ratingRequests[0].data, ratingRequests[1].data)
   assert.strictEqual(restarted.get('s2').assessmentCommands.i1, undefined)
+  const shortSnapshot = Object.assign({}, copy(ratedSnapshot), {
+    id: 's4',
+    items: copy(ratedSnapshot.items),
+    result: Object.assign({}, result, { sessionId: 's4' }),
+    assessmentCommands: {},
+    assessed: {}
+  })
+  shortSnapshot.items[0].itemId = 'i4'
+  shortSnapshot.items[0].question.type = 'SHORT_ANSWER'
+  restarted.put('s4', shortSnapshot)
+  const assessmentVm = new PracticeViewModel({ storage, repository: { getPreferences: () => ({}) } })
+  assessmentVm.online = restarted
+  assessmentVm.session = {
+    meta: { sessionId: 's4' },
+    state: { isCompleted: true, resultItems: [], resultFilter: 'all' },
+    setResultFilter: () => ({ data: {} })
+  }
+  ratingLost = true
+  await assert.rejects(() => assessmentVm.assessResult('q1', 'CORRECT'), /请求超时/)
+  const pendingAssessment = restarted.get('s4').assessmentCommands.i4
+  assert(pendingAssessment)
+  await assessmentVm.assessResult('q1', 'CORRECT')
+  const resultAssessmentRequests = requests.filter(r => r.url.includes('/sessions/s4/') && r.url.endsWith('/self-assessment'))
+  assert.strictEqual(resultAssessmentRequests.length, 2)
+  assert.strictEqual(resultAssessmentRequests[0].header['Idempotency-Key'], resultAssessmentRequests[1].header['Idempotency-Key'])
+  assert.deepStrictEqual(resultAssessmentRequests[0].data, resultAssessmentRequests[1].data)
+  assert.strictEqual(restarted.get('s4').assessmentCommands.i4, undefined)
+  assert.strictEqual(restarted.get('s4').assessed.i4, 'CORRECT')
   submitted = false
   finishLost = true
   const restoreRuntime = onlinePractice.enable(storage)
@@ -148,6 +176,9 @@ async function main() {
   assert.strictEqual(restoreResult.submitOk, false)
   assert(/重试/.test(restoreResult.submitError))
   assert.strictEqual(restoreResult.data.isCompleted, true)
+  assert.strictEqual(restoredVm.routeOptions.bankId, 'b1')
+  assert.strictEqual(restoredVm.routeOptions.duration, '20')
+  assert(restoredVm.createRedoWrongCommand(['q1']).command.url.includes('bankId=b1'))
   const retriedResult = await restoredVm.retrySubmit()
   assert.strictEqual(retriedResult.submitOk, true, '恢复后的交卷可以通过页面重试完成')
   assert.strictEqual(restoreRuntime.get('s3').status, 'SUBMITTED')

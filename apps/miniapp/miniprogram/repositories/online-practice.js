@@ -240,6 +240,25 @@ class OnlinePractice {
     this.finishing[key] = this.finishSession(session).then((result) => { delete this.finishing[key]; return result }, (error) => { delete this.finishing[key]; throw error })
     return this.finishing[key]
   }
+  async assess(id, itemId, value) {
+    if (!['CORRECT', 'WRONG'].includes(value)) throw new Error('自评结果无效')
+    const snapshot = this.get(id)
+    snapshot.assessmentCommands = snapshot.assessmentCommands || {}
+    snapshot.assessed = snapshot.assessed || {}
+    if (snapshot.assessed[itemId] === value) return snapshot.result
+    if (!snapshot.assessmentCommands[itemId]) {
+      snapshot.assessmentCommands[itemId] = { key: http.uuid(), body: { expectedVersion: snapshot.version, assessment: value } }
+      this.put(id, snapshot)
+    }
+    const command = snapshot.assessmentCommands[itemId]
+    const rated = await this.required('PUT', `/practice/sessions/${id}/items/${itemId}/self-assessment`, command.body, { idempotencyKey: command.key })
+    snapshot.version = rated.version
+    snapshot.result = rated
+    snapshot.assessed[itemId] = command.body.assessment
+    delete snapshot.assessmentCommands[itemId]
+    this.put(id, snapshot)
+    return rated
+  }
   async finishSession(session) {
     const id = session.meta.sessionId
     let snapshot = this.get(id)
@@ -261,22 +280,13 @@ class OnlinePractice {
       snapshot.result = result; snapshot.status = 'SUBMITTED'; snapshot.version = result.version
       this.put(id, snapshot)
     }
-    snapshot.assessmentCommands = snapshot.assessmentCommands || {}
     snapshot.assessed = snapshot.assessed || {}
     for (let index = 0; index < session.state.answers.length; index += 1) {
       const answer = session.state.answers[index]
       const itemId = snapshot.items[index].itemId
       if (!answer || !answer.selfAssessment || snapshot.assessed[itemId] === answer.selfAssessment) continue
-      if (!snapshot.assessmentCommands[itemId]) {
-        snapshot.assessmentCommands[itemId] = { key: http.uuid(), body: { expectedVersion: snapshot.version, assessment: answer.selfAssessment } }
-        this.put(id, snapshot)
-      }
-      const command = snapshot.assessmentCommands[itemId]
-      const rated = await this.required('PUT', `/practice/sessions/${id}/items/${itemId}/self-assessment`, command.body, { idempotencyKey: command.key })
-      snapshot.version = rated.version; snapshot.result = rated
-      snapshot.assessed[itemId] = command.body.assessment
-      delete snapshot.assessmentCommands[itemId]
-      this.put(id, snapshot)
+      await this.assess(id, itemId, answer.selfAssessment)
+      snapshot = this.get(id)
     }
     this.trackCompleted(id)
     return snapshot.result

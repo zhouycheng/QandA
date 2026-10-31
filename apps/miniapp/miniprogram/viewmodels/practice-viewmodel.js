@@ -48,8 +48,8 @@ class PracticeViewModel {
     this.ownerId = this.online.identity().userId
     this.routeOptions = options || {}
     const snapshot = await this.online.prepare(this.routeOptions)
+    this.routeOptions = Object.assign({}, this.routeOptions, snapshot.route || {})
     if (snapshot.waiting) {
-      this.routeOptions = Object.assign({}, this.routeOptions, snapshot.route || {})
       this.waitingId = snapshot.id
       return { data: { waitingForSync: true, waitingSeconds: 0 } }
     }
@@ -443,10 +443,8 @@ class PracticeViewModel {
     const snapshot = this.online.get(this.session.meta.sessionId)
     const item = snapshot.items.find(row => row.question.id === questionId)
     if (!item || item.question.type !== 'SHORT_ANSWER') return null
-    const result = await this.online.required('PUT', `/practice/sessions/${snapshot.id}/items/${item.itemId}/self-assessment`, { expectedVersion: snapshot.version, assessment: value }, { idempotencyKey: require('../repositories/http-gateway.js').uuid() })
-    snapshot.version = result.version; snapshot.result = result
+    const result = await this.online.assess(snapshot.id, item.itemId, value)
     require('../repositories/remote-data-repository.js').invalidateLearning()
-    this.online.put(snapshot.id, snapshot)
     this.applyOfficialResult(result)
     return this.session.setResultFilter(this.session.state.resultFilter)
   }
