@@ -1,5 +1,7 @@
 # 管理端学生平台改造说明
 
+> 2026-10-31 更新：管理端已围绕院级管理与题库工作台重设计，保留运营概览与登录流程。本文保留为历史实现记录；当前界面、题型及运行边界见[管理端说明](../apps/admin/README.md)。
+
 更新日期：2026-10-27。
 
 本次依据[学生自主复习平台架构报告](prd/student-platform-architecture.md)，将管理端调整为学生团队维护共享复习资源的工作台。沿用 React、TypeScript、Vite、Arco Design、TanStack Query、Zustand 与现有 Gateway 边界，没有新增应用依赖。

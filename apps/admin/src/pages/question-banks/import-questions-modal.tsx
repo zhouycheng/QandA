@@ -12,11 +12,14 @@ import {
   Tag,
 } from '@arco-design/web-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { IconArrowDown, IconArrowUp, IconClose, IconUpload } from '@arco-design/web-react/icon'
+import { IconArrowDown, IconArrowUp, IconClose, IconMinus, IconPlus, IconUpload } from '@arco-design/web-react/icon'
 import { useAdminGateway } from '../../gateways/gateway-context'
 import { parseQuestionFile } from '../../lib/content-rules'
 import { questionTypeLabels } from '../../lib/labels'
-import type { CreateQuestionInput, QuestionBank } from '../../types/admin'
+import { answerSummary, countQuestions } from '../../lib/question-content'
+import { questionImportExamples } from '../../lib/question-import-examples'
+import { QuestionContentView } from '../questions/question-content-view'
+import type { CreateQuestionInput, QuestionBank, QuestionType } from '../../types/admin'
 interface ImportFile {
   id: string
   name: string
@@ -42,6 +45,7 @@ export function ImportQuestionsModal({
   const [files, setFiles] = useState<ImportFile[]>([])
   const [preview, setPreview] = useState<ImportFile>()
   const [dragging, setDragging] = useState(false)
+  const [exampleType, setExampleType] = useState<QuestionType>('FILL_BLANK')
   useEffect(
     () => () => {
       generation.current++
@@ -91,6 +95,7 @@ export function ImportQuestionsModal({
     onSuccess: (count) => {
       void client.invalidateQueries({ queryKey: ['questions'] })
       void client.invalidateQueries({ queryKey: ['question-banks'] })
+      void client.invalidateQueries({ queryKey: ['bank-workbench'] })
       void client.invalidateQueries({ queryKey: ['dashboard-summary'] })
       void client.invalidateQueries({ queryKey: ['logs'] })
       Message.success(`已导入 ${count} 道题`)
@@ -98,7 +103,7 @@ export function ImportQuestionsModal({
     },
     onError: (e) => Message.error(e.message),
   })
-  const total = files.reduce((sum, f) => sum + f.questions.length, 0)
+  const total = files.reduce((sum, f) => sum + countQuestions(f.questions), 0)
   const ready =
     !chapters.isError &&
     !chapters.isLoading &&
@@ -113,23 +118,30 @@ export function ImportQuestionsModal({
       if (target >= 0 && target < next.length) [next[index], next[target]] = [next[target], next[index]]
       return next
     })
+  const cancel = () => {
+    if (save.isPending) return
+    if (!files.length) return onClose()
+    Modal.confirm({ title: '放弃本次导入预览？', content: '已选择的文件与预览结果将清空。', okText: '放弃导入', cancelText: '继续检查', onOk: onClose })
+  }
   return (
     <>
       <Modal
+        className="bw-import-modal"
         title="批量导入题目文件"
         visible
         style={{ width: 940, maxWidth: 'calc(100vw - 32px)' }}
-        onCancel={() => {
-          if (!save.isPending) onClose()
-        }}
-        onOk={() => save.mutate()}
+        onCancel={cancel}
+        onOk={() => { if (ready && !save.isPending) save.mutate() }}
         okText={`确认导入${total ? `（${total} 道题）` : ''}`}
         okButtonProps={{ disabled: !ready }}
         confirmLoading={save.isPending}
         cancelButtonProps={{ disabled: save.isPending }}
         maskClosable={false}
+        escToExit={!save.isPending}
+        closable={!save.isPending}
       >
         <p>导入到：{bank.name}</p>
+        {save.error && <Alert className="bw-form-error" type="error" content={save.error.message} />}
         {chapters.isError && (
           <Alert
             type="error"
@@ -188,7 +200,7 @@ export function ImportQuestionsModal({
               e.target.value = ''
             }}
           />
-          <small className="muted">每个文件最多 5 MB / 2000 题，一次最多 20 个文件 / 10000 题</small>
+          <small className="muted">每个文件最多 5 MB / 2000 题，一次最多 20 个文件 / 10000 题；阅读理解按小题计数</small>
         </div>
         <h3>文件识别进度</h3>
         <Table
@@ -199,7 +211,7 @@ export function ImportQuestionsModal({
           noDataElement={<p className="empty-note">请选择题目文件</p>}
           columns={[
             { title: '文件名称', dataIndex: 'name', width: 200 },
-            { title: '题目数量', width: 90, render: (_, f) => `${f.questions.length} 道题` },
+            { title: '题目数量', width: 90, render: (_, f) => `${countQuestions(f.questions)} 道题` },
             {
               title: '识别进度',
               width: 160,
@@ -266,26 +278,11 @@ export function ImportQuestionsModal({
         />
         <details className="import-example">
           <summary>查看 JSON 示例</summary>
+          <Select aria-label="JSON 示例题型" value={exampleType} onChange={setExampleType} style={{ margin: '16px 0' }} options={Object.entries(questionTypeLabels).map(([value, label]) => ({ value, label }))} />
           <Input.TextArea
             readOnly
-            value={JSON.stringify(
-              {
-                questions: [
-                  {
-                    type: 'SINGLE_CHOICE',
-                    stem: '1 + 1 等于？',
-                    options: [
-                      { key: 'A', content: '2' },
-                      { key: 'B', content: '3' },
-                    ],
-                    correctAnswer: ['A'],
-                    explanation: '1 + 1 = 2。',
-                  },
-                ],
-              },
-              null,
-              2,
-            )}
+            aria-label="JSON 格式示例"
+            value={JSON.stringify({ questions: [questionImportExamples[exampleType]] }, null, 2)}
             autoSize={{ minRows: 5, maxRows: 12 }}
           />
         </details>
@@ -297,10 +294,14 @@ export function ImportQuestionsModal({
         footer={null}
         style={{ width: 760, maxWidth: 'calc(100vw - 32px)' }}
       >
+        <p className="muted">共 {countQuestions(preview?.questions ?? [])} 道题，{preview?.questions.length ?? 0} 条记录。展开记录可查看完整题干、阅读材料和答案。</p>
         <Table
           rowKey="previewId"
           data={preview?.questions.map((q, i) => ({ ...q, previewId: i })) ?? []}
           pagination={{ pageSize: 5, showTotal: true }}
+          scroll={{ x: 650 }}
+          expandedRowRender={(question) => <QuestionContentView question={question} />}
+          expandProps={{ icon: ({ expanded, record }) => <button type="button" aria-expanded={expanded} aria-label={`${expanded ? '收起' : '展开'}题目内容 ${record.stem}`}>{expanded ? <IconMinus /> : <IconPlus />}</button> }}
           columns={[
             {
               title: '题型',
@@ -308,7 +309,7 @@ export function ImportQuestionsModal({
               render: (v) => questionTypeLabels[v as keyof typeof questionTypeLabels],
             },
             { title: '题干', dataIndex: 'stem' },
-            { title: '答案', dataIndex: 'correctAnswer', render: (v: string[]) => v.join('、') },
+            { title: '答案 / 小题', render: (_, question) => answerSummary(question) },
           ]}
         />
       </Modal>

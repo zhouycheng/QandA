@@ -78,7 +78,7 @@ export interface StudentFeedback {
   questionId?: string
   questionBankId?: string
   questionRevision?: number
-  questionSnapshot?: Pick<import('./admin').Question, 'stem' | 'options' | 'correctAnswer' | 'explanation'>
+  questionSnapshot?: import('./admin').QuestionContent
   status: FeedbackStatus
   response: string
   createdAt: string

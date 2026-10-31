@@ -14,48 +14,16 @@ const groups = [
   {
     title: '工作台',
     icon: 'home',
-    items: [['/dashboard', '运营概览', 'dashboard']],
-  },
-  {
-    title: '内容管理',
-    icon: 'book',
     items: [
-      ['/subjects', '课程目录', 'book'],
-      ['/question-banks', '共享题库', 'file'],
-      ['/questions', '全部题目', 'book'],
-      ['/recommendations', '适用范围', 'users'],
-    ],
-  },
-  {
-    title: '反馈与运营',
-    icon: 'users',
-    items: [
-      ['/feedback', '学生反馈', 'announcement'],
-      ['/users', '注册用户', 'user'],
-      ['/activity', '使用统计', 'activity'],
-      ['/announcements', '平台公告', 'announcement'],
-    ],
-  },
-  { title: '分类目录', icon: 'book', items: [['/colleges', '院系分类', 'book']] },
-  {
-    title: '系统管理',
-    icon: 'settings',
-    items: [
-      ['/admins', '管理员', 'user'],
-      ['/logs', '操作日志', 'file'],
-      ['/security', '安全设置', 'shield'],
+      ['/dashboard', '运营概览', 'dashboard'],
+      ['/colleges', '院级管理', 'college'],
+      ['/question-banks', '题库工作台', 'book'],
     ],
   },
 ] as const
 const pageNames: Record<string, string> = Object.fromEntries(
   groups.flatMap((g) => g.items.map(([path, name]) => [path, name])),
 )
-Object.assign(pageNames, {
-  '/colleges': '学院管理',
-  '/majors': '专业管理',
-  '/subjects': '课程目录',
-  '/questions': '题目管理',
-})
 export function AdminLayout() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -130,17 +98,13 @@ export function AdminLayout() {
       <nav aria-label="管理导航">
         {groups.map((group) => (
           <div className="nav-group" key={group.title}>
-            <div className="nav-group-title">
-              <DesignIcon name={group.icon} />
-              {group.title}
-            </div>
             {group.items.map(([path, label, icon]) => (
               <Link
-                className={`nav-link ${location.pathname.startsWith(path) || (path === '/colleges' && location.pathname === '/majors') ? 'active' : ''}`}
+                className={`nav-link ${location.pathname === path || location.pathname.startsWith(path + '/') ? 'active' : ''}`}
                 key={path}
                 title={label}
                 to={path}
-                aria-current={location.pathname === path ? 'page' : undefined}
+                aria-current={location.pathname === path || location.pathname.startsWith(path + '/') ? 'page' : undefined}
                 onClick={() => {
                   if (mobile) setCollapsed(true)
                 }}
@@ -155,11 +119,7 @@ export function AdminLayout() {
       <div className="sidebar-foot">学生共建 · 高效复习</div>
     </>
   )
-  const pageName = location.pathname.startsWith('/announcements/')
-    ? '公告编辑'
-    : location.pathname.startsWith('/question-banks/')
-      ? '题库工作台'
-      : (pageNames[location.pathname] ?? '管理端')
+  const pageName = location.pathname.startsWith('/question-banks/') ? '题库工作台' : (pageNames[location.pathname] ?? '管理端')
   return (
     <div className={`admin-shell ${collapsed ? 'sidebar-collapsed' : ''}`}>
       <aside className="admin-sider">{navigation}</aside>
@@ -207,18 +167,6 @@ export function AdminLayout() {
           </Space>
         </header>
         <main className="admin-content">
-          {['/colleges', '/majors'].includes(location.pathname) && (
-            <nav className="content-tabs" aria-label="内容管理页面">
-              {[
-                ['/colleges', '学院管理'],
-                ['/majors', '专业管理'],
-              ].map(([path, name]) => (
-                <Link key={path} to={path} className={location.pathname === path ? 'active' : ''}>
-                  {name}
-                </Link>
-              ))}
-            </nav>
-          )}
           <Outlet />
         </main>
         <footer className="environment-bar">

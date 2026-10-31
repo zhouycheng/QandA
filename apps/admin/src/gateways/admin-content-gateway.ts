@@ -5,11 +5,13 @@ import type {
   CollegeQuery,
   CreateCollegeInput,
   CreateMajorInput,
+  CreateGradesInput,
   CreateQuestionBankInput,
   CreateQuestionInput,
   CreateSubjectInput,
   DashboardSummary,
   Major,
+  Grade,
   MajorQuery,
   Question,
   QuestionBank,
@@ -19,6 +21,7 @@ import type {
   SubjectQuery,
   UpdateCollegeInput,
   UpdateMajorInput,
+  UpdateGradeInput,
   UpdateQuestionBankInput,
   UpdateQuestionInput,
   UpdateSubjectInput,
@@ -75,6 +78,11 @@ export interface AdminContentGateway {
   createMajor(input: CreateMajorInput): Promise<Major>
   updateMajor(id: string, input: UpdateMajorInput): Promise<Major>
   deleteMajor(id: string): Promise<void>
+
+  listGrades(majorId?: string): Promise<Grade[]>
+  createGrades(input: CreateGradesInput): Promise<Grade[]>
+  updateGrade(id: string, input: UpdateGradeInput): Promise<Grade>
+  deleteGrade(id: string): Promise<void>
 
   listSubjects(query?: SubjectQuery): Promise<Subject[]>
   createSubject(input: CreateSubjectInput): Promise<Subject>

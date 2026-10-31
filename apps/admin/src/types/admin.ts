@@ -1,5 +1,6 @@
 export type ContentStatus = 'ACTIVE' | 'INACTIVE'
-export type QuestionType = 'SINGLE_CHOICE' | 'MULTIPLE_CHOICE' | 'TRUE_FALSE'
+export type AtomicQuestionType = 'SINGLE_CHOICE' | 'MULTIPLE_CHOICE' | 'TRUE_FALSE' | 'FILL_BLANK' | 'SHORT_ANSWER'
+export type QuestionType = AtomicQuestionType | 'READING'
 export type BankPublicationStatus = 'DRAFT' | 'PUBLISHED' | 'UNPUBLISHED' | 'ARCHIVED'
 
 export interface BankAudience {
@@ -43,6 +44,23 @@ export interface Subject {
   updatedAt: string
 }
 
+export interface Grade {
+  id: string
+  majorId: string
+  enrollmentYear: number
+  status: ContentStatus
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreateGradesInput {
+  majorId: string
+  enrollmentYears: number[]
+  status: ContentStatus
+}
+
+export type UpdateGradeInput = Pick<Grade, 'enrollmentYear' | 'status'>
+
 export interface QuestionBank {
   id: string
   subjectId: string
@@ -65,16 +83,33 @@ export interface QuestionOption {
   content: string
 }
 
-export interface Question {
+export interface AtomicQuestionContent {
+  stem: string
+  type: AtomicQuestionType
+  options: QuestionOption[]
+  correctAnswer: string[]
+  explanation: string
+  blanks?: { answers: string[] }[]
+  blankMatch?: { ignoreCase: boolean; trimWhitespace: boolean }
+  referenceAnswer?: string
+  scoringPoints?: string[]
+}
+
+export interface ReadingSubQuestion extends AtomicQuestionContent {
+  id: string
+}
+
+export interface QuestionContent extends Omit<AtomicQuestionContent, 'type'> {
+  type: QuestionType
+  passage?: string
+  subQuestions?: ReadingSubQuestion[]
+}
+
+export interface Question extends QuestionContent {
   id: string
   questionBankId: string
   chapterId?: string
   revision?: number
-  stem: string
-  type: QuestionType
-  options: QuestionOption[]
-  correctAnswer: string[]
-  explanation: string
   status: ContentStatus
   createdAt: string
   updatedAt: string
@@ -91,10 +126,7 @@ export type CreateQuestionBankInput = Pick<QuestionBank, 'subjectId' | 'name' | 
   Partial<Pick<QuestionBank, 'textbook' | 'owner' | 'scopeType' | 'audiences'>>
 export type UpdateQuestionBankInput = CreateQuestionBankInput
 
-export type CreateQuestionInput = Pick<
-  Question,
-  'questionBankId' | 'chapterId' | 'stem' | 'type' | 'options' | 'correctAnswer' | 'explanation' | 'status'
->
+export type CreateQuestionInput = QuestionContent & Pick<Question, 'questionBankId' | 'chapterId' | 'status'>
 export type UpdateQuestionInput = CreateQuestionInput
 
 export interface SubjectQuery {

@@ -4,6 +4,7 @@ import { parseQuestionFile } from '../../src/lib/content-rules'
 import { isAuthenticated, saveAdminSession } from '../../src/lib/auth'
 import { matchesAudience, isBankAvailable, recommendedBanks } from '../../src/lib/recommendations'
 import { dateRange } from '../../src/lib/format'
+import { questionImportExamples } from '../../src/lib/question-import-examples'
 
 let gateway: import('./mock-admin-gateway').MockAdminContentGateway
 let store: typeof import('../store/mock-admin-store').useMockAdminStore
@@ -127,6 +128,73 @@ describe('导入与数据边界', () => {
         gateway.createQuestionBank({ subjectId: 'missing', name: '题库', description: '', status: 'ACTIVE' }),
       ),
     ).rejects.toThrow('有效课程')
+  })
+})
+
+describe('填空、简答和阅读题组维护', () => {
+  const fromExample = (type: keyof typeof questionImportExamples): CreateQuestionInput => ({
+    ...structuredClone(questionImportExamples[type]), questionBankId: 'bank-calculus', status: 'ACTIVE',
+  })
+  it('三种新题型可创建、读取与更新，题组按小题汇总题数', async () => {
+    const fill = await run(() => gateway.createQuestion(fromExample('FILL_BLANK')))
+    const short = await run(() => gateway.createQuestion(fromExample('SHORT_ANSWER')))
+    const reading = await run(() => gateway.createQuestion({ ...fromExample('READING'), explanation: '' }))
+    expect((await run(() => gateway.getQuestion(fill.id))).blanks).toEqual(fill.blanks)
+    expect((await run(() => gateway.getQuestion(short.id))).referenceAnswer).toBe(short.referenceAnswer)
+    expect((await run(() => gateway.getQuestion(reading.id))).subQuestions).toHaveLength(2)
+    expect((await run(() => gateway.listQuestionBanks())).find((bank) => bank.id === 'bank-calculus')).toMatchObject({ questionCount: 6, activeQuestionCount: 6 })
+    expect((await run(() => gateway.getDashboardSummary())).questionCount).toBe(7)
+    const updated = await run(() => gateway.updateQuestion(fill.id, { ...fill, blanks: [{ answers: ['H2O', 'water'] }, fill.blanks![1]] }))
+    expect(updated.revision).toBe(2)
+    const updatedShort = await run(() => gateway.updateQuestion(short.id, { ...short, scoringPoints: ['新的评分要点'] }))
+    expect(updatedShort.revision).toBe(2)
+  })
+
+  it('阅读材料和小题顺序修改递增版本，状态修改不改变内容版本', async () => {
+    const reading = await run(() => gateway.createQuestion(fromExample('READING')))
+    const material = await run(() => gateway.updateQuestion(reading.id, { ...reading, passage: '更新的阅读材料' }))
+    expect(material.revision).toBe(2)
+    const reordered = await run(() => gateway.updateQuestion(reading.id, { ...material, subQuestions: [...material.subQuestions!].reverse() }))
+    expect(reordered.revision).toBe(3)
+    expect(reordered.subQuestions![0].id).toBe(reading.subQuestions![1].id)
+    const disabled = await run(() => gateway.updateQuestion(reading.id, { ...reordered, status: 'INACTIVE' }))
+    expect(disabled.revision).toBe(3)
+    expect((await run(() => gateway.listQuestionBanks())).find((bank) => bank.id === 'bank-calculus')?.activeQuestionCount).toBe(2)
+  })
+
+  it('搜索和题型筛选覆盖阅读材料与小题', async () => {
+    const reading = await run(() => gateway.createQuestion(fromExample('READING')))
+    expect((await run(() => gateway.listQuestions({ keyword: '小林每天制定学习计划' }))).map((q) => q.id)).toContain(reading.id)
+    expect((await run(() => gateway.listQuestions({ type: 'SHORT_ANSWER', keyword: '良好学习习惯' }))).map((q) => q.id)).toEqual([reading.id])
+  })
+
+  it('已发布题库不能保存缺解析的阅读小题，草稿发布检查同样会拦截', async () => {
+    const reading = fromExample('READING')
+    reading.subQuestions![1].explanation = ''
+    await expect(run(() => gateway.createQuestion(reading))).rejects.toThrow('启用题目必须有解析')
+    await run(() => gateway.setBankPublication('bank-calculus', 'UNPUBLISHED'))
+    await run(() => gateway.createQuestion(reading))
+    await expect(run(() => gateway.setBankPublication('bank-calculus', 'PUBLISHED'))).rejects.toThrow('阅读小题的解析')
+  })
+
+  it('新题型整批导入按小题返回题数，错误小题不会留下部分写入', async () => {
+    const before = store.getState().questions.length
+    const invalid = fromExample('READING')
+    invalid.subQuestions![1].referenceAnswer = ''
+    await expect(run(() => gateway.importQuestions({ questionBankId: 'bank-calculus', questions: [fromExample('FILL_BLANK'), invalid] }))).rejects.toThrow('第 2 题：第 2 小题')
+    expect(store.getState().questions).toHaveLength(before)
+    expect(await run(() => gateway.importQuestions({ questionBankId: 'bank-calculus', questions: [fromExample('FILL_BLANK'), fromExample('SHORT_ANSWER'), fromExample('READING')] }))).toBe(4)
+    expect(store.getState().questions).toHaveLength(before + 3)
+  })
+
+  it('阅读小题已有反馈时阻止移除或删除，编辑保持原反馈快照', async () => {
+    const reading = await run(() => gateway.createQuestion(fromExample('READING')))
+    const snapshot = structuredClone(reading)
+    store.setState({ feedback: [{ ...store.getState().feedback[0], questionId: reading.subQuestions![0].id, questionSnapshot: snapshot }] })
+    await expect(run(() => gateway.updateQuestion(reading.id, { ...reading, subQuestions: reading.subQuestions!.slice(1) }))).rejects.toThrow('仍有反馈记录')
+    await expect(run(() => gateway.deleteQuestion(reading.id))).rejects.toThrow('仍有反馈记录')
+    await run(() => gateway.updateQuestion(reading.id, { ...reading, passage: '修改后的材料' }))
+    expect(store.getState().feedback[0].questionSnapshot).toEqual(snapshot)
   })
 })
 
@@ -325,6 +393,132 @@ describe('学生自主使用与共享内容', () => {
     })
     expect(migrated.questionBanks[0].audiences.length).toBeGreaterThan(0)
     expect(migrated.userCourses).toEqual([])
+  })
+})
+
+describe('院级目录与年级管理', () => {
+  it('同专业批量新增年级，去重后一次写入，不同专业可以使用相同年份', async () => {
+    const added = await run(() => gateway.createGrades({ majorId: 'major-computer-science', enrollmentYears: [2023, 2022, 2023], status: 'ACTIVE' }))
+    expect(added).toHaveLength(2)
+    expect(new Set(added.map((g) => g.id)).size).toBe(2)
+    await run(() => gateway.createGrades({ majorId: 'major-english', enrollmentYears: [2023], status: 'ACTIVE' }))
+    expect((await run(() => gateway.listGrades('major-computer-science'))).map((g) => g.enrollmentYear)).toEqual([2026, 2025, 2024, 2023, 2022])
+  })
+
+  it('无效年份、重复年级、无效专业和状态都不会留下部分年级', async () => {
+    const before = structuredClone(store.getState().grades)
+    for (const enrollmentYears of [[2023, 1999], [2023, 2025], []]) {
+      await expect(run(() => gateway.createGrades({ majorId: 'major-computer-science', enrollmentYears, status: 'ACTIVE' }))).rejects.toThrow()
+      expect(store.getState().grades).toEqual(before)
+    }
+    await expect(run(() => gateway.createGrades({ majorId: 'missing', enrollmentYears: [2023], status: 'ACTIVE' }))).rejects.toThrow('专业不存在')
+    await expect(run(() => gateway.createGrades({ majorId: 'major-computer-science', enrollmentYears: [2023], status: 'INVALID' as 'ACTIVE' }))).rejects.toThrow('状态无效')
+    expect(store.getState().grades).toEqual(before)
+  })
+
+  it('无关联年级可以编辑、停用和删除，同专业不能改成重复年份', async () => {
+    const [grade] = await run(() => gateway.createGrades({ majorId: 'major-computer-science', enrollmentYears: [2023], status: 'ACTIVE' }))
+    await expect(run(() => gateway.updateGrade(grade.id, { enrollmentYear: 2025, status: 'ACTIVE' }))).rejects.toThrow('相同年级')
+    const updated = await run(() => gateway.updateGrade(grade.id, { enrollmentYear: 2022, status: 'INACTIVE' }))
+    expect(updated).toMatchObject({ id: grade.id, majorId: grade.majorId, enrollmentYear: 2022, status: 'INACTIVE' })
+    await run(() => gateway.deleteGrade(grade.id))
+    expect(store.getState().grades.some((g) => g.id === grade.id)).toBe(false)
+  })
+
+  it('已有学生的年级可停用，但不能改年份或删除，学生与练习记录保留', async () => {
+    const before = store.getState()
+    const grade = before.grades.find((g) => g.majorId === 'major-computer-science' && g.enrollmentYear === 2025)!
+    await expect(run(() => gateway.updateGrade(grade.id, { enrollmentYear: 2023, status: 'ACTIVE' }))).rejects.toThrow('已有学生或题库关联')
+    await expect(run(() => gateway.deleteGrade(grade.id))).rejects.toThrow('已有学生或题库关联')
+    await run(() => gateway.updateGrade(grade.id, { enrollmentYear: 2025, status: 'INACTIVE' }))
+    expect(store.getState().users).toEqual(before.users)
+    expect(store.getState().activityRecords).toEqual(before.activityRecords)
+    expect(store.getState().grades.find((g) => g.id === grade.id)?.status).toBe('INACTIVE')
+  })
+
+  it('年级引用同时匹配学院和专业，跨学院题库不会误阻止删除', async () => {
+    const [grade] = await run(() => gateway.createGrades({ majorId: 'major-computer-science', enrollmentYears: [2023], status: 'ACTIVE' }))
+    const bank = store.getState().questionBanks[0]
+    store.getState().setQuestionBanks([{ ...bank, audiences: [{ enrollmentYear: 2023 }] }])
+    await expect(run(() => gateway.deleteGrade(grade.id))).rejects.toThrow('题库关联')
+    store.getState().setQuestionBanks([{ ...bank, audiences: [{ collegeId: 'college-foreign-languages', enrollmentYear: 2023 }] }])
+    await run(() => gateway.deleteGrade(grade.id))
+    expect(store.getState().grades.some((g) => g.id === grade.id)).toBe(false)
+  })
+
+  it('空学院与专业支持完整维护，专业有年级时不能直接删除', async () => {
+    const college = await run(() => gateway.createCollege({ name: '测试学院', code: 'TEST', status: 'ACTIVE' }))
+    const major = await run(() => gateway.createMajor({ collegeId: college.id, name: '测试专业', code: 'TEST', status: 'ACTIVE' }))
+    const [grade] = await run(() => gateway.createGrades({ majorId: major.id, enrollmentYears: [2026], status: 'ACTIVE' }))
+    await expect(run(() => gateway.deleteMajor(major.id))).rejects.toThrow('仍有年级')
+    await expect(run(() => gateway.deleteCollege(college.id))).rejects.toThrow('仍有专业')
+    await run(() => gateway.deleteGrade(grade.id))
+    await run(() => gateway.deleteMajor(major.id))
+    await run(() => gateway.deleteCollege(college.id))
+    expect(store.getState().colleges.some((c) => c.id === college.id)).toBe(false)
+  })
+
+  it('升级版本 1 数据只补齐年级目录，保留题库状态及已有学生年份', async () => {
+    const state = store.getState()
+    const legacy = { ...state, grades: undefined, users: [{ ...state.users[0], enrollmentYear: 2019 }, ...state.users.slice(1)] }
+    const migrated = (await store.persist.getOptions().migrate!(legacy, 1)) as typeof state
+    expect(migrated.questionBanks).toEqual(legacy.questionBanks)
+    expect(migrated.users).toEqual(legacy.users)
+    expect(migrated.questions).toEqual(legacy.questions)
+    expect(migrated.grades.some((g) => g.majorId === legacy.users[0].majorId && g.enrollmentYear === 2019)).toBe(true)
+  })
+
+  it('写入失败保留年级目录，切换场景会清空旧年级并阻止旧写请求', async () => {
+    store.getState().setScenario('write-error')
+    const before = structuredClone(store.getState().grades)
+    await expect(run(() => gateway.createGrades({ majorId: 'major-computer-science', enrollmentYears: [2023], status: 'ACTIVE' }))).rejects.toThrow('服务异常')
+    expect(store.getState().grades).toEqual(before)
+    store.getState().setScenario('normal')
+    const pending = gateway.createGrades({ majorId: 'major-computer-science', enrollmentYears: [2023], status: 'ACTIVE' }).catch((error) => error)
+    store.getState().setScenario('empty')
+    await vi.runAllTimersAsync()
+    expect((await pending).message).toContain('场景已切换')
+    expect(store.getState().grades).toEqual([])
+  })
+})
+
+describe('课程多题库与发布维护', () => {
+  it('一门课程允许多份题库，同课程重名受到保护，不同课程可以同名', async () => {
+    const input = { subjectId: 'subject-math', name: '期末真题', description: '', status: 'ACTIVE' as const, scopeType: 'TARGETED' as const, audiences: [] }
+    const first = await run(() => gateway.createQuestionBank(input))
+    expect(first.publicationStatus).toBe('DRAFT')
+    await expect(run(() => gateway.createQuestionBank(input))).rejects.toThrow('同名题库')
+    const second = await run(() => gateway.createQuestionBank({ ...input, name: '章节练习' }))
+    await expect(run(() => gateway.updateQuestionBank(second.id, { ...second, name: first.name }))).rejects.toThrow('同名题库')
+    await run(() => gateway.createQuestionBank({ ...input, subjectId: 'subject-english' }))
+    expect((await run(() => gateway.listQuestionBanks({ subjectId: 'subject-math' }))).length).toBe(3)
+  })
+
+  it('草稿允许稍后配置范围，补齐有效题目及范围后才能发布', async () => {
+    const bank = await run(() => gateway.createQuestionBank({ subjectId: 'subject-math', name: '发布流程测试', description: '复习用途', status: 'ACTIVE', scopeType: 'TARGETED', audiences: [] }))
+    await run(() => gateway.createQuestion({ ...question, questionBankId: bank.id }))
+    await expect(run(() => gateway.setBankPublication(bank.id, 'PUBLISHED'))).rejects.toThrow('有效展示条件')
+    await run(() => gateway.updateQuestionBank(bank.id, { ...bank, scopeType: 'ALL' }))
+    await run(() => gateway.setBankPublication(bank.id, 'PUBLISHED'))
+    const published = store.getState().questionBanks.find((b) => b.id === bank.id)!
+    await expect(run(() => gateway.updateQuestionBank(bank.id, { ...published, scopeType: 'TARGETED', audiences: [] }))).rejects.toThrow('有效展示条件')
+    expect(store.getState().questionBanks.find((b) => b.id === bank.id)?.scopeType).toBe('ALL')
+  })
+
+  it('已发布题库的最后一道启用题目不能直接停用、迁移或删除', async () => {
+    const current = store.getState().questions.find((q) => q.questionBankId === 'bank-english-grammar')!
+    await expect(run(() => gateway.updateQuestion(current.id, { ...current, status: 'INACTIVE' }))).rejects.toThrow('先下架')
+    await expect(run(() => gateway.updateQuestion(current.id, { ...current, questionBankId: 'bank-calculus', chapterId: undefined }))).rejects.toThrow('先下架')
+    await expect(run(() => gateway.deleteQuestion(current.id))).rejects.toThrow('先下架')
+    await run(() => gateway.setBankPublication(current.questionBankId, 'UNPUBLISHED'))
+    await run(() => gateway.updateQuestion(current.id, { ...current, status: 'INACTIVE' }))
+    expect(store.getState().questions.find((q) => q.id === current.id)?.status).toBe('INACTIVE')
+  })
+
+  it('不存在的专业年级不能进入题库范围，失败写入保留原范围', async () => {
+    const bank = store.getState().questionBanks[0]
+    await expect(run(() => gateway.updateQuestionBank(bank.id, { ...bank, audiences: [{ majorId: 'major-computer-science', enrollmentYear: 2023 }] }))).rejects.toThrow('院级管理')
+    expect(store.getState().questionBanks[0].audiences).toEqual(bank.audiences)
   })
 })
 

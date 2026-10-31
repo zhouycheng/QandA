@@ -1,5 +1,6 @@
 import home from '../assets/figma/home.svg'
 import dashboard from '../assets/figma/dashboard.svg'
+import college from '../assets/figma/college.svg'
 import activity from '../assets/figma/activity.svg'
 import book from '../assets/figma/book.svg'
 import file from '../assets/figma/file.svg'
@@ -16,6 +17,7 @@ import statAnswers from '../assets/figma/stat-answers.svg'
 const icons = {
   home,
   dashboard,
+  college,
   activity,
   book,
   file,

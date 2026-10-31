@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Chapter, College, Major, Question, QuestionBank, Subject } from '../../src/types/admin'
+import type { Chapter, College, Grade, Major, Question, QuestionBank, Subject } from '../../src/types/admin'
+import { createGradeFixtures } from '../fixtures/grades'
 import { getScenarioData, type PlaygroundScenario } from '../scenarios'
 import type {
   ActivityRecord,
@@ -30,12 +31,14 @@ interface MockAdminState extends OperationsData {
   scenarioRevision: number
   colleges: College[]
   majors: Major[]
+  grades: Grade[]
   subjects: Subject[]
   questionBanks: QuestionBank[]
   questions: Question[]
   setScenario: (scenario: PlaygroundScenario) => void
   setColleges: (colleges: College[]) => void
   setMajors: (majors: Major[]) => void
+  setGrades: (grades: Grade[]) => void
   setSubjects: (subjects: Subject[]) => void
   setQuestionBanks: (questionBanks: QuestionBank[]) => void
   setQuestions: (questions: Question[]) => void
@@ -58,6 +61,7 @@ export const useMockAdminStore = create<MockAdminState>()(
         })),
       setColleges: (colleges) => set({ colleges }),
       setMajors: (majors) => set({ majors }),
+      setGrades: (grades) => set({ grades }),
       setSubjects: (subjects) => set({ subjects }),
       setQuestionBanks: (questionBanks) => set({ questionBanks }),
       setQuestions: (questions) => set({ questions }),
@@ -65,15 +69,16 @@ export const useMockAdminStore = create<MockAdminState>()(
     }),
     {
       name: 'qanda-admin-playground-v3',
-      version: 1,
-      migrate: (persisted) => {
+      version: 2,
+      migrate: (persisted, version) => {
         const old = persisted as MockAdminState
         return {
           ...old,
           chapters: old.chapters ?? [],
           feedback: old.feedback ?? [],
           userCourses: old.userCourses ?? [],
-          questionBanks: old.questionBanks.map((bank) => ({
+          grades: old.grades ?? createGradeFixtures(old.majors, old.users, old.questionBanks),
+          questionBanks: version >= 1 ? old.questionBanks : old.questionBanks.map((bank) => ({
             ...bank,
             textbook: bank.textbook ?? '',
             owner: bank.owner ?? '',
