@@ -1,0 +1,45 @@
+function paint(ins) {
+  var s = ins.getState();
+  if (!s.id) return;
+  var node = ins.selectComponent('.module-' + s.id);
+  if (node) node.setStyle({ transform: 'translateY(' + (s.y - s.startY + (s.scroll || 0)) + 'px)', 'z-index': 10 });
+}
+function reset(ins) {
+  var s = ins.getState();
+  if (s.id) {
+    var node = ins.selectComponent('.module-' + s.id);
+    if (node) node.setStyle({ transform: '', 'z-index': '' });
+  }
+  s.id = '';
+}
+function start(event, ins) {
+  var s = ins.getState();
+  s.id = event.currentTarget.dataset.module;
+  s.startY = event.touches[0].clientY;
+  s.y = s.startY;
+  s.scroll = 0;
+  s.last = 0;
+  ins.callMethod('handleDragStart', { id: s.id, y: s.y });
+  return false;
+}
+function move(event, ins) {
+  var s = ins.getState();
+  if (!s.id || !event.touches.length) return false;
+  s.y = event.touches[0].clientY;
+  paint(ins);
+  if (event.timeStamp - s.last > 40) {
+    s.last = event.timeStamp;
+    ins.callMethod('handleDragMove', { y: s.y });
+  }
+  return false;
+}
+function end(event, ins) {
+  var s = ins.getState();
+  if (s.id) ins.callMethod('handleDragEnd', { y: event.changedTouches[0].clientY });
+  reset(ins);
+  return false;
+}
+function cancel(event, ins) { reset(ins); ins.callMethod('handleDragCancel', {}); return false; }
+function scroll(value, old, ins) { ins.getState().scroll = value || 0; paint(ins); }
+function clear(value, old, ins) { if (value !== old) reset(ins); }
+module.exports = { start: start, move: move, end: end, cancel: cancel, scroll: scroll, clear: clear };

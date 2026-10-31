@@ -1,6 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="qanda.backend.content.ContentQueries">
+  <sql id="ids"><foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach></sql>
+  <select id="favoriteQuestionIds" resultType="java.util.UUID">SELECT question_id FROM user_favorite WHERE user_id=#{userId} AND question_id IN <include refid="ids"/> ORDER BY question_id</select>
+  <select id="subjectListFacts" resultType="qanda.backend.content.SubjectListFacts">
+    <include refid="qanda.backend.learning.LearningMapper.wrongFacts"/>
+    SELECT s.id subject_id,count(DISTINCT b.id) FILTER(WHERE q.id IS NOT NULL) bank_count,count(q.id) question_count,
+      count(f.question_id) answered_count,count(f.question_id) FILTER(WHERE f.judgment='CORRECT') correct_count,count(f.question_id) FILTER(WHERE f.judgment='WRONG') wrong_count
+    FROM subject s LEFT JOIN question_bank b ON b.subject_id=s.id AND b.status='ACTIVE' AND b.publication_status='PUBLISHED'
+    LEFT JOIN question q ON q.bank_id=b.id AND q.status='ACTIVE' LEFT JOIN facts f ON f.question_id=q.id AND f.rn=1
+    WHERE s.id IN <include refid="ids"/> GROUP BY s.id
+  </select>
+  <select id="bankListFacts" resultType="qanda.backend.content.BankListFacts">
+    <if test="userId != null"><include refid="qanda.backend.learning.LearningMapper.wrongFacts"/></if>
+    SELECT b.id bank_id,s.name subject_name,count(q.id) question_count,count(q.id) FILTER(WHERE q.status='ACTIVE') active_question_count,
+      <choose><when test="userId != null">count(f.question_id) answered_count,count(f.question_id) FILTER(WHERE f.judgment='CORRECT') correct_count,count(f.question_id) FILTER(WHERE f.judgment='WRONG') wrong_count</when><otherwise>0 answered_count,0 correct_count,0 wrong_count</otherwise></choose>
+    FROM question_bank b JOIN subject s ON s.id=b.subject_id LEFT JOIN question q ON q.bank_id=b.id
+    <if test="userId != null">LEFT JOIN facts f ON f.question_id=q.id AND f.rn=1</if>
+    WHERE b.id IN <include refid="ids"/> GROUP BY b.id,s.name
+  </select>
+  <select id="bankAudiences" resultType="qanda.backend.content.BankAudience">SELECT a.id,a.bank_id,coalesce(m.college_id,a.college_id) college_id,a.major_id,a.enrollment_year FROM bank_audience a LEFT JOIN major m ON m.id=a.major_id WHERE a.bank_id IN <include refid="ids"/> ORDER BY a.id</select>
+  <select id="bankMaintainers" resultType="qanda.backend.content.BankMaintainerRow">SELECT bank_id,admin_id FROM bank_maintainer WHERE bank_id IN <include refid="ids"/> ORDER BY admin_id</select>
+  <select id="questionSummaries" resultType="qanda.backend.content.QuestionSummaryRow">SELECT q.id,q.bank_id,q.chapter_id,q.status,q.version,r.id revision_id,r.revision_number revision,r.type,r.stem,b.subject_id,b.name bank_name,s.name subject_name FROM question q JOIN question_revision r ON r.id=q.current_revision_id JOIN question_bank b ON b.id=q.bank_id JOIN subject s ON s.id=b.subject_id WHERE q.id IN <include refid="ids"/></select>
   <select id="bank" resultType="qanda.backend.content.QuestionBank">SELECT b.* FROM question_bank b JOIN subject s ON s.id=b.subject_id WHERE b.id=#{id} AND b.status='ACTIVE' AND b.publication_status='PUBLISHED' AND s.status='ACTIVE' AND EXISTS(SELECT 1 FROM question q WHERE q.bank_id=b.id AND q.status='ACTIVE')</select>
   <select id="lockBank" resultType="qanda.backend.content.QuestionBank">SELECT * FROM question_bank WHERE id=#{id} FOR UPDATE</select>
   <sql id="bankFilter"><where><if test="subjectId != null">b.subject_id=#{subjectId}</if><if test="keyword != null">AND b.name ILIKE '%'||#{keyword}||'%'</if>
@@ -12,6 +33,9 @@
   <sql id="questionFilter">WHERE q.bank_id=#{bankId}<if test="chapterId != null">AND q.chapter_id=#{chapterId}</if><if test="keyword != null">AND r.stem ILIKE '%'||#{keyword}||'%'</if><if test="activeOnly">AND q.status='ACTIVE'</if></sql>
   <select id="questions" resultType="qanda.backend.content.Question">SELECT q.* FROM question q JOIN question_revision r ON r.id=q.current_revision_id <include refid="questionFilter"/> ORDER BY q.created_at,q.id LIMIT #{limit} OFFSET #{offset}</select>
   <select id="filteredQuestionCount" resultType="long">SELECT count(*) FROM question q JOIN question_revision r ON r.id=q.current_revision_id <include refid="questionFilter"/></select>
+  <sql id="searchScope">FROM question q JOIN question_revision r ON r.id=q.current_revision_id JOIN question_bank b ON b.id=q.bank_id JOIN subject s ON s.id=b.subject_id WHERE q.status='ACTIVE' AND b.status='ACTIVE' AND b.publication_status='PUBLISHED' AND s.status='ACTIVE' AND (position(lower(#{keyword}) in lower(r.stem))>0 OR EXISTS(SELECT 1 FROM question_option o WHERE o.revision_id=r.id AND position(lower(#{keyword}) in lower(o.content))>0))</sql>
+  <select id="search" resultType="qanda.backend.content.Question">SELECT q.* <include refid="searchScope"/> ORDER BY CASE WHEN position(lower(#{keyword}) in lower(r.stem))>0 THEN 0 ELSE 1 END,q.created_at,q.id LIMIT #{limit} OFFSET #{offset}</select>
+  <select id="searchCount" resultType="long">SELECT count(*) <include refid="searchScope"/></select>
   <select id="options" resultType="qanda.backend.content.QuestionOption">SELECT * FROM question_option WHERE revision_id=#{revisionId} ORDER BY sort_order</select>
   <insert id="insertOption">INSERT INTO question_option(revision_id,option_key,content,is_correct,sort_order) VALUES(#{option.revisionId},#{option.optionKey},#{option.content},#{option.isCorrect},#{option.sortOrder})</insert>
   <select id="attachments" resultType="java.util.UUID">SELECT file_id FROM question_attachment WHERE revision_id=#{revisionId} ORDER BY file_id</select>

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="qanda.backend.platform.files.FileQueries">
+  <select id="publiclyVisible" resultType="boolean">SELECT EXISTS(SELECT 1 FROM question_attachment a JOIN question q ON q.current_revision_id=a.revision_id JOIN question_bank b ON b.id=q.bank_id JOIN subject s ON s.id=b.subject_id WHERE a.file_id=#{fileId} AND q.status='ACTIVE' AND b.status='ACTIVE' AND b.publication_status='PUBLISHED' AND s.status='ACTIVE')</select>
   <select id="issuedTo" resultType="boolean">SELECT EXISTS(SELECT 1 FROM question_attachment a JOIN practice_item i ON i.revision_id=a.revision_id JOIN practice_session s ON s.id=i.session_id WHERE a.file_id=#{fileId} AND s.user_id=#{userId})</select>
 </mapper>

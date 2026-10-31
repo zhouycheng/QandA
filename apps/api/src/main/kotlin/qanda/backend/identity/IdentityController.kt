@@ -26,7 +26,6 @@ class IdentityController(private val service: IdentityService,private val sessio
     fun resetPassword(@RequestBody input: ResetPasswordInput,@RequestHeader("Idempotency-Key") key: UUID,request: HttpServletRequest): MutationResult =
         commands.run(null,key,"RESET_PASSWORD",input,MutationResult::class.java,request.requestId()) { challenges.verify(input.challengeId,input.code);service.reset(input) }
     @GetMapping("/me") fun me(): UserView = service.view(sessions.student().id)
-    @GetMapping("/me/profile") fun profile(): UserView = service.view(sessions.student().id)
     @PutMapping("/me/profile")
     fun updateProfile(@RequestBody input: ProfileInput,@RequestHeader("Idempotency-Key") key: UUID,request: HttpServletRequest): MutationResult {
         val actor=sessions.student();return commands.run(actor,key,"UPDATE_PROFILE",input,MutationResult::class.java,request.requestId()) { service.updateProfile(actor,input) }

@@ -28,9 +28,6 @@
 
 /* 弹层打开时整条底栏让位。用 display:none 而不是 opacity:0 ——
    后者虽然看不见但仍在最上层，会把弹层下方的按钮点击全吃掉。 */
-.tabbar-hidden {
-  display: none;
-}
 
 .tabbar {
   position: absolute;
@@ -88,7 +85,7 @@
 }
 
 .tab-item-hover {
-  opacity: 0.5;
+  opacity: 0.72;
 }
 
 /* 四个图标同一个盒子、同一描边，避免「有的显大有的显小」 */
@@ -122,13 +119,11 @@
   background: linear-gradient(135deg, #4f7dfb 0%, #2b7ffc 100%);
   box-shadow: 0 10rpx 26rpx rgba(43, 127, 252, 0.4);
   pointer-events: auto;
-  transition: transform 100ms ease, opacity 100ms ease;
+  transition: opacity 100ms ease;
 }
 
-/* 圆钮不在滚动区内，可以用轻微缩放；幅度收到 0.94，避免整块底栏看着被抽动 */
 .continue-hover {
-  transform: scale(0.94);
-  opacity: 0.92;
+  opacity: 0.86;
 }
 
 .continue-icon {
@@ -165,5 +160,5 @@
 }
 
 .continue-label-hover {
-  opacity: 0.5;
+  opacity: 0.72;
 }

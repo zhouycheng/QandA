@@ -1,3 +1,4 @@
+const navigation = require('../utils/navigation.js')
 const practiceRepository = require('../repositories/practice-repository.js')
 const { createWxStorageAdapter } = require('../utils/wx-storage.js')
 
@@ -66,8 +67,6 @@ Component({
 
   data: {
     selected: 0,
-    // 页面打开弹层时置 true，整条底栏让位
-    hidden: false,
     tabs: [
       { key: 'home', text: '首页', icon: '/assets/tabbar/home.png', activeIcon: '/assets/tabbar/home-active.png' },
       { key: 'bank', text: '题库', icon: '/assets/tabbar/bank.png', activeIcon: '/assets/tabbar/bank-active.png' },
@@ -97,29 +96,11 @@ Component({
       return index
     },
 
-    /** 页面 onShow 里调用：自定义 tabBar 不会自动跟随页面切换，必须手动同步 */
+
+
     setSelected(route) {
       const index = findTabIndexByRoute(route)
-
-      if (index >= 0 && index !== this.data.selected) {
-        this.setData({ selected: index })
-      }
-    },
-
-    /**
-     * 页面打开弹层时收起底栏，避免弹层被它压住。
-     *
-     * 自定义 tabBar 由基础库单独渲染在页面之上，z-index 拉多高都没用；
-     * 页面里的 fixed 弹层（bottom-sheet）一定在它下面。
-     * 传 false 恢复。页面 onShow 里建议无脑调一次 setHidden(false)，
-     * 防止「弹层没关就跳走」把底栏永久藏掉。
-     */
-    setHidden(hidden) {
-      const next = !!hidden
-
-      if (next !== this.data.hidden) {
-        this.setData({ hidden: next })
-      }
+      if (index >= 0 && index !== this.data.selected) this.setData({ selected: index })
     },
 
     handleTabTap(e) {
@@ -135,7 +116,7 @@ Component({
         return
       }
 
-      wx.switchTab({
+      navigation.switchTab({
         url: tab.pagePath,
         fail: () => {
           wx.showToast({
@@ -150,7 +131,7 @@ Component({
       const target = resolveContinueTarget(createWxStorageAdapter())
 
       if (target.type === 'practice') {
-        wx.navigateTo({
+        navigation.navigateTo({
           url: target.url,
           fail: () => {
             wx.showToast({
@@ -162,7 +143,7 @@ Component({
         return
       }
 
-      wx.switchTab({
+      navigation.switchTab({
         url: target.url,
         fail: () => {
           wx.showToast({

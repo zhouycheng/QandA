@@ -8,4 +8,5 @@ data class MajorInput(val collegeId: UUID,val name: String,val code: String,@fie
 data class SubjectInput(val name: String,val description: String="",@field:Schema(allowableValues=["ACTIVE","INACTIVE"]) val status: String="ACTIVE",val expectedVersion: Long?=null)
 data class CollegeView(val id: UUID,val name: String,val code: String,val status: String,val version: Long)
 data class MajorView(val id: UUID,val collegeId: UUID,val name: String,val code: String,val status: String,val version: Long)
-data class SubjectView(val id: UUID,val name: String,val description: String,val status: String,val version: Long)
+data class SubjectView(val id: UUID,val name: String,val description: String,val status: String,val version: Long,
+    val bankCount: Long?=null,val questionCount: Long?=null,val progress: qanda.backend.content.BankProgressView?=null)

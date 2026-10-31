@@ -13,7 +13,7 @@ data class WechatLoginInput(val code: String, val deviceId: UUID)
 data class TokenView(val accessToken: String, val sessionId: UUID, val expiresAt: Instant)
 data class WechatLoginView(val session: TokenView? = null, val registrationToken: String? = null)
 data class UserView(val id: UUID, val accountCode: String, val nickname: String, val email: String?, val wechatBound: Boolean,
-                    val collegeId: UUID?, val majorId: UUID?, val enrollmentYear: Int?, val status: String, val version: Long, val registeredAt: Instant)
+                    val collegeId: UUID?, val majorId: UUID?, val enrollmentYear: Int?, val status: String, val version: Long, val registeredAt: Instant,val collegeName: String?=null,val majorName: String?=null)
 data class ProfileInput(val expectedVersion: Long, val nickname: String, val collegeId: UUID? = null, val majorId: UUID? = null, val enrollmentYear: Int? = null)
 data class ResetPasswordInput(val challengeId: UUID, @field:Schema(pattern="^[0-9]{6}$") val code: String, val newPassword: String)
 data class PasswordInput(val expectedVersion: Long, val challengeId: UUID, @field:Schema(pattern="^[0-9]{6}$") val code: String, val newPassword: String)

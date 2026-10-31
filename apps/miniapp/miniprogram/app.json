@@ -11,6 +11,8 @@
     "page/forgot-password/index",
     "page/wrong-book/index",
     "page/settings/index",
+    "page/practice-layout/index",
+    "page/exam-countdown/index",
     "page/account/index",
     "page/reminder/index",
     "page/import-bank/index",
@@ -20,7 +22,9 @@
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "QandA",
     "navigationBarBackgroundColor": "#ffffff",
-    "backgroundColor": "#f4f7fb",
+    "backgroundColor": "#ffffff",
+    "backgroundColorTop": "#ffffff",
+    "backgroundColorBottom": "#ffffff",
     "backgroundTextStyle": "dark"
   },
   "tabBar": {

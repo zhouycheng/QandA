@@ -25,6 +25,8 @@ function rpxToPx(css) {
 // ---------- 真实数据 ----------
 
 const { PracticeViewModel } = require(path.join(MP, 'viewmodels/practice-viewmodel.js'))
+const { PracticeLayoutViewModel } = require(path.join(MP, 'viewmodels/practice-layout-viewmodel.js'))
+const { LABELS } = require(path.join(MP, 'utils/practice-layout.js'))
 
 function createStorage() {
   const store = {}
@@ -60,7 +62,7 @@ const freshData = freshVm.session.getViewData()
 // ② 即时模式态：故意答错并打开解析，顺带把收藏 / 标记两个 pill 的选中态一起渲染出来
 //    注意 getViewData 里的 isCorrectOption 在未作答时一律 false，靠题目自带的 answerKeys 反查
 const wrongVm = createSession(20)
-const wrongKeys = wrongVm.session.getViewData().currentQuestion.answerKeys || []
+const wrongKeys = wrongVm.session.state.questions[0].answerKeys || []
 const wrongAnswerIndex = wrongVm.session
   .getViewData()
   .currentQuestion.options.findIndex((option) => wrongKeys.indexOf(option.key) < 0)
@@ -73,7 +75,7 @@ const wrongData = wrongVm.session.getViewData()
 function answerAll(markFirst, wrongEvery) {
   const vm = createSession(20)
 
-  vm.session.getViewData().questions.forEach((question, index) => {
+  vm.session.state.questions.forEach((question, index) => {
     const view = vm.session.getViewData().currentQuestion
     const rightIndex = view.options.findIndex((option) => question.answerKeys.indexOf(option.key) >= 0)
     const wrongIndex = view.options.findIndex((option) => question.answerKeys.indexOf(option.key) < 0)
@@ -137,8 +139,8 @@ const PREVIEW_BASE = `
 `
 
 function buildCss() {
-  const app = read('app.wxss').replace(/^page\s*\{/m, 'body {')
-  const page = read('page/practice/index.wxss')
+  const app = read('app.wxss').replace(/^page(?=\s*[,\{])/gm, 'body')
+  const page = read('styles/practice.wxss') + read('page/practice-layout/index.wxss').replace(/@import[^;]+;/g, '')
   const sheet = read('components/question-overview-sheet/index.wxss')
 
   return rpxToPx(`
@@ -151,7 +153,7 @@ ${PREVIEW_BASE}
 `)
 }
 
-/** 顶部：标题 + 副标题 + 进度条 + 信息行（返回走系统导航栏，页内不再自绘返回钮） */
+/** 固定标题和进度。 */
 function head(data, title) {
   return `
   <div class="pra-head">
@@ -160,7 +162,11 @@ function head(data, title) {
       <span class="pra-head-sub">${data.practiceSubtitle}</span>
     </div>
   </div>
-  <div class="pra-progress"><div class="pra-progress-fill" style="width: ${data.progressPercent}%"></div></div>
+  <div class="pra-progress"><div class="pra-progress-fill" style="width: ${data.progressPercent}%"></div></div>`
+}
+
+function questionInfo(data) {
+  return `
   <div class="pra-meta">
     <span class="pra-meta-index">${data.currentNumber}/${data.total}</span>
     <span class="pra-meta-type">${data.currentQuestion.typeText}</span>
@@ -214,7 +220,6 @@ function tools(data) {
 function footer(data) {
   return `
   <div class="pra-footer">
-    ${tools(data)}
     <div class="pra-actions">
       <div class="pra-btn ${data.currentIndex === 0 ? 'is-disabled' : ''}">上一题</div>
       <div class="pra-btn primary">${data.primaryActionText}</div>
@@ -226,18 +231,20 @@ function questionStage(data, explanationOpen) {
   // 未作答时不能渲染解析区（wxml 里是 wx:if="{{shouldRevealAnswer}}"），
   // 否则预览会摆出一个「未答却写着答错了」的假状态
   return `
-  <div class="page practice-page font-${data.preferences.fontSize}">
+  <div class="page practice-page ${data.editLayout ? 'layout-editor' : ''} font-${data.preferences.fontSize}">
     ${head(data)}
     <div class="pra-body">
-      <div class="pra-content">
-        <div class="pra-stem">${data.currentQuestion.stem}</div>
-        <div class="pra-options">${optionList(data)}</div>
-      </div>
-      ${data.shouldRevealAnswer ? analysis(data, explanationOpen) : ''}
+      ${content(data, explanationOpen)}
       <div class="pra-body-pad"></div>
+      ${data.editLayout ? '<div class="layout-reset">恢复默认布局</div>' : ''}
     </div>
     ${footer(data)}
   </div>`
+}
+
+function content(data, explanationOpen) {
+  const modules = { info: questionInfo(data), stem: `<div class="pra-stem">${data.currentQuestion.stem}</div>`, response: `<div class="pra-options">${optionList(data)}</div>`, analysis: data.shouldRevealAnswer ? analysis(data, explanationOpen) : '', tools: tools(data) }
+  return '<div class="pra-content">' + Object.keys(modules).map(id => `<div class="pra-module ${data.editLayout ? 'layout-module' : ''}" style="order:${data.layoutRanks[id]}">${data.editLayout ? `<div class="layout-handle" aria-label="拖动${LABELS[id]}调整顺序"><div class="layout-grip" aria-hidden="true"></div></div>` : ''}${modules[id]}</div>`).join('') + '</div>'
 }
 
 function sheetStage(data, items) {
@@ -280,7 +287,7 @@ function sheetStage(data, items) {
   return `
   <div class="page practice-page font-${data.preferences.fontSize}">
     ${head(data)}
-    <div class="pra-body"><div class="pra-content"><div class="pra-stem">${data.currentQuestion.stem}</div></div></div>
+    <div class="pra-body">${content(data, false)}</div>
     ${footer(data)}
 
     <div class="overview">
@@ -366,7 +373,8 @@ const stages = [
   { tag: '答题页 · 答题卡（还有未答）', body: sheetStage(sheetData, sheetItems) },
   { tag: '答题页 · 答题卡（已答完 · 有标记）', body: sheetStage(markedDoneData, markedDoneItems) },
   { tag: '答题页 · 答题卡（已答完 · 无标记）', body: sheetStage(plainDoneData, plainDoneItems) },
-  { tag: '答题页 · 答题结果', body: resultStage(resultData) }
+  { tag: '答题页 · 答题结果', body: resultStage(resultData) },
+  { tag: '自定义布局 · 共用答题样式', body: questionStage(new PracticeLayoutViewModel({ storage: createStorage() }).load().data, true) }
 ]
   .map((stage) => `
     <div class="panel-col">
@@ -409,7 +417,7 @@ execFileSync(edge, [
   '--hide-scrollbars',
   '--force-device-scale-factor=1',
   '--virtual-time-budget=2000',
-  `--window-size=${STAGE_W * 6 + 170},${STAGE_H + 70}`,
+  `--window-size=${STAGE_W * 7 + 194},${STAGE_H + 70}`,
   `--screenshot=${pngPath}`,
   `file:///${htmlPath.replace(/\\/g, '/')}`
 ], { stdio: 'ignore' })

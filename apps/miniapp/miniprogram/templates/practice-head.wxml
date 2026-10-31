@@ -1,0 +1,12 @@
+    <!-- ① 页内标题：题库名 + 模式副标题（返回走系统导航栏，页内不再自绘返回钮，避免双层返回栏） -->
+    <view class="pra-head">
+      <view class="pra-head-text">
+        <text class="pra-head-title">{{practiceTitle}}</text>
+        <text class="pra-head-sub">{{practiceSubtitle}}</text>
+      </view>
+    </view>
+
+    <!-- ② 细进度条：贴着标题下沿，只表示走到了第几题 -->
+    <view class="pra-progress">
+      <view class="pra-progress-fill" style="width: {{progressPercent}}%"></view>
+    </view>

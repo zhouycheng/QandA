@@ -10,12 +10,12 @@
     }
   ],
   "paths": {
-    "/api/v1/practice/sessions/{id}/progress": {
+    "/api/v1/practice/sessions/{id}/progress-ack": {
       "put": {
         "tags": [
           "practice"
         ],
-        "operationId": "Practice_progress_PUT",
+        "operationId": "Practice_progressAck_PUT",
         "parameters": [
           {
             "name": "id",
@@ -87,7 +87,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "../../openapi.yaml#/components/schemas/PracticeView"
+                  "$ref": "../../openapi.yaml#/components/schemas/ProgressAck"
                 }
               }
             }
@@ -943,6 +943,427 @@
         ]
       }
     },
+    "/api/v1/practice/trial-snapshots": {
+      "post": {
+        "tags": [
+          "practice"
+        ],
+        "operationId": "Practice_trialSnapshot_POST",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../../openapi.yaml#/components/schemas/TrialSnapshotInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/TrialSnapshotView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "406": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Retry-After": {
+                "required": true,
+                "schema": {
+                  "type": "integer",
+                  "format": "int32",
+                  "minimum": 1
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
     "/api/v1/practice/sessions": {
       "post": {
         "tags": [
@@ -995,6 +1416,896 @@
               "application/json": {
                 "schema": {
                   "$ref": "../../openapi.yaml#/components/schemas/PracticeView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "406": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Retry-After": {
+                "required": true,
+                "schema": {
+                  "type": "integer",
+                  "format": "int32",
+                  "minimum": 1
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/practice/sessions/{id}/writer-release": {
+      "post": {
+        "tags": [
+          "practice"
+        ],
+        "operationId": "Practice_releaseWriter_POST",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../../openapi.yaml#/components/schemas/WriterReleaseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/WriterView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "406": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Retry-After": {
+                "required": true,
+                "schema": {
+                  "type": "integer",
+                  "format": "int32",
+                  "minimum": 1
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/practice/sessions/{id}/writer-acquire": {
+      "post": {
+        "tags": [
+          "practice"
+        ],
+        "operationId": "Practice_acquireWriter_POST",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../../openapi.yaml#/components/schemas/WriterInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/WriterView"
                 }
               }
             }
@@ -2687,11 +3998,7 @@
             }
           }
         },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
+        "security": []
       }
     },
     "/api/v1/practice/sessions/{id}": {
@@ -2704,6 +4011,885 @@
           {
             "name": "id",
             "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/PracticeView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "406": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Retry-After": {
+                "required": true,
+                "schema": {
+                  "type": "integer",
+                  "format": "int32",
+                  "minimum": 1
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/practice/sessions/{id}/writer-state": {
+      "get": {
+        "tags": [
+          "practice"
+        ],
+        "operationId": "Practice_writerState_GET",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "deviceId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/WriterView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "406": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              },
+              "Retry-After": {
+                "required": true,
+                "schema": {
+                  "type": "integer",
+                  "format": "int32",
+                  "minimum": 1
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "结构化错误，参见code和fieldErrors",
+            "headers": {
+              "X-Request-Id": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../openapi.yaml#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/practice/sessions/{id}/snapshot": {
+      "get": {
+        "tags": [
+          "practice"
+        ],
+        "operationId": "Practice_snapshot_GET",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "deviceId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-Practice-Writer",
+            "in": "header",
             "required": true,
             "schema": {
               "type": "string",

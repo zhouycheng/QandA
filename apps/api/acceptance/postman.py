@@ -9,7 +9,7 @@ ALIASES = {"question-banks": "questionBankId", "questions": "questionId", "chapt
 
 def main():
     contracts = Contracts()
-    variables = {"baseUrl": "http://127.0.0.1:8083", "adminToken": "", "userToken": "", "commandKey": "", "password": "", "newPassword": "", "email": "", "code": "", "oldCode": "", "newCode": "", "registrationToken": "", "imageFile": "", "username": ""}
+    variables = {"baseUrl": "http://127.0.0.1:8083", "adminToken": "", "userToken": "", "commandKey": "", "password": "", "newPassword": "", "email": "", "code": "", "oldCode": "", "newCode": "", "registrationToken": "", "imageFile": "", "username": "", "writerToken": "", "deviceId": "", "clientSequence": 1, "acknowledgedSequence": 0}
 
     def sample(schema, owner, field=""):
         schema, owner = contracts.resolve(schema, owner)
@@ -51,7 +51,7 @@ def main():
             return {key: template(item, key) for key, item in value.items()}
         if isinstance(value, list):
             return [template(item, field) for item in value]
-        if field.endswith("Id") or field in variables or field in ("expectedVersion", "expectedContentVersion"):
+        if field.endswith("Id") or field in variables or field in ("expectedVersion", "expectedContentVersion", "clientSequence"):
             variables.setdefault(field, 1 if isinstance(value, int) else "")
             return "{{" + field + "}}"
         return value
@@ -71,11 +71,14 @@ def main():
         headers = [{"key": "X-Request-Id", "value": "{{$guid}}"}]
         if any(x["in"] == "header" and x["name"] == "Idempotency-Key" for x in parameters):
             headers.append({"key": "Idempotency-Key", "value": "{{effectiveCommandKey}}"})
+        for parameter in parameters:
+            if parameter["in"] == "header" and parameter["name"] == "X-Practice-Writer":
+                headers.append({"key": "X-Practice-Writer", "value": "{{writerToken}}"})
         query = [{"key": p["name"], "value": str(sample(p["schema"], owner, p["name"])), "disabled": not p.get("required", False)} for p in parameters if p["in"] == "query"]
         for parameter in query:
-            if parameter["key"] == "expectedVersion":
-                variables.setdefault("expectedVersion", 1)
-                parameter["value"] = "{{expectedVersion}}"
+            if parameter["key"] in ("expectedVersion", "deviceId"):
+                variables.setdefault(parameter["key"], 1 if parameter["key"] == "expectedVersion" else "")
+                parameter["value"] = "{{" + parameter["key"] + "}}"
         token_variable = "adminToken" if "/admin/" in route else "userToken"
         auth = {"type": "bearer", "bearer": [{"key": "token", "value": "{{" + token_variable + "}}", "type": "string"}]} if operation.get("security") else {"type": "noauth"}
         required_query = urlencode({q["key"]: q["value"] for q in query if not q["disabled"]}, safe="{}")
@@ -86,10 +89,18 @@ def main():
             if "application/json" in media:
                 schema = media["application/json"]["schema"]
                 concrete = sample(schema, owner)
+                if route == "/api/v1/practice/sessions":
+                    concrete["deviceId"] = str(uuid.UUID(int=1))
+                if route.startswith("/api/v1/practice/sessions/{id}/") and entry["method"] in ("PUT", "POST") and not route.endswith(("writer-acquire", "self-assessment")):
+                    concrete["writerToken"] = str(uuid.UUID(int=1))
+                    if route.endswith(("progress", "progress-ack")):
+                        concrete["clientSequence"] = 1
                 assert not contracts.errors(concrete, schema, owner), operation_id
                 body_sample = template(concrete)
+                if route.endswith("writer-release"):
+                    body_sample["clientSequence"] = "{{acknowledgedSequence}}"
                 raw = json.dumps(body_sample, ensure_ascii=False, indent=2)
-                for field in ("expectedVersion", "expectedContentVersion"):
+                for field in ("expectedVersion", "expectedContentVersion", "clientSequence", "acknowledgedSequence"):
                     raw = raw.replace('"{{' + field + '}}"', '{{' + field + '}}')
                 request["body"] = {"mode": "raw", "raw": raw, "options": {"raw": {"language": "json"}}}
                 headers.append({"key": "Content-Type", "value": "application/json"})
@@ -104,6 +115,7 @@ def main():
         if resource:
             variables.setdefault(resource, "")
             post.append(f"if(b.id)pm.environment.set({json.dumps(resource)},b.id);")
+        post.append("const w=b.writer||b;if(w.writerToken)pm.environment.set('writerToken',w.writerToken);if(w.acknowledgedSequence!==undefined){pm.environment.set('acknowledgedSequence',w.acknowledgedSequence);pm.environment.set('clientSequence',w.acknowledgedSequence+1);}")
         post.append("for(const key of ['sessionId','revisionId','subjectId','questionBankId']){if(b[key])pm.environment.set(key,b[key]);}")
         post.append("}")
         folders.setdefault(entry["owner"], []).append({"name": operation_id, "request": request, "event": [{"listen": "prerequest", "script": {"type": "text/javascript", "exec": pre}}, {"listen": "test", "script": {"type": "text/javascript", "exec": post}}]})
@@ -111,7 +123,7 @@ def main():
     destination = ROOT / "apps/api/postman"
     destination.mkdir(parents=True, exist_ok=True)
     collection = {"info": {"name": "QandA 1.0.0", "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"}, "item": [{"name": name, "item": items} for name, items in sorted(folders.items())]}
-    environment = {"name": "QandA Local", "values": [{"key": key, "value": value, "enabled": True, "type": "secret" if key in ("password", "newPassword", "adminToken", "userToken", "registrationToken") else "default"} for key, value in variables.items()], "_postman_variable_scope": "environment"}
+    environment = {"name": "QandA Local", "values": [{"key": key, "value": value, "enabled": True, "type": "secret" if key in ("password", "newPassword", "adminToken", "userToken", "registrationToken", "writerToken") else "default"} for key, value in variables.items()], "_postman_variable_scope": "environment"}
     for name, value in [("QandA-MVP.postman_collection.json", collection), ("QandA-Local.postman_environment.json", environment), ("QandA-MVP.examples.json", examples)]:
         (destination / name).write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n")
     print(json.dumps({"operations": len(examples), "folders": len(folders)}, ensure_ascii=False))

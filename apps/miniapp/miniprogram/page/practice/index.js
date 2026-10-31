@@ -1,3 +1,5 @@
+const navigation = require('../../utils/navigation.js')
+const { withPageLifecycle } = require('../../utils/page-lifecycle.js')
 const { PracticeViewModel } = require('../../viewmodels/practice-viewmodel.js')
 const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
 const HOME_PAGE_URL = '/page/subject-list/index'
@@ -6,10 +8,7 @@ const HOME_PAGE_URL = '/page/subject-list/index'
 // 太短会让人来不及确认自己点对了
 const AUTO_ADVANCE_DELAY = 800
 
-// 超过这个时长还没返回才弹「提交中」：正常提交是微任务级返回，立刻弹只会闪一下
-const SUBMIT_LOADING_DELAY = 250
-
-Page({
+Page(withPageLifecycle({
   data: Object.assign(PracticeViewModel.getInitialData(), {
     // 长解析默认收起（设计稿「剩下的收起来了」）。纯界面状态，不进 ViewModel：
     // 换题时由 applyViewModelResult 归零，和答题逻辑没有关系
@@ -20,17 +19,37 @@ Page({
     this.viewModel = new PracticeViewModel({
       storage: createWxStorageAdapter()
     })
-    this.applyViewModelResult(this.viewModel.load(options))
+    this.routeOptions = options || {}
+    this.applyViewModelResult(this.viewModel.load(options), 'loadingPractice')
+    this.startSyncWatch()
   },
 
   onShow() {
-    // 回到前台：继续累计学习时长
+    this.pageVisible = true
+    if (this.viewModel && this.viewModel.online) this.viewModel.online.activeId = this.viewModel.waitingId || (this.viewModel.session && this.viewModel.session.meta.sessionId) || ''
+    // 回到前台：交接中的练习先确认写入权。
+    if (this.viewModel && this.viewModel.online && this.viewModel.session) {
+      const online = this.viewModel.online
+      const id = this.viewModel.session.meta.sessionId
+      try {
+        const snapshot = online.get(id)
+        if ((snapshot && snapshot.releaseCommand) || online.releasing[`${online.userId}:${id}`]) {
+          this.viewModel.editingLocked = true
+          this.setData({ editingLocked: true })
+        }
+      } catch (error) { /* 账号状态由 checkWriter 处理 */ }
+    }
     if (this.viewModel) {
-      this.viewModel.resumeStudy()
+      this.applyViewModelResult(this.viewModel.resumeStudy())
+      this.startSyncWatch()
+      this.viewModel.checkWriter().then(result => this.applyViewModelResult(result)).catch(error => this.showSaveError(error))
     }
   },
 
   onHide() {
+    this.pageVisible = false
+    if (this.viewModel && this.viewModel.online) this.viewModel.online.activeId = ''
+    if (this.syncWatch) clearTimeout(this.syncWatch)
     if (!this.viewModel) {
       return
     }
@@ -38,18 +57,66 @@ Page({
     // 切到后台：暂停累计，避免挂机把学习时长算虚
     this.viewModel.pauseStudy()
     // 主动退出也要落盘：用户可能从这里直接切走，之后再也不回来
-    this.viewModel.saveSessionNow()
+    this.saveAndFlush()
   },
 
   onUnload() {
+    this.pageVisible = false
+    if (this.viewModel && this.viewModel.online) this.viewModel.online.activeId = ''
     // 异常退出（杀进程 / 系统回收）不总会走 onHide，这里是最后一道保险
     if (this.viewModel) {
-      this.viewModel.saveSessionNow()
+      this.saveAndFlush()
+      const online = this.viewModel.online
+      const session = this.viewModel.session
+      if (online && session && !session.state.isCompleted) online.release(session.meta.sessionId).catch(error => this.showSaveError(error))
     }
 
     this.stopTestTimer()
     this.clearAutoAdvance()
+    if (this.syncWatch) clearTimeout(this.syncWatch)
   },
+
+  saveAndFlush() {
+    try {
+      Promise.resolve(this.viewModel.saveSessionNow()).catch(error => this.showSaveError(error))
+    } catch (error) { this.showSaveError(error) }
+  },
+
+  showSaveError(error) {
+    wx.showToast({ title: error.message || '保存失败，请重试', icon: 'none' })
+  },
+
+  startSyncWatch() {
+    if (this.syncWatch) clearTimeout(this.syncWatch)
+    this.syncWatch = setTimeout(async () => {
+      if (!this.viewModel) return
+      try {
+        const result = await this.viewModel.checkWriter()
+        this.applyViewModelResult(result)
+        if (this.data.waitingForSync) {
+          const wait = this.viewModel.online && this.viewModel.online.getWaiting(this.viewModel.waitingId)
+          this.setData({ waitingSeconds: Math.max(0, Math.floor((Date.now() - (wait && wait.startedAt || Date.now())) / 1000)) })
+        }
+      } catch (error) { this.showSaveError(error) }
+      if (this.pageVisible !== false) this.startSyncWatch()
+    }, 15000 + Math.floor(Math.random() * 3000))
+  },
+
+  startNewPractice() {
+    this.stopTestTimer()
+    this.clearAutoAdvance()
+    const app = getApp()
+    const route = this.viewModel && this.viewModel.routeOptions || this.routeOptions || {}
+    if (app && app.setPendingSubjectId && route.subjectId) app.setPendingSubjectId(route.subjectId)
+    navigation.switchTab({ url: '/page/bank-detail/index' })
+  },
+
+  waitInBackground() { this.returnBankDetail() },
+
+  inputAnswerText(e) { this.applyViewModelResult(this.viewModel.setAnswerText(e.detail.value)) },
+  assessShortAnswer(e) { this.applyViewModelResult(this.viewModel.assessShortAnswer(e.currentTarget.dataset.value)) },
+
+  assessResult(e) { this.applyViewModelResult(this.viewModel.assessResult(e.currentTarget.dataset.id, e.currentTarget.dataset.value)) },
 
   onShareAppMessage() {
     return this.viewModel.getShareMessage()
@@ -77,13 +144,14 @@ Page({
     }
 
     this.stopTestTimer()
-    this.testEndsAt = Date.now() + this.data.durationSeconds * 1000
+    this.testEndsAt = Date.now() + this.data.timerSeconds * 1000
     this.countdownTimer = setInterval(() => {
+      if (this.data.editingLocked) return
       const timerSeconds = Math.max(Math.ceil((this.testEndsAt - Date.now()) / 1000), 0)
       this.applyViewModelResult(this.viewModel.updateTimer(timerSeconds))
 
       if (timerSeconds <= 0) {
-        this.applyViewModelResult(this.viewModel.autoSubmit())
+        this.applyViewModelResult(this.viewModel.autoSubmit(), 'submitting')
       }
     }, 1000)
   },
@@ -96,6 +164,7 @@ Page({
   },
 
   selectOption(e) {
+    if (this.data.editingLocked || this.data.waitingForSync) return
     const selectedIndex = Number(e.currentTarget.dataset.index)
     const result = this.viewModel.selectOption(selectedIndex)
     const preferences = this.data.preferences || {}
@@ -128,13 +197,15 @@ Page({
   },
 
   submitPractice() {
+    if (this.data.submitting) return
     this.clearAutoAdvance()
-    this.applyViewModelResult(this.viewModel.submit())
+    this.applyViewModelResult(this.viewModel.submit(), 'submitting')
   },
 
   forceSubmit() {
+    if (this.data.submitting) return
     this.clearAutoAdvance()
-    this.applyViewModelResult(this.viewModel.forceSubmit())
+    this.applyViewModelResult(this.viewModel.forceSubmit(), 'submitting')
   },
 
   closeSubmitModal() {
@@ -177,16 +248,9 @@ Page({
   },
 
   toggleFavorite() {
+    if (this.data.favoriteSaving) return
     const result = this.viewModel.toggleFavoriteQuestion()
-    this.applyViewModelResult(result)
-
-    if (result && typeof result.value === 'boolean') {
-      wx.showToast({
-        title: result.value ? '已收藏本题' : '已取消收藏',
-        icon: 'none',
-        duration: 1200
-      })
-    }
+    return this.applyViewModelResult(result, 'favoriteSaving')
   },
 
   /** 标记 / 取消标记当前题：和收藏一样给一句 toast，否则用户不知道点没点上 */
@@ -234,7 +298,7 @@ Page({
   returnBankDetail() {
     wx.navigateBack({
       fail: () => {
-        wx.switchTab({
+        navigation.switchTab({
           url: HOME_PAGE_URL
         })
       }
@@ -242,34 +306,22 @@ Page({
   },
 
   returnHome() {
-    wx.switchTab({
+    navigation.switchTab({
       url: HOME_PAGE_URL
     })
   },
 
-  applyViewModelResult(result) {
+  applyViewModelResult(result, busyKey) {
     if (!result) {
       return
     }
 
-    // 交卷走 Gateway，结果是个 Promise（慢网络场景会真的等两秒）。
-    // 等待期间必须给反馈，否则会被判定成「点了没反应」；
-    // 但正常提交是微任务级返回，立刻弹 loading 只会闪一下——延迟 250ms 再显示。
     if (typeof result.then === 'function') {
-      const loadingTimer = setTimeout(() => {
-        wx.showLoading({
-          title: '提交中',
-          mask: true
-        })
-      }, SUBMIT_LOADING_DELAY)
-
-      result.then((resolved) => {
-        clearTimeout(loadingTimer)
-        wx.hideLoading()
-        this.applyViewModelResult(resolved)
-      })
-
-      return
+      if (busyKey) this.setData({ [busyKey]: true })
+      return result.then(resolved => this.applyViewModelResult(resolved)).catch(error => {
+        this.showSaveError(error)
+        if (!this.viewModel.session) this.setData({ loadError: error.message || '练习加载失败，请重试' })
+      }).finally(() => { if (busyKey && !this._pageUnloaded) this.setData({ [busyKey]: false }) })
     }
 
     const runEffects = () => {
@@ -277,6 +329,7 @@ Page({
     }
 
     if (result.data) {
+      if (this.pageVisible !== false && this.viewModel && this.viewModel.online) this.viewModel.online.activeId = this.viewModel.waitingId || (this.viewModel.session && this.viewModel.session.meta.sessionId) || ''
       const patch = Object.assign({}, result.data)
 
       // 换题就把解析收回去：否则上一题展开的长解析会带到下一题
@@ -293,7 +346,8 @@ Page({
   },
 
   retrySubmit() {
-    this.applyViewModelResult(this.viewModel.retrySubmit())
+    if (this.data.submitting) return
+    return this.applyViewModelResult(this.viewModel.retrySubmit(), 'submitting')
   },
 
   handleResultFilter(e) {
@@ -343,19 +397,29 @@ Page({
   },
 
   handleViewModelCommand(command) {
+    if (command.type === 'toast') wx.showToast({ title: command.title, icon: 'none' })
+    if (command.type === 'trialLogin') {
+      wx.showModal({ title: '登录后继续练习', content: '本机的两次试答已使用。登录后返回题库配置，再开始正式练习。', confirmText: '去登录', cancelText: '继续浏览', success: result => {
+        if (result.confirm) {
+          try { createWxStorageAdapter().set('qandaPendingPractice', this.viewModel.routeOptions) }
+          catch (error) { this.showSaveError(error); return }
+          navigation.switchTab({ url: '/page/bank-detail/index', success: () => navigation.navigateTo({ url: '/page/login/index' }) })
+        }
+      } })
+    }
     if (command.type === 'returnBankDetail') {
       this.returnBankDetail()
     }
 
     if (command.type === 'navigate' && command.url) {
-      wx.navigateTo({
+      navigation.navigateTo({
         url: command.url,
         fail: () => {
-          wx.switchTab({
+          navigation.switchTab({
             url: HOME_PAGE_URL
           })
         }
       })
     }
   }
-})
+}))

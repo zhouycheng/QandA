@@ -6,8 +6,8 @@ import qanda.backend.platform.http.*
 
 @Component
 class ContentAccess(private val sql: ContentQueries,private val banks: QuestionBankMapper) {
-    fun bank(actor: Actor,id: java.util.UUID,write: Boolean=false): QuestionBank {
-        if(actor.kind=="USER") {
+    fun bank(actor: Actor?,id: java.util.UUID,write: Boolean=false): QuestionBank {
+        if(actor==null || actor.kind=="USER") {
             if(write) forbidden()
             return sql.bank(id) ?: missing()
         }

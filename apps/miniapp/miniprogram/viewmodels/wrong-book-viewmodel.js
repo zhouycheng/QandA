@@ -106,6 +106,8 @@ function getInitialWrongBookViewData() {
     activeChip: 'all',
     // 列表
     items: [],
+    collectionLoading: false,
+    collectionError: '',
     totalCount: 0,
     pageCount: 1,
     page: 1,
@@ -132,6 +134,70 @@ class WrongBookViewModel {
       manage: false,
       subjectMenuOpen: false
     }
+  }
+
+  remoteOptions() {
+    const filter = this.state.subjectFilter
+    return { kind: this.state.type === TYPE_FAVORITE ? 'FAVORITE' : 'WRONG', page: this.state.page,
+      chip: this.state.activeChip, sort: this.state.sort,
+      subjectId: filter !== 'all' && filter.indexOf('bank:') !== 0 ? filter : undefined,
+      questionBankId: filter.indexOf('bank:') === 0 ? filter.slice(5) : undefined }
+  }
+
+  refreshRemote(options) {
+    if (!this.repository.isRemoteEnabled || !this.repository.isRemoteEnabled()) return Promise.resolve(null)
+    return this.repository.refreshRemote(this.storage, 'collection', Object.assign({}, this.remoteOptions(), options))
+      .then(() => this.refresh({})).catch(() => this.refresh({}))
+  }
+
+  projectRemote() { return this.buildViewData() }
+
+  buildRemoteView() {
+    const options = this.remoteOptions()
+    const wrong = options.kind === 'WRONG'
+    const resource = this.repository.getRemoteCollection(this.storage, options)
+    const summaryState = this.repository.getRemoteResourceState('collectionSummary', { kind: options.kind })
+    const page = resource.data || { items: [], total: 0 }
+    const summary = this.repository.getRemoteCollectionSummary(this.storage, options.kind) || { total: 0, facets: [] }
+    const subjects = [{ id: 'all', name: '全部科目' }]
+    const distribution = new Map()
+    summary.facets.forEach(facet => {
+      if (!distribution.has(facet.subjectId)) subjects.push({ id: facet.subjectId, name: facet.subjectName })
+      distribution.set(facet.subjectId, { subjectName: facet.subjectName, count: ((distribution.get(facet.subjectId) || {}).count || 0) + facet.count })
+      subjects.push({ id: 'bank:' + facet.questionBankId, name: `${facet.subjectName} · ${facet.questionBankName}` })
+    })
+    const counts = { all: summary.total, repeat: summary.repeatCount, recent: summary.recentCount, practiced: summary.practicedCount, pending: summary.pendingCount }
+    const judged = (summary.rightCount || 0) + (summary.wrongCount || 0)
+    const items = page.items.map(item => ({ id: item.questionId, bankId: item.questionBankId, subjectId: item.subjectId,
+      subjectName: item.subjectName, bankName: item.questionBankName, title: `${item.subjectName} · ${item.questionBankName}`,
+      stem: item.stem, typeText: ({ SINGLE_CHOICE: '单选题', MULTIPLE_CHOICE: '多选题', TRUE_FALSE: '判断题', SHORT_ANSWER: '简答题' })[item.type],
+      wrongCount: item.wrongCount || 0, rightCount: item.rightCount || 0, practiced: !!item.practiced, available: item.available,
+      updatedAt: Date.parse(item.lastPracticedAt || item.createdAt) || 0, dateText: formatMonthDay(Date.parse(item.lastPracticedAt || item.createdAt) || 0),
+      badgeText: wrong ? `错 ${item.wrongCount} 次` : item.practiced ? '已练习' : '待练习', badgeTone: wrong ? 'wrong' : item.practiced ? 'done' : 'todo' }))
+    const pageCount = Math.max(1, Math.ceil(page.total / PAGE_SIZE))
+    return Object.assign(getInitialWrongBookViewData(), {
+      type: this.state.type, title: wrong ? '错题本' : '收藏本', statTitle: wrong ? '错题统计' : '收藏统计',
+      statHint: wrong ? '按重要程度，逐个攻克' : `已完成 ${summary.total ? Math.round((summary.practicedCount || 0) / summary.total * 100) : 0}%`,
+      stats: wrong ? [
+        { key: 'total', label: '错题总数', value: String(summary.total), unit: '道' },
+        { key: 'accuracy', label: '正确率', value: String(judged ? Math.round(summary.rightCount / judged * 100) : 0), unit: '%' },
+        { key: 'recent', label: '近 7 天更新', value: String(summary.recentCount || 0), unit: '道' }
+      ] : [
+        { key: 'total', label: '收藏题', value: String(summary.total), unit: '道' },
+        { key: 'practiced', label: '已练习', value: String(summary.practicedCount || 0), unit: '道' },
+        { key: 'pending', label: '待练习', value: String(summary.pendingCount || 0), unit: '道' }
+      ],
+      dist: Array.from(distribution.values()).map((item, i) => ({ name: item.subjectName, count: item.count,
+        percent: summary.total ? Math.round(item.count / summary.total * 100) : 0, tone: DIST_TONES[i % DIST_TONES.length] })),
+      hasDist: summary.total > 0, subjectFilters: subjects, subjectFilter: this.state.subjectFilter,
+      subjectFilterText: this.getSubjectFilterText(subjects), subjectMenuOpen: this.state.subjectMenuOpen, sortText: this.getSortText(),
+      chips: CHIPS[this.state.type].map(chip => ({ key: chip.key, text: `${chip.text} ${counts[chip.key] || 0}` })),
+      activeChip: this.state.activeChip, items, totalCount: summary.total, filteredCount: page.total,
+      pageCount, page: this.state.page, pageText: page.total ? `共 ${page.total} 题 · 第 ${this.state.page} 页` : '',
+      manage: this.state.manage, footerText: `开始${wrong ? '错题' : '收藏'}练习 · ${page.total} 道`,
+      footerHint: wrong ? '掌握的题目会随练习结果更新' : '做错的题会自动进入错题本',
+      emptyText: this.getEmptyText(wrong, summary.total), collectionLoading: resource.status === 'loading', collectionError: resource.error || summaryState.error
+    })
   }
 
   static getInitialData() {
@@ -218,6 +284,7 @@ class WrongBookViewModel {
   }
 
   buildViewData() {
+    if (this.repository.isRemoteEnabled && this.repository.isRemoteEnabled()) return this.buildRemoteView()
     const isWrongType = this.state.type === TYPE_WRONG
     const sources = this.readSources()
     const base = getInitialWrongBookViewData()
@@ -285,6 +352,8 @@ class WrongBookViewModel {
       return {
         id: entry.id,
         subjectId: entry.subjectId,
+        bankId: entry.bankId,
+        bankName: entry.bankName,
         subjectName: entry.subjectName,
         title: `${entry.subjectName} · ${entry.bankName}`,
         stem: entry.question.stem,
@@ -312,6 +381,8 @@ class WrongBookViewModel {
       return {
         id: entry.id,
         subjectId: entry.subjectId,
+        bankId: entry.bankId,
+        bankName: entry.bankName,
         subjectName: entry.subjectName,
         title: `${entry.subjectName} · ${entry.bankName}`,
         stem: entry.question.stem,
@@ -425,6 +496,14 @@ class WrongBookViewModel {
       }
     })
 
+    if (this.repository.isRemoteEnabled && this.repository.isRemoteEnabled()) {
+      items.forEach((item) => {
+        if (item.bankId && !seen[`bank:${item.bankId}`]) {
+          seen[`bank:${item.bankId}`] = true
+          options.push({ id: `bank:${item.bankId}`, name: `${item.subjectName} · ${item.bankName}` })
+        }
+      })
+    }
     return options
   }
 
@@ -446,7 +525,7 @@ class WrongBookViewModel {
     let result = items
 
     if (this.state.subjectFilter !== 'all') {
-      result = result.filter((item) => item.subjectId === this.state.subjectFilter)
+      result = result.filter((item) => this.state.subjectFilter.indexOf('bank:') === 0 ? `bank:${item.bankId}` === this.state.subjectFilter : item.subjectId === this.state.subjectFilter)
     }
 
     if (this.state.activeChip === 'repeat') {
@@ -546,6 +625,13 @@ class WrongBookViewModel {
       return null
     }
 
+    if (this.repository.isRemoteEnabled && this.repository.isRemoteEnabled()) {
+      if (this.state.type === TYPE_WRONG) return { command: { type: 'toast', title: '错题随复习结果更新，掌握后自动移出' } }
+      return this.repository.removeQuestionFavorites(this.storage, [questionId]).then(() => this.refreshRemote({ force: true })).then(() => {
+        if (this.state.page > this.buildViewData().pageCount) { this.state.page = this.buildViewData().pageCount; return this.refreshRemote() }
+        return this.withToast('已取消收藏')
+      })
+    }
     if (this.state.type === TYPE_WRONG) {
       this.repository.removeWrongQuestions(this.storage, [questionId])
     } else {
@@ -556,6 +642,10 @@ class WrongBookViewModel {
   }
 
   clearAll() {
+    if (this.repository.isRemoteEnabled && this.repository.isRemoteEnabled()) {
+      if (this.state.type === TYPE_WRONG) return { command: { type: 'toast', title: '错题随复习结果更新，掌握后自动移出' } }
+      return this.repository.clearFavorites(this.storage).then(() => { this.state.page = 1; return this.refreshRemote({ force: true }) }).then(() => this.withToast('已清空收藏'))
+    }
     const count = this.buildViewData().totalCount
 
     if (!count) {
@@ -579,12 +669,26 @@ class WrongBookViewModel {
     return result
   }
 
-  /**
-   * 把**当前筛选后的全部题目**组成练习卷（不是当前页）。
-   * 走答题页的 scope=custom 入口，和「重练错题」是同一条路径。
-   */
+  /** 线上由服务端选择完整筛选范围；本地样例通过自定义卷组题。 */
   createPracticeCommand() {
     const isWrong = this.state.type === TYPE_WRONG
+    if (this.repository.isRemoteEnabled && this.repository.isRemoteEnabled()) {
+      const options = this.remoteOptions()
+      const summary = this.repository.getRemoteCollectionSummary(this.storage, options.kind)
+      const facets = (summary && summary.facets || []).filter(item => (!options.subjectId || item.subjectId === options.subjectId) && (!options.questionBankId || item.questionBankId === options.questionBankId))
+      if (!facets.length || !this.buildViewData().filteredCount) return { command: { type: 'toast', title: '当前没有可练习的题目' } }
+      if (facets.length !== 1) return { command: { type: 'toast', title: '请先筛选同一题库的题目进行练习' } }
+      return this.repository.previewRemotePracticeScope(this.storage, {
+        questionBankId: facets[0].questionBankId,
+        count: 1000,
+        selectionKind: options.kind,
+        collectionChip: options.chip
+      }).then(preview => {
+        const count = Math.min(Number(preview.availableCount) || 0, 1000)
+        if (!count) return { command: { type: 'toast', title: '当前没有可练习的题目' } }
+        return { command: { type: 'navigate', url: `/page/practice/index?bankId=${facets[0].questionBankId}&subjectId=${facets[0].subjectId}&selectionKind=${options.kind}&collectionChip=${options.chip}&count=${count}` } }
+      })
+    }
     const items = this.applyFilters(
       isWrong ? this.buildWrongItems(this.readSources()) : this.buildFavoriteItems(this.readSources()),
       isWrong

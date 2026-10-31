@@ -1,3 +1,5 @@
+const navigation = require('../../utils/navigation.js')
+const { withPageLifecycle } = require('../../utils/page-lifecycle.js')
 const { WrongBookViewModel } = require('../../viewmodels/wrong-book-viewmodel.js')
 const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
 /**
@@ -5,7 +7,7 @@ const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
  * 路由仍是 page/wrong-book/index，靠 `?type=wrong|favorite` 区分两种模式 ——
  * 复盘页的两张入口卡分别带着这两个参数进来。
  */
-Page({
+Page(withPageLifecycle({
   data: WrongBookViewModel.getInitialData(),
 
   onLoad(options) {
@@ -22,6 +24,7 @@ Page({
     }
 
     this.applyViewModelResult(this.viewModel.refresh({}))
+    this.applyViewModelResult(this.viewModel.refreshRemote())
   },
 
   onPullDownRefresh() {
@@ -30,11 +33,15 @@ Page({
       return
     }
 
-    this.applyViewModelResult(this.viewModel.refresh({}))
-    setTimeout(() => {
-      wx.stopPullDownRefresh()
-    }, 400)
+    return this.applyViewModelResult(this.viewModel.refreshRemote({ force: true })).finally(() => wx.stopPullDownRefresh())
   },
+
+  applyCollectionChange(result) {
+    this.applyViewModelResult(result)
+    return this.applyViewModelResult(this.viewModel.refreshRemote())
+  },
+
+  handleRetryLoad() { return this.applyViewModelResult(this.viewModel.refreshRemote({ force: true })) },
 
   handleManageTap() {
     this.applyViewModelResult(this.viewModel.toggleManage())
@@ -45,24 +52,24 @@ Page({
   },
 
   handleSubjectPick(e) {
-    this.applyViewModelResult(this.viewModel.setSubject(e.currentTarget.dataset.id))
+    this.applyCollectionChange(this.viewModel.setSubject(e.currentTarget.dataset.id))
   },
 
   // 排序只有两种口径，点一下就能换，不值得做成下拉
   handleSortTap() {
-    this.applyViewModelResult(this.viewModel.toggleSort())
+    this.applyCollectionChange(this.viewModel.toggleSort())
   },
 
   handleChipTap(e) {
-    this.applyViewModelResult(this.viewModel.setChip(e.currentTarget.dataset.key))
+    this.applyCollectionChange(this.viewModel.setChip(e.currentTarget.dataset.key))
   },
 
   handlePrevPage() {
-    this.applyViewModelResult(this.viewModel.goPrevPage())
+    this.applyCollectionChange(this.viewModel.goPrevPage())
   },
 
   handleNextPage() {
-    this.applyViewModelResult(this.viewModel.goNextPage())
+    this.applyCollectionChange(this.viewModel.goNextPage())
   },
 
   handleItemTap(e) {
@@ -72,7 +79,7 @@ Page({
       return
     }
 
-    wx.navigateTo({
+    navigation.navigateTo({
       url: `/page/question-detail/index?id=${encodeURIComponent(questionId)}`
     })
   },
@@ -115,6 +122,9 @@ Page({
   },
 
   applyViewModelResult(result) {
+    if (result && typeof result.then === 'function') {
+      return result.then((value) => this.applyViewModelResult(value)).catch((error) => wx.showToast({ title: error.message || '请求失败', icon: 'none' }))
+    }
     if (!result) {
       return
     }
@@ -140,7 +150,7 @@ Page({
     }
 
     if (result.command.type === 'navigate' && result.command.url) {
-      wx.navigateTo({ url: result.command.url })
+      navigation.navigateTo({ url: result.command.url })
     }
   }
-})
+}))

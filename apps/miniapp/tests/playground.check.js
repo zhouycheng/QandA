@@ -227,10 +227,10 @@ async function run() {
 
   // ---------- 4) HTTP 网关与注入切换 ----------
   const httpStorage = createMemoryStorage()
-  const unconfigured = await httpGateway.submitSession(httpStorage, { sessionId: 'sess_http' })
+  const unconfigured = await httpGateway.request('POST', '/practice/sessions/sess_http/finish', {})
 
   assert('HTTP - 未配置域名时返回失败而不是抛错', unconfigured.ok === false, JSON.stringify(unconfigured))
-  assert('HTTP - 未配置域名仍给 SYNC_PENDING（可重试）', unconfigured.syncStatus === SYNC_STATUS.SYNC_PENDING, unconfigured.syncStatus)
+  assert('HTTP - 未配置域名标记请求不可达', unconfigured.unavailable === true, unconfigured.unavailable)
   assert('HTTP - 未配置域名时不崩（无 wx 环境可 require）', httpGateway.isConfigured() === false, '被判为已配置')
 
   httpGateway.configure({ baseUrl: 'https://api.example.com/' })
@@ -238,7 +238,7 @@ async function run() {
 
   httpGateway.configure({ baseUrl: '' })
 
-  practiceGateway.setGateway(httpGateway)
+  practiceGateway.setGateway({ name: 'http', submitSession: () => httpGateway.request('POST', '/practice/sessions/sess_http2/finish', {}) })
   assert('切换 - 注入 HTTP 后网关名为 http', practiceGateway.getGatewayName() === 'http', practiceGateway.getGatewayName())
 
   const httpSubmit = await practiceGateway.submitSession(httpStorage, { sessionId: 'sess_http2' })

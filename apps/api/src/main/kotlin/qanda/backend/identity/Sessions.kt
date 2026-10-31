@@ -12,8 +12,10 @@ import java.util.UUID
 @Service
 class Sessions(private val sql: IdentityMapper, private val users: UserAccountMapper, private val admins: AdminAccountMapper,
                private val policies: SecurityPolicyMapper, private val crypto: IdentityCrypto, private val clock: Clock) {
-    fun current(): Actor = SecurityContextHolder.getContext().authentication?.principal as? Actor ?: unauthenticated()
+    fun optional(): Actor? = SecurityContextHolder.getContext().authentication?.principal as? Actor
+    fun current(): Actor = optional() ?: unauthenticated()
     fun student(): Actor = current().also { if(it.kind!="USER") forbidden() }
+    fun studentOrGuest(): Actor? = optional()?.also { if(it.kind!="USER") forbidden() }
     fun admin(platformOnly: Boolean = false): Actor = current().also { if(it.kind!="ADMIN" || platformOnly && it.role!="PLATFORM_ADMIN") forbidden() }
 
     @Transactional

@@ -9,7 +9,7 @@ import java.util.UUID
 
 @Service
 @Transactional
-class CatalogService(private val colleges: CollegeMapper,private val majors: MajorMapper,private val subjects: SubjectMapper,private val sql: CatalogQueries) {
+class CatalogService(private val colleges: CollegeMapper,private val majors: MajorMapper,private val subjects: SubjectMapper,private val sql: CatalogQueries,private val content: qanda.backend.content.ContentQueries) {
     fun collegeView(it: College)=CollegeView(it.id!!,it.name,it.code,it.status,it.version)
     fun majorView(it: Major)=MajorView(it.id!!,it.collegeId!!,it.name,it.code,it.status,it.version)
     fun subjectView(it: Subject)=SubjectView(it.id!!,it.name,it.description,it.status,it.version)
@@ -22,8 +22,16 @@ class CatalogService(private val colleges: CollegeMapper,private val majors: Maj
         val result=majors.selectPage(com.baomidou.mybatisplus.extension.plugins.pagination.Page(p.page.toLong(),p.pageSize.toLong()),QueryWrapper<Major>().eq("college_id",collegeId).eq(!admin,"status","ACTIVE").orderByAsc("name").orderByAsc("id"))
         return Page(result.records.map(::majorView),result.total,p.page,p.pageSize)
     }
-    fun subjects(p: PageSpec,keyword: String?,publicOnly: Boolean): Page<SubjectView> = Page(sql.subjects(keyword,publicOnly,p.offset,p.pageSize).map(::subjectView),sql.subjectCount(keyword,publicOnly),p.page,p.pageSize)
-    fun subject(id: UUID,publicOnly: Boolean): SubjectView=subjectView((if(publicOnly) sql.publishedSubject(id) else subjects.selectById(id)) ?: missing())
+    fun subjects(p: PageSpec,keyword: String?,publicOnly: Boolean,userId: UUID?=null): Page<SubjectView> {
+        val rows=sql.subjects(keyword,publicOnly,p.offset,p.pageSize).map(::subjectView)
+        val facts=if(userId!=null && rows.isNotEmpty()) content.subjectListFacts(rows.map { it.id },userId).associateBy { it.subjectId } else emptyMap()
+        return Page(rows.map { row -> facts[row.id]?.let { row.copy(bankCount=it.bankCount,questionCount=it.questionCount,progress=qanda.backend.content.BankProgressView(it.answeredCount,it.correctCount,it.wrongCount)) } ?: row },sql.subjectCount(keyword,publicOnly),p.page,p.pageSize)
+    }
+    fun subject(id: UUID,publicOnly: Boolean,userId: UUID?=null): SubjectView {
+        val row=subjectView((if(publicOnly) sql.publishedSubject(id) else subjects.selectById(id)) ?: missing())
+        val facts=if(userId!=null) content.subjectListFacts(listOf(id),userId).firstOrNull() else null
+        return facts?.let { row.copy(bankCount=it.bankCount,questionCount=it.questionCount,progress=qanda.backend.content.BankProgressView(it.answeredCount,it.correctCount,it.wrongCount)) } ?: row
+    }
     fun college(id: UUID?,input: CollegeInput): MutationResult {
         val row=id?.let { sql.lockCollege(it) ?: missing() } ?: College().apply { this.id=UUID.randomUUID() }
         if(id!=null) requireVersion(input.expectedVersion ?: invalid("/expectedVersion"),row.version)

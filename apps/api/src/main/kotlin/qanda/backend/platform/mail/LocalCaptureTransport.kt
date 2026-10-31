@@ -16,7 +16,7 @@ internal class LocalCaptureTransport(environment: Environment) : IdentityMailTra
     init {
         require(environment.getProperty("qanda.backend.mode", "production") in setOf("local", "test")) { "本地邮件捕获只可用于显式local/test模式" }
         val host = environment.getProperty("qanda.backend.mail.host", "127.0.0.1")
-        require(host in setOf("127.0.0.1", "localhost", "::1")) { "本地捕获SMTP仅允许回环地址" }
+        require(host in setOf("127.0.0.1", "localhost", "::1") || host=="mailpit" && environment.getProperty("BACKEND_LOCAL_CONTAINER",Boolean::class.java,false)) { "本地捕获SMTP仅允许回环地址或显式本地容器的mailpit服务" }
         sender.host = host
         sender.port = environment.getProperty("qanda.backend.mail.port", Int::class.java, 51025).also { require(it in 1..65535) }
         sender.defaultEncoding = "UTF-8"

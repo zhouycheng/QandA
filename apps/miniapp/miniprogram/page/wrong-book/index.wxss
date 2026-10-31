@@ -1,13 +1,13 @@
 @import "../../styles/list-page.wxss";
 
 /* 错题本 / 收藏本（设计稿两张画板，402x874，系数 750/402 ≈ 1.8657）
-   页边距沿用 list-page.wxss 的 41rpx，这里只写这一页的灰底、统计卡、卡片与分页。
+   页边距沿用 list-page.wxss 的 41rpx，这里维护统计卡、题目卡片与分页。
    换算：16px 卡内边距 → 30rpx；14px 圆角 → 26rpx；22px 数字 → 41rpx；
         30px 筛选项高 → 56rpx；46px 底部按钮 → 86rpx。 */
 
 .wb-page {
   min-height: 100vh;
-  background: #f5f6fa;
+  background: #ffffff;
   /* 底部固定按钮（86rpx）+ 说明行 + 呼吸位，再叠安全区 */
   padding-bottom: 200rpx;
   padding-bottom: calc(200rpx + env(safe-area-inset-bottom));
@@ -56,7 +56,7 @@
 }
 
 .wb-manage-hover {
-  opacity: 0.6;
+  opacity: 0.72;
 }
 
 /* 管理模式：按钮变成「完成」，颜色收到中性，避免和蓝色主按钮抢注意力 */
@@ -69,7 +69,7 @@
 .stat-card {
   padding: 26rpx 30rpx 28rpx;
   border-radius: 26rpx;
-  background: #ffffff;
+  background: #f7f9fc;
 }
 
 .stat-head {
@@ -249,7 +249,7 @@
 }
 
 .filter-hover {
-  opacity: 0.6;
+  opacity: 0.86;
 }
 
 .filter-strong {
@@ -370,21 +370,17 @@
   height: 56rpx;
   margin-right: 16rpx;
   border-radius: 16rpx;
-  background: #ffffff;
+  background: #f7f9fc;
   font-size: 21rpx;
   line-height: 56rpx;
   font-weight: 500;
   color: #6b7684;
   text-align: center;
-  transition: background-color 0.14s ease, color 0.14s ease;
+  transition: background-color 0.14s ease, color 0.14s ease, opacity 100ms ease;
 }
 
 .chip:last-child {
   margin-right: 0;
-}
-
-.chip-hover {
-  opacity: 0.7;
 }
 
 .chip.is-active {
@@ -406,12 +402,12 @@
   padding: 24rpx 26rpx 24rpx 30rpx;
   box-sizing: border-box;
   border-radius: 22rpx;
-  background: #ffffff;
+  background: #f7f9fc;
   transition: opacity 100ms ease;
 }
 
 .q-card-hover {
-  opacity: 0.72;
+  opacity: 0.86;
 }
 
 /* 左侧细色条：错题偏红、收藏偏蓝，扫一眼就知道这是哪一类 */
@@ -485,7 +481,7 @@
 }
 
 .q-remove-hover {
-  opacity: 0.6;
+  opacity: 0.72;
 }
 
 /* 题干最多两行：列表用来「认题」，不是用来读题的 */

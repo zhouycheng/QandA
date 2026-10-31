@@ -41,7 +41,7 @@ const GREETINGS = {
 }
 
 function buildCss() {
-  const app = read('app.wxss').replace(/^page\s*\{/m, 'body {')
+  const app = read('app.wxss').replace(/^page(?=\s*[,\{])/gm, 'body')
   const page = read('page/subject-list/index.wxss')
 
   return rpxToPx(`

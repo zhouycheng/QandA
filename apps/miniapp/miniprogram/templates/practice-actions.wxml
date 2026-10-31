@@ -1,0 +1,16 @@
+<view class="pra-actions">
+        <view
+          class="pra-btn {{currentIndex === 0 ? 'is-disabled' : ''}}"
+          bindtap="goPrev"
+          hover-class="btn-flat-hover"
+          hover-start-time="0"
+          hover-stay-time="80"
+        >上一题</view>
+        <view
+          class="pra-btn primary"
+          bindtap="goNext"
+          hover-class="btn-flat-hover"
+          hover-start-time="0"
+          hover-stay-time="80"
+        >{{primaryActionText}}</view>
+      </view>

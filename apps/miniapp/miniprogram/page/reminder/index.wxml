@@ -4,7 +4,7 @@
   <view class="switch-row switch-row-tall">
     <view class="row-main">
       <text class="row-label">允许邮箱提醒</text>
-      <text class="row-desc">发送至 {{emailMasked || '未绑定邮箱'}}</text>
+      <text class="row-desc">本机偏好 · 邮件提醒待开放</text>
     </view>
     <switch
       class="switch"
@@ -30,7 +30,7 @@
     </view>
 
     <picker mode="time" value="{{reviewTime}}" bindchange="handleTimeChange">
-      <view class="row" hover-class="row-hover" hover-start-time="0" hover-stay-time="240">
+      <view class="row" hover-class="row-hover" hover-start-time="0" hover-stay-time="80">
         <text class="row-label">提醒时间</text>
         <text class="row-value">{{reviewTime}}</text>
         <view class="chevron"></view>
@@ -43,7 +43,7 @@
       value="{{frequencyIndex}}"
       bindchange="handleFrequencyChange"
     >
-      <view class="row" hover-class="row-hover" hover-start-time="0" hover-stay-time="240">
+      <view class="row" hover-class="row-hover" hover-start-time="0" hover-stay-time="80">
         <text class="row-label">重复频率</text>
         <text class="row-value">{{frequencyLabel}}</text>
         <view class="chevron"></view>
@@ -74,7 +74,7 @@
       bindtap="handleExamTap"
       hover-class="row-hover"
       hover-start-time="0"
-      hover-stay-time="240"
+      hover-stay-time="80"
     >
       <text class="row-label">{{item.name}}</text>
       <text class="exam-date">{{item.dateText}}</text>
@@ -90,7 +90,7 @@
       bindtap="handleAddExamTap"
       hover-class="add-btn-hover"
       hover-start-time="0"
-      hover-stay-time="240"
+      hover-stay-time="80"
     >+ 添加考试</view>
 
     <view class="advance">
@@ -104,7 +104,7 @@
           bindtap="handleAdvanceTap"
           hover-class="checkbox-hover"
           hover-start-time="0"
-          hover-stay-time="240"
+          hover-stay-time="80"
         >
           <view class="checkbox {{item.checked ? 'checkbox-checked' : ''}}">
             <view class="checkbox-check" wx:if="{{item.checked}}"></view>
@@ -123,7 +123,7 @@
     bindtap="handleSaveTap"
     hover-class="bottom-btn-hover"
     hover-start-time="0"
-    hover-stay-time="240"
+    hover-stay-time="80"
   >保存设置</view>
 </view>
 
@@ -160,7 +160,7 @@
       bindtap="handleAddExamConfirm"
       hover-class="bottom-btn-hover"
       hover-start-time="0"
-      hover-stay-time="240"
+      hover-stay-time="80"
     >添加</view>
   </view>
 </bottom-sheet>

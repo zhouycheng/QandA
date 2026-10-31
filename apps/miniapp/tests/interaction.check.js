@@ -163,7 +163,7 @@ const definedClasses = collectWxssClasses()
 const undefinedHovers = []
 
 referencedHoverClasses.forEach((hoverClass) => {
-  if (!definedClasses.has(hoverClass)) {
+  if (hoverClass !== 'none' && !definedClasses.has(hoverClass)) {
     undefinedHovers.push(hoverClass)
   }
 })
@@ -219,8 +219,8 @@ console.log('\n=== 过渡动画基础 ===')
 const appWxss = fs.readFileSync(path.join(MINIPROGRAM_ROOT, 'app.wxss'), 'utf8')
 
 assert(
-  '全局基类上挂了 transition（保证按下与回弹都是连续曲线）',
-  /transition:\s*transform/.test(appWxss),
+  '按钮基类提供透明度过渡',
+  /button\s*\{[^}]*transition:[^;]*opacity/.test(appWxss),
   'app.wxss 缺少 transition 兜底'
 )
 
@@ -229,7 +229,7 @@ assert(
   /@keyframes\s+qanda-fade-up/.test(appWxss) && /@keyframes\s+qanda-pop-in/.test(appWxss)
 )
 
-assert('定义了错峰延迟 stagger', /\.stagger\s*>/.test(appWxss))
+assert('首屏内容同时可见', !/\.stagger\s*>/.test(appWxss) && !/\.anim-fade-(up|in)\s*\{/.test(appWxss))
 
 console.log(`\n总计 ${passed + failed} 项，通过 ${passed} 项，失败 ${failed} 项`)
 

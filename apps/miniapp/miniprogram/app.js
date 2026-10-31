@@ -1,10 +1,14 @@
 const { createWxStorageAdapter } = require('./utils/wx-storage.js')
 const playgroundSwitch = require('./utils/playground-switch.js')
 const practiceRepository = require('./repositories/practice-repository.js')
+const http = require('./repositories/http-gateway.js')
+const onlinePractice = require('./repositories/online-practice.js')
+const remoteData = require('./repositories/remote-data-repository.js')
+const localConfig = require('./runtime.local.js')
 
 App({
   globalData: {
-    version: 'v1-mock-snapshot',
+    version: '1.0.0',
     // 题库是 tabBar 页面，而 switchTab 不支持 query 参数，
     // 因此首页点科目时先把 subjectId 暂存在这里，由题库页 onShow 时取走。
     pendingSubjectId: ''
@@ -12,9 +16,12 @@ App({
 
   onLaunch() {
     this.globalData.launchAt = Date.now()
-    // 用户自助导入的题库存在 storage 里，也要在冷启动时挂回 catalog，
-    // 否则上次导入的题库这次打开就不见了
-    practiceRepository.syncUserBanks(createWxStorageAdapter())
+    const storage = createWxStorageAdapter()
+    const config = Object.assign({}, localConfig, typeof wx.getExtConfigSync === 'function' ? wx.getExtConfigSync() || {} : {})
+    http.configure({ baseUrl: config.apiBaseUrl || '', tokenProvider: () => practiceRepository.getAuth(storage).token || '' })
+    remoteData.enable(true)
+    remoteData.bind(storage)
+    onlinePractice.enable(storage)
     // Playground 开关存在 storage 里，冷启动必须先同步到内存，
     // 否则上一次开启的 Playground 题库在这次启动中会凭空消失
     playgroundSwitch.syncFromStorage(createWxStorageAdapter())
@@ -22,6 +29,68 @@ App({
     // 如果控制台连这行都没有，说明 appservice 根本没跑起来，
     // 后面所有的「点了没反应」都不用再从业务代码里找。
     console.log('[trace] app onLaunch，逻辑层已启动')
+  },
+
+  onShow() {
+    this.appVisible = true
+    this.lifecycleEpoch = (this.lifecycleEpoch || 0) + 1
+    const runtime = onlinePractice.current()
+    if (!runtime) return
+    try { runtime.identity(); runtime.queue.flushAll().catch(() => {}) } catch (error) { /* 登录后恢复同步 */ }
+    this.watchPendingPractice()
+  },
+
+  onHide() {
+    this.appVisible = false
+    const epoch = this.lifecycleEpoch = (this.lifecycleEpoch || 0) + 1
+    if (this.practiceWatch) clearTimeout(this.practiceWatch)
+    const runtime = onlinePractice.current()
+    if (!runtime || !runtime.queue) return
+    const queue = runtime.queue
+    const owner = runtime.userId
+    queue.flushAll().then(async () => {
+      for (const id of queue.sessionIds()) {
+        if (this.appVisible || this.lifecycleEpoch !== epoch) return
+        try {
+          if (runtime.identity().userId !== owner) return
+          const snapshot = runtime.get(id)
+          if (snapshot && snapshot.status === 'IN_PROGRESS' && snapshot.writer && snapshot.writer.writerToken) await runtime.release(id)
+        } catch (error) { /* 未确认的草稿保留到下一次联网 */ }
+      }
+    }).catch(() => {})
+  },
+
+  watchPendingPractice() {
+    if (this.practiceWatch) clearTimeout(this.practiceWatch)
+    if (this.appVisible === false) return
+    this.practiceWatch = setTimeout(async () => {
+      const runtime = onlinePractice.current()
+      if (runtime && runtime.queue) {
+        try {
+          const ids = Array.from(new Set(runtime.queue.sessionIds().concat(runtime.waitingIds())))
+          const eligible = ids.filter((id) => {
+            if (id === runtime.activeId) return false
+            if (runtime.getWaiting(id)) return true
+            const snapshot = runtime.get(id)
+            return snapshot && snapshot.status === 'IN_PROGRESS' && snapshot.writer && snapshot.writer.writerToken && snapshot.writer.deviceId === runtime.deviceId()
+          })
+          const start = (this.practiceCursor || 0) % (eligible.length || 1)
+          const count = Math.min(4, eligible.length)
+          for (let offset = 0; offset < count; offset += 1) {
+            if (this.appVisible === false) break
+            const id = eligible[(start + offset) % eligible.length]
+            const waiting = runtime.getWaiting(id)
+            const writer = await runtime.poll(id)
+            if (waiting && writer && writer.state === 'ACTIVE' && writer.writerToken && !(waiting.writer && waiting.writer.writerToken)) {
+              wx.showToast({ title: '上次练习已完成同步，可继续答题', icon: 'none' })
+            }
+            if (!waiting && writer && writer.pendingDeviceId) await runtime.release(id)
+          }
+          this.practiceCursor = (start + count) % (eligible.length || 1)
+        } catch (error) { /* 草稿与等待状态保留，下一次联网重试 */ }
+      }
+      this.watchPendingPractice()
+    }, 15000 + Math.floor(Math.random() * 3000))
   },
 
   /**
@@ -35,6 +104,10 @@ App({
 
   onUnhandledRejection(res) {
     console.error(`[trace] 未处理的 Promise 拒绝：${res && res.reason ? res.reason : res}`)
+  },
+
+  getLoadingMetrics() {
+    return require('./utils/loading-metrics.js').snapshot()
   },
 
   setPendingSubjectId(subjectId) {

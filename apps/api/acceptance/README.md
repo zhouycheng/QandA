@@ -1,6 +1,6 @@
 # 后端接口验收
 
-当前 `1.0.0` 合同包含 110 个操作，聚合入口为 [`../contracts/openapi.yaml`](../contracts/openapi.yaml)，9 个模块合同引用其中的共享模型。合同从运行中的 Controller 和 DTO 导出；实际 HTTP 观察另行验证路径、参数、请求体、状态、响应媒体、全部响应头值和响应体。
+当前 `1.0.0` 合同包含 118 个操作，聚合入口为 [`../contracts/openapi.yaml`](../contracts/openapi.yaml)，9 个模块合同引用其中的共享模型。合同从运行中的 Controller 和 DTO 导出；实际 HTTP 观察另行验证路径、参数、请求体、状态、响应媒体、全部响应头值和响应体。
 
 ## Maven 验收
 
@@ -13,7 +13,7 @@ node apps/api/scripts/backend.mjs verify
 
 `test` 执行单元测试；`verify` 还执行 Testcontainers PostgreSQL 和 Mailpit 的 HTTP 验收，并通过打包后的 JAR 检查数据库初始化与交互式首管创建。测试数据库均为临时隔离容器，测试结束后删除。
 
-验收覆盖注册和资料、身份隔离、内容权限、发布导入、不可变修订、推荐与课程收藏、两种练习反馈、并发保存和交卷、简答自评、错题掌握、反馈处理、公告、上海日期边界和安全策略。命令行验收使用真实 PTY 输入随机首管凭据，并检查重复初始化、重复首管创建、运行模式与数据库名称保护。
+验收覆盖注册和资料、身份隔离、内容权限、发布导入、不可变修订、推荐与课程收藏、两种练习反馈、并发保存和交卷、离线快照、跨设备写入交接、简答自评、错题掌握、反馈处理、公告、上海日期边界和安全策略。命令行验收使用真实 PTY 输入随机首管凭据，并检查重复初始化、重复首管创建、运行模式与数据库名称保护。
 
 默认运行证据位于忽略目录 `.backend-runtime/verification/`：
 
@@ -25,6 +25,8 @@ node apps/api/scripts/backend.mjs verify
 | `spec-validation.json` | 全部合同文档结构校验 |
 | `http-schema-validation.json` | 逐次 HTTP Schema 校验 |
 | `operation-coverage.json` | 逐操作成功观察与 Schema 状态 |
+| `miniapp-live.json` | 真实小程序请求层、Repository、ViewModel 对接临时 PostgreSQL 与 HTTP 的练习闭环 |
+| `practice-sync-observation.json` | 4 题练习 30 次串行保存的响应大小、进程 CPU 与用时观察 |
 
 已注册、实际成功观察、Schema 通过是不同证据。台账依据当前运行文件生成，缺少记录时显示未观察；不会依据接口存在自动声称验收通过。构建报告位于 `target/surefire-reports/` 和 `target/failsafe-reports/`。
 

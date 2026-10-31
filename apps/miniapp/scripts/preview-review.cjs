@@ -15,6 +15,7 @@ const OUT_DIR = path.join(ROOT, '.tmp-preview')
 const STAGE_W = 402
 const STAGE_H = 874
 const NAV_H = 91
+const header = require('../miniprogram/utils/home-header.js').getInitialHomeHeaderData({ statusBarHeight: 47 }, { top: 51, height: 32 })
 
 const requireMP = (relative) => require(path.join(MP, relative))
 const read = (relative) => fs.readFileSync(path.join(MP, relative), 'utf8')
@@ -93,7 +94,7 @@ const progress = {
 
 const storageData = {
   [DAILY_LOG_STORAGE_KEY]: dailyLog,
-  [AUTH_STORAGE_KEY]: buildEmailAuth({ email: 'tiezhu@qq.com', nickname: '铁柱', college: '计算机科学与技术学院' }),
+  [AUTH_STORAGE_KEY]: buildEmailAuth({ userId: 'preview-user', token: 'preview-token', email: 'preview@example.com', nickname: '小同学', college: '计算机科学与技术学院' }),
   qandaProgress: progress,
   qandaStudyTime: { totalSeconds: 10800, sessionCount: 12 }
 }
@@ -129,6 +130,7 @@ const favoriteIds = tapIds.concat(upIds).slice(0, 11)
 favoriteIds.forEach((id) => repository.addQuestionFavorite(storage, id))
 
 const reviewData = new StatsViewModel({ storage }).load().data
+const guestReviewData = new StatsViewModel({ storage: { get: () => null } }).load().data
 const wrongVm = new WrongBookViewModel({ storage })
 const favoriteVm = new WrongBookViewModel({ storage })
 const wrongData = wrongVm.load({ type: 'wrong' }).data
@@ -140,6 +142,8 @@ const PREVIEW_BASE = `
 .stage { height: ${STAGE_H}px; }
 /* 预览里 100vh 是浏览器窗口而不是 402x874 画板，页面的 min-height:100vh 必须按画板重算 */
 .stage .list-page { min-height: ${STAGE_H}px; }
+.stage .review-page-locked { height: ${STAGE_H}px; }
+.stage .review-login { border: 0; }
 /* 底栏与「开始练习」都是 position:fixed，预览里要相对画板，否则会横穿整个看板 */
 .stage .tabbar-wrap { position: absolute; bottom: 0; }
 .stage .wb-footer { position: absolute; }
@@ -149,7 +153,7 @@ const PREVIEW_BASE = `
 `
 
 function buildCss(pageWxss, pageDir) {
-  const app = read('app.wxss').replace(/^page\s*\{/m, 'body {')
+  const app = read('app.wxss').replace(/^page(?=\s*[,\{])/gm, 'body')
   const page = inlineImports(read(pageWxss), pageDir)
   const tabBar = read('custom-tab-bar/index.wxss')
 
@@ -194,14 +198,15 @@ function reviewStage(data) {
     .join('')
 
   return `
-  <div class="nav" style="background:#F4F5F9"></div>
-  <div class="list-page review-page">
-    <div class="page-head">
+  <div class="list-page review-page ${data.requiresLogin ? 'review-page-locked' : ''}" style="padding-top:${header.homeStatusBarHeight}px">
+    <div class="page-head" style="height:${header.homeNavigationBarHeight}px">
       <div class="page-head-main">
         <span class="page-head-title">复盘</span>
-        <span class="review-sub">${data.identity.subtitle}</span>
       </div>
     </div>
+    <div class="review-stage">
+    <div class="review-content ${data.requiresLogin ? 'is-locked' : ''}">
+    <span class="review-sub">${data.identity.subtitle}</span>
 
     <div class="segmented">
       ${data.rangeOptions.map((option) => `<div class="seg ${data.range === option.value ? 'seg-active' : ''}">${option.label}</div>`).join('')}
@@ -236,6 +241,14 @@ function reviewStage(data) {
     ? `<img class="trend-chart" src="${data.trend.dataUri}" />`
     : '<div class="chart-empty"><span>这段时间还没有练习记录，做一套题就有曲线了</span></div>'}
     </div>
+    </div>
+    </div>
+    ${data.requiresLogin ? `<div class="review-access" style="padding-top:calc(${32 * STAGE_W / 750}px + ${header.homeStatusBarHeight + header.homeNavigationBarHeight}px)">
+      <div class="review-lock"><div class="mi-icon mi-lock"></div></div>
+      <span class="review-access-title">登录后查看学习复盘</span>
+      <span class="review-access-desc">查看学习趋势，回顾错题与收藏</span>
+      <button class="review-login">登录查看复盘</button>
+    </div>` : ''}
   </div>
   ${tabbar('review')}`
 }
@@ -279,7 +292,7 @@ function bookStage(data) {
       </div>`).join('')
 
   return `
-  <div class="nav" style="background:#F5F6FA"><span class="nav-back">‹</span></div>
+  <div class="nav" style="background:#fff"><span class="nav-back">‹</span></div>
   <div class="list-page wb-page">
     <div class="wb-head">
       <div class="wb-head-spacer"></div>
@@ -363,6 +376,7 @@ function tabbar(active) {
 // ---------- 出图 ----------
 
 const stages = [
+  { tag: '游客复盘', css: buildCss('page/stats/index.wxss', 'page/stats'), body: reviewStage(guestReviewData) },
   { tag: '复盘（tab 文案；路由 page/stats）', css: buildCss('page/stats/index.wxss', 'page/stats'), body: reviewStage(reviewData) },
   { tag: '错题本（点复盘页入口卡进入）', css: buildCss('page/wrong-book/index.wxss', 'page/wrong-book'), body: bookStage(wrongData) },
   { tag: '收藏本（同一页面 type=favorite）', css: buildCss('page/wrong-book/index.wxss', 'page/wrong-book'), body: bookStage(favoriteData) }

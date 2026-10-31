@@ -1,5 +1,7 @@
 const practiceRepository = require('../repositories/practice-repository.js')
 const progressRepository = require('../repositories/progress-repository.js')
+const onlinePractice = require('../repositories/online-practice.js')
+const trials = require('../repositories/trial-practice.js')
 const {
   DEFAULT_TEST_DURATION_MINUTES,
   PRACTICE_MODES,
@@ -40,6 +42,72 @@ class PracticeViewModel {
     return getInitialPracticeViewData()
   }
 
+  async loadOnline(options) {
+    this.trial = false
+    this.online = onlinePractice.current()
+    this.ownerId = this.online.identity().userId
+    this.routeOptions = options || {}
+    const snapshot = await this.online.prepare(this.routeOptions)
+    this.routeOptions = Object.assign({}, this.routeOptions, snapshot.route || {})
+    if (snapshot.waiting) {
+      this.waitingId = snapshot.id
+      return { data: { waitingForSync: true, waitingSeconds: 0 } }
+    }
+    this.waitingId = ''
+    this.online.activeId = snapshot.id
+    const quiz = this.online.quiz(snapshot)
+    const restored = this.online.restored(snapshot)
+    this.session = new PracticeSession({ quiz, restored, mode: snapshot.feedback === 'AFTER_FINISH' ? 'test' : (this.routeOptions.mode || 'practice'),
+      config: snapshot.route, durationMinutes: Number(snapshot.route.duration) || DEFAULT_TEST_DURATION_MINUTES, preferences: this.repository.getPreferences(this.storage),
+      favoriteQuestionIds: snapshot.favoriteQuestionIds || [] })
+    this.session.reset()
+    this.session.restore(restored)
+    this.editingLocked = false
+    if (restored.status === SESSION_STATUS.SUBMITTED) {
+      this.session.finish()
+      if (snapshot.result) this.applyOfficialResult(snapshot.result)
+      else if (snapshot.status !== 'SUBMITTED') {
+        const outcome = await this.resolveSubmitOutcome({ data: this.session.getViewData() })
+        return Object.assign({}, outcome, {
+          data: Object.assign(this.session.getViewData(), { waitingForSync: false, editingLocked: false, loadError: '' }),
+          startTimer: false,
+          stopTimer: true
+        })
+      }
+    }
+    return { data: Object.assign(this.session.getViewData(), { waitingForSync: false, editingLocked: false, loadError: '' }), startTimer: this.session.state.isTestMode }
+  }
+
+  async checkWriter() {
+    if (!this.online) return null
+    if (this.repository.getAuth(this.storage).userId !== this.ownerId) {
+      this.editingLocked = true
+      this.session = null
+      return { data: PracticeViewModel.getInitialData(), command: { type: 'navigate', url: '/page/login/index' } }
+    }
+    if (this.session && this.session.state.isCompleted) return null
+    const id = this.waitingId || (this.session && this.session.meta.sessionId)
+    if (!id) return null
+    const writer = await this.online.poll(id)
+    if (!writer) return null
+    if (this.waitingId) {
+      if (writer.state === 'ACTIVE' && writer.writerToken) return this.loadOnline(Object.assign({}, this.routeOptions, { sessionId: id }))
+      return null
+    }
+    if (writer.pendingDeviceId) {
+      this.editingLocked = true
+      this.persistSession(true)
+      if (await this.online.release(id)) return { data: { editingLocked: true }, command: { type: 'returnBankDetail' } }
+      return { data: { editingLocked: true, submitError: '正在同步并交接练习，请保持联网' } }
+    }
+    if (writer.state === 'RELEASED') return this.loadOnline(Object.assign({}, this.routeOptions, { sessionId: id }))
+    if (!writer.writerToken) {
+      this.editingLocked = true
+      return { data: { editingLocked: true, submitError: '此练习已在其他设备继续' } }
+    }
+    return null
+  }
+
   /**
    * 载入练习。两条路径：
    * - 恢复：URL 带 sessionId，或带 resume=1，且仓储里确实有一份未提交的会话；
@@ -49,6 +117,11 @@ class PracticeViewModel {
    * 再用 questionIds + questionOrder 还原题序——这样题库更新后也不会读到脏题。
    */
   load(options) {
+    if (onlinePractice.current()) {
+      const route = options || {}
+      const savedTrial = route.sessionId && trials.get(this.storage, route.sessionId)
+      return savedTrial || !this.repository.getAuth(this.storage).loggedIn ? this.loadTrial(route) : this.loadOnline(route)
+    }
     const normalizedOptions = options || {}
     const saved = this.readSavedSession(normalizedOptions)
     const effectiveOptions = saved ? this.optionsFromConfig(saved.config) : normalizedOptions
@@ -100,6 +173,26 @@ class PracticeViewModel {
       startTimer: !!baseResult.startTimer,
       stopTimer: true
     }
+  }
+
+  async loadTrial(options) {
+    this.online = null
+    this.trial = true
+    this.routeOptions = options
+    let snapshot
+    try { snapshot = await trials.prepare(this.storage, options) } catch (error) {
+      if (error.code === 'TRIAL_LIMIT') return { data: { loadError: error.message }, command: { type: 'trialLogin' } }
+      throw error
+    }
+    this.routeOptions = snapshot.route
+    const restored = trials.restored(snapshot)
+    this.session = new PracticeSession({ quiz: trials.quiz(snapshot), restored, config: snapshot.route, mode: snapshot.route.mode || 'practice', durationMinutes: Number(snapshot.route.duration) || DEFAULT_TEST_DURATION_MINUTES, preferences: this.repository.getPreferences(this.storage) })
+    this.session.reset()
+    this.session.restore(restored)
+    if (restored.status === SESSION_STATUS.SUBMITTED) this.session.finish()
+    this.session.updateSyncStatus(SYNC_STATUS.LOCAL_ONLY)
+    this.session.state.trialNotice = `游客试答 · 记录保存在本机 · 剩余 ${trials.remaining(this.storage)} 次`
+    return { data: Object.assign(this.session.getViewData(), { loadError: '' }), startTimer: this.session.state.isTestMode && !this.session.state.isCompleted }
   }
 
   /** 读取可恢复的会话。取不到或已提交一律返回 null，走新建路径 */
@@ -215,6 +308,7 @@ class PracticeViewModel {
       return null
     }
 
+    if (this.online || this.trial) return this.load(Object.assign({}, this.routeOptions, { sessionId: '', resume: '' }))
     const result = this.session.reset()
 
     // 「再练一次」是一轮新练习，立即覆盖掉上一份会话
@@ -281,6 +375,8 @@ class PracticeViewModel {
       return null
     }
 
+    if (this.online || this.trial) return { command: { type: 'navigate', url: `/page/practice/index?bankId=${encodeURIComponent(this.routeOptions.bankId)}&mode=practice&ids=${encodeURIComponent(ids.join(','))}` } }
+
     this.repository.saveCustomQuiz(this.storage, ids, '错题重练')
 
     return {
@@ -300,6 +396,7 @@ class PracticeViewModel {
   }
 
   autoSubmit() {
+    if (this.editingLocked) return null
     if (!this.session) {
       return null
     }
@@ -308,6 +405,7 @@ class PracticeViewModel {
   }
 
   selectOption(selectedIndex) {
+    if (this.editingLocked) return null
     if (!this.session) {
       return null
     }
@@ -315,7 +413,44 @@ class PracticeViewModel {
     return this.withPersistence(this.session.selectOption(selectedIndex))
   }
 
+  setAnswerText(text) {
+    if (!this.session || this.editingLocked) return null
+    const result = this.session.setAnswerText(text)
+    try { this.persistSession(true) } catch (error) { return Object.assign({}, result, { submitOk: false, submitError: error.message }) }
+    return result
+  }
+
+  assessShortAnswer(value) {
+    if (!this.session || this.editingLocked) return null
+    const result = this.session.assessShortAnswer(value)
+    try { this.persistSession(true) } catch (error) { return Object.assign({}, result, { submitOk: false, submitError: error.message }) }
+    return result
+  }
+
+  async assessResult(questionId, value) {
+    if (this.trial && this.session && this.session.state.isCompleted) {
+      if (!['CORRECT', 'WRONG'].includes(value)) return null
+      const index = this.session.state.questions.findIndex(question => question.id === questionId && question.isShortAnswer)
+      const answer = this.session.state.answers[index]
+      if (!answer) return null
+      answer.selfAssessment = value
+      answer.isCorrect = value === 'CORRECT'
+      this.session.finish()
+      this.persistSession(true)
+      return { data: this.session.getViewData() }
+    }
+    if (!this.online || !this.session || !this.session.state.isCompleted) return null
+    const snapshot = this.online.get(this.session.meta.sessionId)
+    const item = snapshot.items.find(row => row.question.id === questionId)
+    if (!item || item.question.type !== 'SHORT_ANSWER') return null
+    const result = await this.online.assess(snapshot.id, item.itemId, value)
+    require('../repositories/remote-data-repository.js').invalidateLearning()
+    this.applyOfficialResult(result)
+    return this.session.setResultFilter(this.session.state.resultFilter)
+  }
+
   toggleFavoriteQuestion() {
+    if (this.trial) return { command: { type: 'toast', title: '登录后可在正式练习中收藏题目' } }
     if (!this.session) {
       return null
     }
@@ -324,12 +459,21 @@ class PracticeViewModel {
 
     if (result && result.saveFavorite) {
       const payload = result.saveFavorite
-
-      if (payload.value) {
-        this.repository.addQuestionFavorite(this.storage, payload.id)
-      } else {
-        this.repository.removeQuestionFavorite(this.storage, payload.id)
-      }
+      const saved = payload.value ? this.repository.addQuestionFavorite(this.storage, payload.id) : this.repository.removeQuestionFavorite(this.storage, payload.id)
+      if (saved && saved.then) return saved.then(() => {
+        if (this.online) {
+          const snapshot = this.online.get(this.session.meta.sessionId)
+          snapshot.favoriteQuestionIds = this.session.state.favoriteQuestionIds.slice()
+          this.online.put(snapshot.id, snapshot)
+        }
+        return { data: this.session.getViewData(), value: payload.value }
+      }, error => {
+        const ids = this.session.state.favoriteQuestionIds.filter(id => id !== payload.id)
+        if (!payload.value) ids.push(payload.id)
+        const current = this.session.getCurrentBaseQuestion()
+        this.session.updateState({ favoriteQuestionIds: ids, isCurrentQuestionFavorite: !!current && ids.indexOf(current.id) >= 0 })
+        throw error
+      })
     }
 
     return result
@@ -337,14 +481,16 @@ class PracticeViewModel {
 
   /** 标记 / 取消标记：纯会话内状态，随 session 落盘，不额外写其它 storage */
   toggleMarkQuestion() {
+    if (this.editingLocked) return null
     if (!this.session) {
       return null
     }
 
-    return this.session.toggleMarkQuestion()
+    return this.withPersistence(this.session.toggleMarkQuestion())
   }
 
   goNext() {
+    if (this.editingLocked) return null
     if (!this.session) {
       return null
     }
@@ -353,6 +499,7 @@ class PracticeViewModel {
   }
 
   goPrev() {
+    if (this.editingLocked) return null
     if (!this.session) {
       return null
     }
@@ -361,6 +508,7 @@ class PracticeViewModel {
   }
 
   submit() {
+    if (this.editingLocked) return null
     if (!this.session) {
       return null
     }
@@ -369,6 +517,7 @@ class PracticeViewModel {
   }
 
   forceSubmit() {
+    if (this.editingLocked) return null
     if (!this.session) {
       return null
     }
@@ -401,6 +550,7 @@ class PracticeViewModel {
   }
 
   jumpToQuestion(index) {
+    if (this.editingLocked) return null
     if (!this.session) {
       return null
     }
@@ -504,10 +654,17 @@ class PracticeViewModel {
       return
     }
 
+    if (this.trial) { trials.save(this.storage, this.session); return }
     if (this.session.state.isViewMode) {
       return
     }
 
+    if (this.online) {
+      const snapshot = this.online.get(this.session.meta.sessionId)
+      if (snapshot && snapshot.status === 'SUBMITTED') return
+      this.online.save(this.session)
+      return
+    }
     const state = this.session.getPersistedState()
     const cursor = [
       state.currentIndex,
@@ -527,6 +684,11 @@ class PracticeViewModel {
   /** 页面退出（onHide / onUnload）时强制落盘，防止最后一步操作丢 */
   saveSessionNow() {
     this.persistSession(true)
+    if (this.online && this.session) {
+      this.online.activeId = ''
+      if (this.session.state.isCompleted) return Promise.resolve()
+      return this.online.flush(this.session.meta.sessionId)
+    }
   }
 
   /**
@@ -539,7 +701,39 @@ class PracticeViewModel {
    * 这里统一成 Promise，联调时调用方一行都不用改（PRD 12）。
    * 同步网关（Mock 的 latencyMs=0）只是被包了一层微任务，用户无感知。
    */
+  applyOfficialResult(official) {
+    const state = this.session.state
+    const resultFilter = state.resultFilter
+    const items = new Map(official.items.map(item => [item.question.id, item]))
+    state.answers = state.questions.map((question, index) => {
+      const item = items.get(question.id)
+      if (!item) return state.answers[index] || null
+      if (!item.answer) return null
+      return {
+        questionId: question.id,
+        selectedKeys: item.answer.optionKeys || (item.answer.value === null || item.answer.value === undefined ? [] : [String(item.answer.value)]),
+        text: item.answer.text || '',
+        confirmed: item.confirmed,
+        selfAssessment: item.selfAssessment || null,
+        isCorrect: item.question.type === 'SHORT_ANSWER' ? item.selfAssessment === 'CORRECT' : item.outcome === 'CORRECT'
+      }
+    })
+    state.unansweredCount = this.session.getUnansweredIndexes(state.answers).length
+    this.session.finish()
+    this.session.state.correctCount = official.objective.correct
+    this.session.state.score = official.objective.count ? Math.round(official.objective.accuracy * 100) : 0
+    this.session.setResultFilter(resultFilter)
+  }
+
   resolveSubmitOutcome(result) {
+    if (this.trial) return this.applySubmitOutcome(result, { ok: true, syncStatus: SYNC_STATUS.LOCAL_ONLY })
+    if (this.online) {
+      return this.online.finish(this.session).then((official) => {
+        require('../repositories/remote-data-repository.js').invalidateLearning()
+        this.applyOfficialResult(official)
+        return this.applySubmitOutcome(result, { ok: true, syncStatus: SYNC_STATUS.SYNCED })
+      }).catch(error => this.applySubmitOutcome(result, { ok: false, syncStatus: SYNC_STATUS.SYNC_PENDING, reason: error.message }))
+    }
     const submit = this.repository.submitSession
     const outcome = typeof submit === 'function'
       ? submit(this.storage, {
@@ -580,6 +774,8 @@ class PracticeViewModel {
    * 「重试成功」只能这样模拟，等价于网络恢复后重发一次。
    */
   retrySubmit() {
+    if (this.trial && this.session) return this.resolveSubmitOutcome({ data: this.session.getViewData() })
+    if (this.online && this.session) return this.resolveSubmitOutcome({ data: this.session.getViewData() })
     if (!this.session || typeof this.repository.retrySubmit !== 'function') {
       return null
     }
@@ -616,17 +812,20 @@ class PracticeViewModel {
   }
 
   withPersistence(result) {
+    if (this.editingLocked) return { data: { editingLocked: true } }
     // 交卷这一步会走网关，返回 Promise；其余步骤仍是同步结果
     if (result && result.data && result.data.isCompleted) {
       return this.resolveSubmitOutcome(result)
     }
 
-    this.persistSession()
-
+    try { this.persistSession() } catch (error) {
+      return Object.assign({}, result, { submitOk: false, submitError: error.message })
+    }
     return this.withSideEffects(result)
   }
 
   withSideEffects(result) {
+    if (this.online || this.trial) return result
     if (result && result.saveBestScore) {
       this.storage.set(result.saveBestScore.key, result.saveBestScore.value)
     }
@@ -672,7 +871,13 @@ class PracticeViewModel {
       return null
     }
 
-    return this.session.resumeStudy()
+    const preferences = this.repository.getPreferences(this.storage)
+    this.session.preferences = preferences
+    this.session.state.preferences = preferences
+    this.session.state.layoutRanks = require('../utils/practice-layout.js').ranks(preferences.moduleOrder)
+    if (this.online && this.session) this.online.activeId = this.session.meta.sessionId
+    this.session.resumeStudy()
+    return { data: this.session.getViewData() }
   }
 }
 

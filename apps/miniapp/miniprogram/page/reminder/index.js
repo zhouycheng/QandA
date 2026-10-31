@@ -1,6 +1,7 @@
+const { withPageLifecycle } = require('../../utils/page-lifecycle.js')
 const { ReminderViewModel } = require('../../viewmodels/reminder-viewmodel.js')
 const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
-Page({
+Page(withPageLifecycle({
   data: ReminderViewModel.getInitialData(),
 
   onLoad() {
@@ -117,4 +118,4 @@ Page({
       })
     }
   }
-})
+}))

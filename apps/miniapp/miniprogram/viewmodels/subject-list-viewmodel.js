@@ -68,15 +68,17 @@ function getInitialSubjectListViewData() {
     exam: buildExamCountdown(null),
     // 四宫格上显示的计数 / 状态徽标
     entries: STUDY_ENTRIES.map((item) => Object.assign({}, item, { badge: '', disabled: false })),
-    // 公告弹层（内容取 home.tip，按学习状态推导，不是写死的一篇）
+    announcements: [],
+    hasAnnouncements: false,
     announcementSheetVisible: false,
-    // 题目搜索（完全本地，不依赖后端）
+    // 题目搜索
     searchVisible: false,
     searchKeyword: '',
     searchResults: [],
     searchLoading: false,
     searchSearched: false,
     searchResultCount: 0,
+    searchHasMore: false,
     // 搜索面板空态文案：题库总数用于「在全部 N 道题里查」
     searchTotalText: '',
     routeLoadingVisible: false,
@@ -90,6 +92,26 @@ class SubjectListViewModel {
     const normalizedOptions = options || {}
     this.repository = normalizedOptions.repository || practiceRepository
     this.storage = normalizedOptions.storage || null
+    this.searchPage = 0
+    this.searchResults = []
+    this.searchText = ''
+  }
+
+  refreshRemote(options) {
+    if (!this.repository.isRemoteEnabled || !this.repository.isRemoteEnabled()) return Promise.resolve(null)
+    return this.repository.refreshRemote(this.storage, 'home', options).then(() => ({ data: this.projectRemote() })).catch(() => ({ data: this.projectRemote() }))
+  }
+
+  projectRemote() {
+    const data = this.load().data
+    const result = {}
+    ;['overall', 'home', 'exam', 'entries', 'announcements', 'hasAnnouncements', 'lastPractice', 'searchTotalText'].forEach(key => { result[key] = data[key] })
+    if (this.repository.getRemoteResourceState) {
+      const overview = this.repository.getRemoteResourceState('overview')
+      result.overviewLoading = overview.status === 'loading' && !overview.data
+      result.overviewError = overview.error
+    }
+    return result
   }
 
   static getInitialData() {
@@ -100,6 +122,13 @@ class SubjectListViewModel {
     const subjects = this.repository.getSubjectSummaries()
     const progress = this.repository.getProgress(this.storage)
     const overallStats = summarizeOverallProgress(progress, subjects)
+    const overview = this.repository.isRemoteEnabled && this.repository.isRemoteEnabled() && this.repository.getRemoteOverview(this.storage)
+    if (overview) {
+      Object.assign(overallStats, { answered: overview.answeredCount, correct: overview.correctCount, total: overview.totalCount,
+        accuracy: overview.answeredCount ? Math.round(overview.correctCount / overview.answeredCount * 100) : 0,
+        accuracyText: `${overview.answeredCount ? Math.round(overview.correctCount / overview.answeredCount * 100) : 0}%`,
+        progressPercent: overview.totalCount ? Math.min(100, Math.round(overview.answeredCount / overview.totalCount * 100)) : 0 })
+    }
     const wrongSummary = this.getWrongBookSummary()
     const studyTime = this.getStudyTime()
     const preferences = this.getPreferences()
@@ -118,12 +147,13 @@ class SubjectListViewModel {
     }
 
     const lastPractice = this.buildLastPractice(progress)
+    const announcements = this.repository.getRemoteAnnouncements ? this.repository.getRemoteAnnouncements(this.storage) : []
 
     return {
       data: Object.assign(getInitialSubjectListViewData(), {
         overall: Object.assign({}, overallStats, {
-          subjectCount: subjects.length,
-          bankCount: subjects.reduce((total, subject) => total + (subject.bankCount || 0), 0)
+          subjectCount: overview ? overview.subjectCount : subjects.length,
+          bankCount: overview ? overview.bankCount : subjects.reduce((total, subject) => total + (subject.bankCount || 0), 0)
         }),
         home: Object.assign({}, buildHomeContent(summary), {
           wrongCount: wrongSummary.pending,
@@ -131,7 +161,9 @@ class SubjectListViewModel {
         }),
         exam: buildExamCountdown({ examName: preferences.examName, examDate: preferences.examDate }),
         entries: this.buildEntries(lastPractice),
-        searchTotalText: overallStats.total > 0 ? `在全部 ${overallStats.total} 道题里查题干与选项` : '题库还是空的，先去导入或切换题库',
+        announcements,
+        hasAnnouncements: this.repository.getRemoteAnnouncementTotal ? this.repository.getRemoteAnnouncementTotal(this.storage) > 0 : announcements.length > 0,
+        searchTotalText: overallStats.total > 0 ? `在全部 ${overallStats.total} 道题里查题干与选项` : '输入关键词搜索已发布的题目',
         lastPractice
       })
     }
@@ -174,6 +206,7 @@ class SubjectListViewModel {
   }
 
   getFavoriteCount() {
+    if (this.repository.isRemoteEnabled && this.repository.isRemoteEnabled()) return (this.repository.getRemoteOverview(this.storage) || {}).favoriteCount || 0
     if (typeof this.repository.getFavoriteIds !== 'function' || typeof this.repository.getFavorites !== 'function') {
       return 0
     }
@@ -187,6 +220,10 @@ class SubjectListViewModel {
 
   /** 错题本汇总；仓储未提供对应方法时退化为空，保证首页仍能渲染 */
   getWrongBookSummary() {
+    if (this.repository.isRemoteEnabled && this.repository.isRemoteEnabled()) {
+      const summary = this.repository.getRemoteOverview(this.storage) || {}
+      return { pending: summary.wrongCount || 0, mastered: summary.masteredCount || 0, total: (summary.wrongCount || 0) + (summary.masteredCount || 0) }
+    }
     if (!this.repository.getWrongBook || !this.repository.summarizeWrongBook) {
       return { pending: 0, mastered: 0, total: 0 }
     }
@@ -220,6 +257,11 @@ class SubjectListViewModel {
   }
 
   buildResumablePractice() {
+    if (this.repository.isRemoteEnabled && this.repository.isRemoteEnabled()) {
+      const recent = this.repository.getRemoteRecent(this.storage).find((item) => item.status === 'IN_PROGRESS')
+      if (recent) { const meta = this.repository.getScopeMeta(recent.questionBankId || recent.bankId); return { resumed: true, scopeKey: recent.questionBankId || recent.bankId, title: meta ? meta.title : recent.title || '继续练习', description: meta ? meta.description : '', url: `/page/practice/index?sessionId=${recent.id}`, metaText: this.repository.getAuth(this.storage).loggedIn ? '云端练习 · 继续答题' : '本机试答 · 继续答题' } }
+      return null
+    }
     if (typeof this.repository.getResumableSession !== 'function') {
       return null
     }
@@ -326,13 +368,15 @@ class SubjectListViewModel {
 
   /** 「待复习错题」格 → 错题本 */
   openWrongBook() {
+    return this.openPersonalPage('/page/wrong-book/index?tab=wrong')
+  }
+
+  openPersonalPage(url) {
     return {
       command: {
         type: 'openRouteWithLoading',
         payload: {
-          url: '/page/wrong-book/index?tab=wrong',
-          title: '正在打开错题本',
-          description: '读取待复习题目'
+          url: this.repository.getAuth(this.storage).loggedIn ? url : '/page/login/index'
         }
       }
     }
@@ -368,16 +412,7 @@ class SubjectListViewModel {
     }
 
     if (key === 'favorite') {
-      return {
-        command: {
-          type: 'openRouteWithLoading',
-          payload: {
-            url: '/page/wrong-book/index?tab=favorite',
-            title: '正在打开收藏',
-            description: '读取已收藏题目'
-          }
-        }
-      }
+      return this.openPersonalPage('/page/wrong-book/index?tab=favorite')
     }
 
     if (key === 'recent') {
@@ -395,7 +430,23 @@ class SubjectListViewModel {
    * 最近练习：有半场会话就直接续做；只有历史进度时提示去题库，
    * 不硬造一个「重新开始」——用户点「最近练习」期待的是接着上次，不是重来。
    */
-  openRecent() {
+  openRecent(loaded) {
+    if (this.repository.isRemoteEnabled && this.repository.isRemoteEnabled()) {
+      if (!loaded) return this.repository.refreshRemote(this.storage, 'recent').then(() => this.openRecent(true))
+      const recent = this.repository.getRemoteRecent(this.storage)
+      const runtime = require('../repositories/online-practice.js').current()
+      const waiting = runtime && this.repository.getAuth(this.storage).loggedIn ? runtime.waitingIds().map(id => { const record = runtime.getWaiting(id); return record ? Object.assign({ id }, record) : null }).filter(Boolean) : []
+      if (waiting.length) {
+        const choices = waiting.map(item => ({ id: item.id, label: item.writer && item.writer.writerToken ? '同步完成 · 继续答题' : '等待同步 · 查看进度' }))
+        recent.filter(item => !choices.some(choice => choice.id === item.id)).forEach(item => {
+          const meta = this.repository.getScopeMeta(item.questionBankId)
+          choices.push({ id: item.id, label: `${item.status === 'SUBMITTED' ? '结果' : '继续'} · ${meta ? meta.title : '练习'} · ${(item.createdAt || '').slice(0, 10)}` })
+        })
+        return { command: { type: 'choosePractice', choices } }
+      }
+      const record = recent.find((item) => item.status === 'IN_PROGRESS') || recent.find((item) => item.status === 'SUBMITTED')
+      if (record) return this.openPractice(`/page/practice/index?sessionId=${encodeURIComponent(record.id)}`, record.status === 'SUBMITTED' ? '查看练习结果' : '继续练习')
+    }
     const lastPractice = this.buildLastPractice(this.repository.getProgress(this.storage))
 
     if (lastPractice && lastPractice.resumed && lastPractice.url) {
@@ -427,12 +478,17 @@ class SubjectListViewModel {
    * - 题量：抽 MOCK_EXAM_QUESTION_COUNT 道，不够就按整科全量
    * - 时长：每题 1 分钟，向上取整到 5 分钟，保底 MOCK_EXAM_MIN_MINUTES 分钟
    */
-  openMock() {
-    const subjectId = this.resolveMockSubjectId()
+  openMock(selectedBankId, loaded) {
+    if (this.repository.isRemoteEnabled && this.repository.isRemoteEnabled() && !loaded) {
+      if (!selectedBankId) return this.loadRemoteMock()
+      return this.repository.loadRemoteBank(this.storage, selectedBankId).then(() => this.openMock(selectedBankId, true))
+    }
+    const selected = selectedBankId && this.repository.getSubjectSummaries().find(subject => subject.banks.some(bank => bank.id === selectedBankId))
+    const subjectId = selected ? selected.id : this.resolveMockSubjectId()
     const empty = {
       command: {
         type: 'toast',
-        title: '题库还是空的，先去题库导入'
+        title: '当前没有可练习题库'
       }
     }
 
@@ -440,7 +496,12 @@ class SubjectListViewModel {
       return empty
     }
 
-    const total = this.countSubjectQuestions(subjectId)
+    const online = this.repository.isRemoteEnabled && this.repository.isRemoteEnabled()
+    const detail = online ? this.repository.getSubjectDetail(subjectId) : null
+    const banks = detail ? detail.banks.filter((item) => item.questionCount > 0) : []
+    if (online && banks.length > 1 && !selectedBankId) return { command: { type: 'chooseBank', banks, subjectId } }
+    const bank = banks.find((item) => item.id === selectedBankId) || banks[0]
+    const total = online ? (bank ? bank.questionCount : 0) : this.countSubjectQuestions(subjectId)
 
     if (!total) {
       return empty
@@ -450,7 +511,7 @@ class SubjectListViewModel {
     const duration = resolveMockDuration(count)
     const query = [
       `subjectId=${encodeURIComponent(subjectId)}`,
-      'scope=subject',
+      online ? `bankId=${encodeURIComponent(bank.id)}` : 'scope=subject',
       'mode=test',
       `count=${encodeURIComponent(count)}`,
       `duration=${encodeURIComponent(duration)}`,
@@ -467,6 +528,39 @@ class SubjectListViewModel {
         }
       }
     }
+  }
+
+  async loadRemoteMock() {
+    let subjectPage = 1
+    let subjectResult = await this.repository.loadRemoteSubjects(this.storage, { page: subjectPage })
+    if (!subjectResult) return { command: { type: 'toast', title: '题库加载失败，请检查网络后重试' } }
+    const preferredSubjectId = this.resolveMockSubjectId()
+    const checkedSubjects = new Set()
+    while (subjectResult) {
+      const subjects = this.repository.getSubjectSummaries()
+      const candidates = [preferredSubjectId].concat(subjects.filter(subject => Number(subject.questionCount) > 0).map(subject => subject.id))
+      for (const subjectId of candidates) {
+        if (!subjectId || checkedSubjects.has(subjectId)) continue
+        checkedSubjects.add(subjectId)
+        let bankPage = 1
+        let bankResult = await this.repository.loadRemoteBanks(this.storage, { subjectId, page: bankPage })
+        while (bankResult) {
+          const bank = bankResult.items.find(item => item.subjectId === subjectId && Number(item.activeQuestionCount === undefined ? item.questionCount : item.activeQuestionCount) > 0)
+          if (bank) {
+            await this.repository.loadRemoteBank(this.storage, bank.id)
+            return this.openMock(bank.id, true)
+          }
+          if (bankPage * bankResult.pageSize >= bankResult.total) break
+          bankPage += 1
+          bankResult = await this.repository.loadRemoteBanks(this.storage, { subjectId, page: bankPage })
+        }
+        if (!bankResult) return { command: { type: 'toast', title: '题库加载失败，请检查网络后重试' } }
+      }
+      if (subjectPage * subjectResult.pageSize >= subjectResult.total) break
+      subjectPage += 1
+      subjectResult = await this.repository.loadRemoteSubjects(this.storage, { page: subjectPage })
+    }
+    return { command: { type: 'toast', title: '当前没有可练习题库' } }
   }
 
   /** 模拟考试用哪科：上次练过优先，否则题库第一个科目 */
@@ -489,7 +583,7 @@ class SubjectListViewModel {
   countSubjectQuestions(subjectId) {
     try {
       const quiz = this.repository.getSubjectQuiz(subjectId)
-      return (quiz && quiz.questions) ? quiz.questions.length : 0
+      return quiz ? Number(quiz.questionCount) || (quiz.questions || []).length : 0
     } catch (error) {
       return 0
     }
@@ -504,17 +598,20 @@ class SubjectListViewModel {
 
   // ---------- 公告 ----------
 
-  /**
-   * 公告内容就是 home.tip，由 buildHomeContent 按学习状态推导：
-   * 有错题 → 催复习；有进度 → 报剩余；全新用户 → 引导上手。
-   * 首页不再单独算一份文案，避免弹层与卡片口径不一致。
-   */
   openAnnouncement() {
     return {
       data: {
         announcementSheetVisible: true
       }
     }
+  }
+
+  loadAnnouncements(page) {
+    return this.repository.refreshRemote(this.storage, 'announcements', { page: page || 1 }).then(() => ({ data: {
+      announcements: this.repository.getRemoteAnnouncements(this.storage),
+      announcementPage: page || 1,
+      announcementHasMore: this.repository.getRemoteAnnouncements(this.storage).length < this.repository.getRemoteAnnouncementTotal(this.storage)
+    } }))
   }
 
   closeAnnouncement() {
@@ -536,9 +633,13 @@ class SubjectListViewModel {
   }
 
   closeSearch() {
+    this.searchText = ''
+    this.searchRequestRevision = (this.searchRequestRevision || 0) + 1
     return {
       data: {
         searchVisible: false,
+        searchHasMore: false,
+        searchLoading: false,
         searchKeyword: '',
         searchResults: [],
         searchSearched: false,
@@ -547,12 +648,10 @@ class SubjectListViewModel {
     }
   }
 
-  /**
-   * 搜索题目：纯本地。
-   * 首页是 tabBar 主页面，不能因为搜索把整卷加载出来，也不能依赖后端。
-   */
+  /** 在线按关键词分页检索；本地开发场景复用索引自检。 */
   searchQuestions(keyword) {
     const text = questionSearch.normalizeKeyword(keyword)
+    if (this.repository.isRemoteEnabled && this.repository.isRemoteEnabled()) return this.searchRemote(text, 1)
 
     if (!text) {
       return {
@@ -586,6 +685,21 @@ class SubjectListViewModel {
     }
   }
 
+  searchRemote(text, page) {
+    const revision = (this.searchRequestRevision || 0) + 1
+    this.searchRequestRevision = revision
+    if (!text) { this.searchText = ''; this.searchResults = []; this.searchPage = 0; return { data: { searchKeyword: '', searchResults: [], searchLoading: false, searchSearched: false, searchResultCount: 0, searchHasMore: false } } }
+    if (page === 1) { this.searchText = text; this.searchResults = [] }
+    return this.repository.searchRemoteQuestions(this.storage, text, page).then((result) => {
+      if (text !== this.searchText || revision !== this.searchRequestRevision) return null
+      this.searchResults = page === 1 ? result.items : this.searchResults.concat(result.items)
+      this.searchPage = page
+      return { data: { searchKeyword: text, searchResults: this.searchResults, searchLoading: false, searchSearched: true, searchResultCount: result.total, searchHasMore: this.searchResults.length < result.total } }
+    })
+  }
+
+  loadMoreSearch() { return this.searchRemote(this.searchText, this.searchPage + 1) }
+
   openSearchResult(questionId) {
     if (!questionId) {
       return null
@@ -603,18 +717,9 @@ class SubjectListViewModel {
     }
   }
 
-  /** 倒计时卡未设置时点进去就是设置页的倒计时分组 */
+  /** 登录后管理考试倒计时。 */
   openExamSettings() {
-    return {
-      command: {
-        type: 'openRouteWithLoading',
-        payload: {
-          url: '/page/settings/index?focus=exam',
-          title: '正在打开设置',
-          description: '设置考试倒计时'
-        }
-      }
-    }
+    return this.openPersonalPage('/page/exam-countdown/index')
   }
 
   getShareMessage() {

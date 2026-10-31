@@ -11,7 +11,7 @@
       class="mode {{inputMode === item.value ? 'mode-on' : ''}}"
       hover-class="chip-flat-hover"
       hover-start-time="0"
-      hover-stay-time="240"
+      hover-stay-time="80"
       data-mode="{{item.value}}"
       bindtap="handleModeTap"
     >
@@ -39,7 +39,7 @@
         class="link"
         hover-class="ghost-flat-hover"
         hover-start-time="0"
-        hover-stay-time="240"
+        hover-stay-time="80"
         bindtap="handleCopyTemplate"
       >复制表头</text>
     </view>
@@ -58,7 +58,7 @@
         class="link"
         hover-class="ghost-flat-hover"
         hover-start-time="0"
-        hover-stay-time="240"
+        hover-stay-time="80"
         bindtap="handleClearText"
       >清空</text>
     </view>
@@ -72,7 +72,7 @@
       class="pick"
       hover-class="btn-flat-hover"
       hover-start-time="0"
-      hover-stay-time="240"
+      hover-stay-time="80"
       bindtap="handlePickFile"
     >选择文件（.csv / .txt / .json）</view>
     <text wx:if="{{sourceName}}" class="picked">已选：{{sourceName}}</text>
@@ -118,7 +118,7 @@
     class="submit {{canImport ? '' : 'submit-off'}}"
     hover-class="btn-flat-hover"
     hover-start-time="0"
-    hover-stay-time="240"
+    hover-stay-time="80"
     bindtap="handleImport"
   >导入题库</view>
 
@@ -134,7 +134,7 @@
       class="row"
       hover-class="row-hover"
       hover-start-time="0"
-      hover-stay-time="240"
+      hover-stay-time="80"
       data-bank-id="{{item.bankId}}"
       bindtap="handleOpenBank"
     >
@@ -146,7 +146,7 @@
         class="row-del"
         hover-class="ghost-flat-hover"
         hover-start-time="0"
-        hover-stay-time="240"
+        hover-stay-time="80"
         data-bank-id="{{item.bankId}}"
         catchtap="handleRemoveBank"
       >删除</text>

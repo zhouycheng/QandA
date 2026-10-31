@@ -7,6 +7,7 @@
  */
 
 const PREFERENCE_STORAGE_KEY = 'qandaPreferences'
+const { DEFAULT_ORDER, normalizeOrder } = require('./practice-layout.js')
 
 const FONT_SIZE_OPTIONS = [
   { value: 'small', label: '小' },
@@ -14,26 +15,7 @@ const FONT_SIZE_OPTIONS = [
   { value: 'large', label: '大' }
 ]
 
-/**
- * 题干与选项的先后顺序。
- * 平板 / 横屏或习惯先看选项的人可以反过来，答题页按这个值调整 flex order，
- * 不改 DOM 顺序（改顺序会重排滚动容器，滚动位置会跳）。
- */
-const ANSWER_LAYOUT_OPTIONS = [
-  { value: 'below', label: '选项在下' },
-  { value: 'above', label: '选项在上' }
-]
-
-/**
- * 发音音色：题库当前没有音频内容，先把选项与存储位留好，
- * 接入音频后只需在答题页读取取值，界面不用再改。
- */
-const VOICE_OPTIONS = [
-  { value: 'standard', label: '标准女声' },
-  { value: 'gentle', label: '温柔女声' },
-  { value: 'steady', label: '沉稳男声' }
-]
-
+// 模块顺序通过 flex order 应用，保持题目节点与滚动位置稳定。
 const DEFAULT_PREFERENCES = {
   // 答题后是否直接展开解析：关闭后只看对错与正确答案，解析留到回顾页
   autoShowExplanation: true,
@@ -48,9 +30,7 @@ const DEFAULT_PREFERENCES = {
   // 用户很难把它和「点击动效」区分开。想开的人可在「我的 · 学习偏好」里打开。
   vibrateOnAnswer: false,
   fontSize: 'normal',
-  voice: 'standard',
-  // 题干与选项的顺序：below = 题干在上、选项在下（默认），above = 反过来
-  answerLayout: 'below',
+  moduleOrder: DEFAULT_ORDER,
   // 考试倒计时：首页卡片用。空字符串 = 未设置，卡片退化成「去设置」引导
   examName: '',
   examDate: ''
@@ -93,25 +73,11 @@ const PREFERENCE_CHOICES = [
     description: '影响题干、选项与解析的字号',
     options: FONT_SIZE_OPTIONS,
     available: true
-  },
-  {
-    key: 'answerLayout',
-    label: '自定义布局',
-    description: '先看题干还是先看选项，答题页即时生效',
-    options: ANSWER_LAYOUT_OPTIONS,
-    available: true
-  },
-  {
-    key: 'voice',
-    label: '发音音色',
-    description: '朗读题目与选项的音色，接入音频后生效',
-    options: VOICE_OPTIONS,
-    available: false
   }
 ]
 
 function cloneDefaultPreferences() {
-  return Object.assign({}, DEFAULT_PREFERENCES)
+  return Object.assign({}, DEFAULT_PREFERENCES, { moduleOrder: DEFAULT_ORDER.slice() })
 }
 
 function isBoolean(value) {
@@ -140,13 +106,8 @@ function normalizePreferences(rawPreferences) {
       return
     }
 
-    if (key === 'answerLayout') {
-      next[key] = pickOptionValue(ANSWER_LAYOUT_OPTIONS, value, DEFAULT_PREFERENCES[key])
-      return
-    }
-
-    if (key === 'voice') {
-      next[key] = pickOptionValue(VOICE_OPTIONS, value, DEFAULT_PREFERENCES[key])
+    if (key === 'moduleOrder') {
+      next[key] = normalizeOrder(value, raw.answerLayout)
       return
     }
 
@@ -249,14 +210,12 @@ function describeChoiceLabel(preferences, key) {
 }
 
 module.exports = {
-  ANSWER_LAYOUT_OPTIONS,
   DEFAULT_PREFERENCES,
   FONT_SIZE_OPTIONS,
   PREFERENCE_CHOICES,
   PREFERENCE_STORAGE_KEY,
   PREFERENCE_SWITCHES,
   TEXT_PREFERENCE_KEYS,
-  VOICE_OPTIONS,
   buildPreferenceView,
   cloneDefaultPreferences,
   describeChoiceLabel,

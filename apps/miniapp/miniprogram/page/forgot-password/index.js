@@ -1,3 +1,5 @@
+const navigation = require('../../utils/navigation.js')
+const { withPageLifecycle } = require('../../utils/page-lifecycle.js')
 const { ForgotPasswordViewModel } = require('../../viewmodels/forgot-password-viewmodel.js')
 const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
 const cooldown = require('../../utils/cooldown.js')
@@ -5,7 +7,7 @@ const cooldown = require('../../utils/cooldown.js')
 const TOAST_DELAY = 120
 
 // cooldown 字段的初始值由 cooldown 模块给出，与注册页同一套处理
-Page({
+Page(withPageLifecycle({
   data: Object.assign(ForgotPasswordViewModel.getInitialData(), cooldown.getInitialCooldownData()),
 
   onLoad() {
@@ -150,9 +152,9 @@ Page({
 
     if (command.type === 'navigate' && command.url) {
       // 重置成功后回登录页，且不要留下「找回密码」这一层
-      wx.redirectTo({
+      navigation.redirectTo({
         url: command.url,
-        fail: () => wx.reLaunch({ url: command.url })
+        fail: () => navigation.reLaunch({ url: command.url })
       })
 
       if (command.title) {
@@ -168,11 +170,11 @@ Page({
   goLogin() {
     wx.navigateBack({
       fail: () => {
-        wx.redirectTo({
+        navigation.redirectTo({
           url: '/page/login/index',
-          fail: () => wx.reLaunch({ url: '/page/login/index' })
+          fail: () => navigation.reLaunch({ url: '/page/login/index' })
         })
       }
     })
   }
-})
+}))

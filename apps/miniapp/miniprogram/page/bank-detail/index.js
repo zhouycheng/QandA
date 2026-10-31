@@ -1,8 +1,10 @@
+const navigation = require('../../utils/navigation.js')
+const { withPageLifecycle } = require('../../utils/page-lifecycle.js')
 const { BankDetailViewModel } = require('../../viewmodels/bank-detail-viewmodel.js')
 const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
-const ROUTE_LOADING_DELAY = 240
 
-Page({
+Page(withPageLifecycle({
+  customHeader: true,
   data: BankDetailViewModel.getInitialData(),
 
   isOpeningPractice: false,
@@ -18,8 +20,6 @@ Page({
   onShow() {
     this.isOpeningPractice = false
     this.syncTabBar()
-    // 兜底：上次若是「弹层没关就跳走」，回来时底栏必须还在
-    this.setTabBarHidden(false)
 
     // 题库是 tabBar 页面，拿不到 URL 参数：首页点科目时把 subjectId
     // 暂存在全局数据里，这里取走；取不到就沿用上次浏览的科目。
@@ -27,6 +27,11 @@ Page({
     const pendingSubjectId = app && app.consumePendingSubjectId
       ? app.consumePendingSubjectId()
       : ''
+
+    this.applyViewModelResult(this.viewModel.refreshRemote(pendingSubjectId || this.data.subjectId).then(result => {
+      this.applyViewModelResult(result)
+      return this.viewModel.restorePendingPractice()
+    }))
 
     if (!this.hasLoadedOnce) {
       this.hasLoadedOnce = true
@@ -60,22 +65,7 @@ Page({
     }
   },
 
-  /**
-   * 弹层打开时收起底栏。
-   * 答题配置抽屉底部的「开始答题」原本会被底栏压着，自定义 tabBar 是独立图层，
-   * 页面内弹层躲不开，只能让它先让位。
-   */
-  setTabBarHidden(hidden) {
-    if (typeof this.getTabBar !== 'function') {
-      return
-    }
-
-    const tabBar = this.getTabBar()
-
-    if (tabBar && typeof tabBar.setHidden === 'function') {
-      tabBar.setHidden(hidden)
-    }
-  },
+  noop() {},
 
   onShareAppMessage() {
     return this.viewModel.getShareMessage(this.data.subjectId)
@@ -98,19 +88,35 @@ Page({
     }
 
     this.applyViewModelResult(this.viewModel.switchSubject(subjectId))
+    this.applyViewModelResult(this.viewModel.refreshRemote(subjectId))
   },
 
+  handleBanksMore() { return this.applyViewModelResult(this.viewModel.loadMoreBanks()) },
+  handleSubjectsMore() { return this.applyViewModelResult(this.viewModel.loadMoreSubjects()) },
+  handleRetryLoad() { return this.applyViewModelResult(this.viewModel.refreshRemote(this.data.subjectId, { force: true })) },
+  onPullDownRefresh() { return this.handleRetryLoad().finally(() => wx.stopPullDownRefresh()) },
+  onUnload() { clearTimeout(this.searchTimer) },
+
   handleImportTap() {
-    wx.navigateTo({
-      url: '/page/import-bank/index'
-    })
+    wx.showToast({ title: '题库由平台统一维护', icon: 'none' })
   },
 
   /**
-   * 搜索是纯本地过滤，逐字触发。回写的 searchKeyword 是去掉首尾空格后的值，
-   * 直接 setData 会在用户敲空格时把光标拽回行尾，所以只回写结果、不动输入框。
+   * 输入原文由页面保存，搜索结果按请求关键词更新，保持光标位置。
    */
   handleSearchInput(e) {
+    if (this.viewModel.repository.isRemoteEnabled && this.viewModel.repository.isRemoteEnabled()) {
+      clearTimeout(this.searchTimer)
+      const keyword = e.detail.value
+      this.viewModel.remoteSearchText = keyword.trim()
+      this.setData({ searchKeyword: keyword, searchLoading: !!keyword.trim(), searchActive: !!keyword.trim() })
+      this.searchTimer = setTimeout(() => {
+        Promise.resolve(this.viewModel.updateSearch(keyword)).then(result => this.applyViewModelResult(result))
+          .catch(error => { if (this.viewModel.remoteSearchText === keyword.trim()) this.setData({ searchEmptyText: error.message }) })
+          .finally(() => { if (this.viewModel.remoteSearchText === keyword.trim()) this.setData({ searchLoading: false }) })
+      }, 250)
+      return
+    }
     const result = this.viewModel.updateSearch(e.detail.value)
 
     if (!result || !result.data) {
@@ -131,8 +137,16 @@ Page({
   },
 
   handleSearchClear() {
+    clearTimeout(this.searchTimer)
     this.setData({ searchKeyword: '' })
     this.applyViewModelResult(this.viewModel.clearSearch())
+  },
+
+  handleSearchMore() {
+    if (this.data.searchLoading || !this.data.searchHasMore) return
+    this.setData({ searchLoading: true })
+    return this.applyViewModelResult(this.viewModel.updateSearch(this.viewModel.remoteSearchText, (this.viewModel.remoteSearchPage || 1) + 1))
+      .finally(() => this.setData({ searchLoading: false }))
   },
 
   handleFilterToggle() {
@@ -209,6 +223,9 @@ Page({
   },
 
   applyViewModelResult(result) {
+    if (result && typeof result.then === 'function') {
+      return result.then((value) => this.applyViewModelResult(value)).catch((error) => wx.showToast({ title: error.message || '请求失败', icon: 'none' }))
+    }
     if (!result) {
       return
     }
@@ -216,11 +233,6 @@ Page({
     if (result.data) {
       this.setData(result.data)
 
-      // 抽屉的显示由 ViewModel 决定（打开/取消/确认三条路径都会下发），
-      // 这里跟着它的值同步底栏显隐，不用在每个处理函数里各写一遍。
-      if (result.data.configSheetVisible !== undefined) {
-        this.setTabBarHidden(!!result.data.configSheetVisible)
-      }
     }
 
     if (result.command) {
@@ -228,7 +240,30 @@ Page({
     }
   },
 
+  chooseBank(command, offset) {
+    const banks = command.banks || []
+    if (!banks.length && command.hasMore) return this.applyViewModelResult(this.viewModel.loadBankChoices(command.subjectId, command.remotePage + 1))
+    if (!banks.length) return wx.showToast({ title: '当前没有可练习题库', icon: 'none' })
+    const start = offset || 0
+    const page = banks.slice(start, start + 5)
+    const more = banks.length > 5 || command.hasMore || command.remotePage > 1
+    wx.showActionSheet({
+      itemList: page.map((bank) => bank.name).concat(more ? ['更多题库'] : []),
+      success: (result) => {
+        if (result.tapIndex === page.length) {
+          if (start + 5 < banks.length) return this.chooseBank(command, start + 5)
+          if (command.remotePage) return this.applyViewModelResult(this.viewModel.loadBankChoices(command.subjectId, command.hasMore ? command.remotePage + 1 : 1))
+          return this.chooseBank(command, 0)
+        }
+        const bank = page[result.tapIndex]
+        if (bank) this.applyViewModelResult(this.viewModel.openBankConfig(command.subjectId, bank.id))
+      }
+    })
+  },
+
   handleViewModelCommand(command) {
+    if (command.type === 'chooseBank') return this.chooseBank(command, 0)
+
     // 题库是 tabBar 页面，没有可返回的上一页，出错时只用 toast 提示
     if (command.type === 'toast') {
       wx.showToast({
@@ -245,25 +280,6 @@ Page({
 
   openRouteWithLoading(payload) {
     const detail = payload || {}
-    this.isOpeningPractice = true
-    // 加载遮罩也是 fixed 浮层，同样会被底栏压在下面，一并收起
-    this.setTabBarHidden(true)
-    this.setData({
-      routeLoadingVisible: true,
-      routeLoadingTitle: detail.title || '正在打开',
-      routeLoadingDescription: detail.description || ''
-    })
-
-    setTimeout(() => {
-      wx.navigateTo({
-        url: detail.url,
-        complete: () => {
-          this.setTabBarHidden(false)
-          this.setData({
-            routeLoadingVisible: false
-          })
-        }
-      })
-    }, ROUTE_LOADING_DELAY)
+    return navigation.navigateTo({ url: detail.url })
   }
-})
+}))

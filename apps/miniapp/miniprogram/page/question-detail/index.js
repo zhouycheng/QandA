@@ -1,6 +1,7 @@
+const { withPageLifecycle } = require('../../utils/page-lifecycle.js')
 const { QuestionDetailViewModel } = require('../../viewmodels/question-detail-viewmodel.js')
 const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
-Page({
+Page(withPageLifecycle({
   data: QuestionDetailViewModel.getInitialData(),
 
   onLoad(options) {
@@ -8,6 +9,7 @@ Page({
       storage: createWxStorageAdapter()
     })
     this.applyViewModelResult(this.viewModel.load(options))
+    this.applyViewModelResult(this.viewModel.refreshRemote(options))
   },
 
   handleToggleFavorite() {
@@ -15,6 +17,9 @@ Page({
   },
 
   applyViewModelResult(result) {
+    if (result && typeof result.then === 'function') {
+      return result.then((value) => this.applyViewModelResult(value)).catch((error) => wx.showToast({ title: error.message || '请求失败', icon: 'none' }))
+    }
     if (!result) {
       return
     }
@@ -23,4 +28,4 @@ Page({
       this.setData(result.data)
     }
   }
-})
+}))

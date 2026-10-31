@@ -12,5 +12,8 @@ Component({
       type: String,
       value: ''
     }
+  },
+  methods: {
+    noop() { return false }
   }
 })

@@ -88,8 +88,11 @@ function collectAnsweredIds(progress) {
 
 function getInitialStatsViewData() {
   return {
+    requiresLogin: true,
+    statsLoading: false,
+    statsError: '',
     identity: {
-      subtitle: '学习记录只存本机'
+      subtitle: '登录后同步学习记录'
     },
     entries: getInitialEntries(),
     // 区间切换：7d / 30d / all
@@ -149,11 +152,35 @@ class StatsViewModel {
     this.cache = null
   }
 
+  refreshRemote(options) {
+    if (!this.repository.getAuth(this.storage).loggedIn) return Promise.resolve(this.load())
+    if (!this.repository.isRemoteEnabled || !this.repository.isRemoteEnabled()) return Promise.resolve(null)
+    this.statsError = ''
+    return this.repository.refreshRemote(this.storage, 'stats', Object.assign({}, options, { period: this.range === '7d' ? 'WEEK' : this.range === '30d' ? 'MONTH' : 'ALL' }))
+      .then(() => ({ data: this.projectRemote() })).catch(error => { this.statsError = error.message; return { data: this.projectRemote() } })
+  }
+
+  projectRemote() {
+    const data = this.load().data
+    if (data.requiresLogin) return data
+    if (this.repository.getRemoteResourceState) {
+      const state = this.repository.getRemoteResourceState('statistics', { period: this.range === '7d' ? 'WEEK' : this.range === '30d' ? 'MONTH' : 'ALL' })
+      data.statsLoading = state.status === 'loading' && !state.data
+      data.statsError = state.error || this.statsError || ''
+    }
+    return data
+  }
+
   static getInitialData() {
     return getInitialStatsViewData()
   }
 
   load() {
+    if (!this.repository.getAuth(this.storage).loggedIn) {
+      this.cache = null
+      this.range = '7d'
+      return { data: Object.assign(getInitialStatsViewData(), { activity: this.buildActivity(getRecentDays({}, HEATMAP_DAYS)) }) }
+    }
     const progress = this.repository.getProgress(this.storage)
     const details = this.repository.getSubjectSummaries()
       .map((subject) => this.repository.getSubjectDetail(subject.id))
@@ -165,18 +192,29 @@ class StatsViewModel {
     const overall = summarizeOverallProgress(progress, details)
     const days = this.getRecentPoints()
 
+    const serverStatistics = this.repository.isRemoteEnabled && this.repository.isRemoteEnabled() && this.repository.getRemoteStatistics(this.storage)
+    if (serverStatistics) { overall.answered = serverStatistics.answeredCount; overall.accuracy = Math.round(serverStatistics.objectiveAccuracy * 100) }
     this.cache = { overall, days, studySeconds: Number(studyTime.totalSeconds) || 0 }
 
     const favorites = this.repository.getFavorites(this.storage)
+    const overview = this.repository.isRemoteEnabled && this.repository.isRemoteEnabled() && this.repository.getRemoteOverview(this.storage)
+    const entries = this.buildEntries(wrongBook, favorites, progress)
+    if (overview) {
+      entries.wrong.value = String(overview.wrongCount)
+      entries.wrong.caption = overview.wrongCount ? '待复习的题目' : '还没有错题'
+      entries.favorite.value = String(overview.favoriteCount)
+      entries.favorite.caption = overview.favoriteCount ? '查看收藏与练习状态' : '还没有收藏'
+    }
 
     return {
       data: Object.assign(getInitialStatsViewData(), {
+        requiresLogin: false,
         identity: this.buildIdentity(),
         overall,
-        wrongCount: getPendingIds(wrongBook).length,
-        masteredCount: getMasteredIds(wrongBook).length,
-        favoriteCount: countFavorites(favorites),
-        entries: this.buildEntries(wrongBook, favorites, progress),
+        wrongCount: overview ? overview.wrongCount : getPendingIds(wrongBook).length,
+        masteredCount: overview ? overview.masteredCount : getMasteredIds(wrongBook).length,
+        favoriteCount: overview ? overview.favoriteCount : countFavorites(favorites),
+        entries,
         studyTimeText: formatStudyDuration(studyTime.totalSeconds),
         activity: this.buildActivity(days)
       }, this.buildRangeView())
@@ -220,6 +258,7 @@ class StatsViewModel {
 
   /** 切换区间：只重算三个数字与趋势图，热力图与身份不重算 */
   setRange(value) {
+    if (!this.repository.getAuth(this.storage).loggedIn) return null
     const matched = RANGE_OPTIONS.find((option) => option.value === value)
 
     if (!matched || matched.value === this.range) {
@@ -259,6 +298,10 @@ class StatsViewModel {
    * 因为日志只留半年，拿它算「累计」会漏掉更早的记录。
    */
   buildMetrics(option, cache) {
+    if (this.repository.isRemoteEnabled && this.repository.isRemoteEnabled()) {
+      const statistics = this.repository.getRemoteStatistics(this.storage, option.days === 7 ? 'WEEK' : option.days === 30 ? 'MONTH' : 'ALL')
+      return { answered: `${statistics && statistics.answeredCount || 0}`, accuracy: `${Math.round((statistics && statistics.objectiveAccuracy || 0) * 100)}`, duration: `${Math.floor((statistics && statistics.durationSeconds || 0) / 60)}` }
+    }
     if (option.days > 0) {
       const window = cache.days.slice(-option.days)
       const answered = window.reduce((sum, day) => sum + day.answered, 0)
@@ -308,7 +351,7 @@ class StatsViewModel {
         subtitle: view.college ? `${view.college} · ${name}` : name
       }
     } catch (error) {
-      return { subtitle: '学习记录只存本机' }
+      return { subtitle: '登录后同步学习记录' }
     }
   }
 

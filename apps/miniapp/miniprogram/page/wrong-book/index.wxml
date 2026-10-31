@@ -2,6 +2,8 @@
      同一份结构承载两种模式：type=wrong 进错题本，type=favorite 进收藏本（由 ViewModel 决定文案与口径）。
      返回用系统导航栏的返回钮（页内不再自绘，避免双层返回栏）；页内只留「居中标题 + 管理」。 -->
 <view class="list-page wb-page">
+  <view class="load-note" wx:if="{{collectionLoading}}">正在读取列表…</view>
+  <view class="load-note" wx:if="{{collectionError}}" bindtap="handleRetryLoad" hover-class="chip-flat-hover" hover-start-time="0" hover-stay-time="80">{{collectionError}} · 点击重试</view>
   <view class="wb-head">
     <view class="wb-head-spacer"></view>
     <text class="wb-title">{{title}}</text>
@@ -10,7 +12,7 @@
       bindtap="handleManageTap"
       hover-class="wb-manage-hover"
       hover-start-time="0"
-      hover-stay-time="240"
+      hover-stay-time="80"
     >{{manage ? '完成' : '管理'}}</view>
   </view>
 
@@ -55,7 +57,7 @@
         bindtap="handleSubjectMenuTap"
         hover-class="filter-hover"
         hover-start-time="0"
-        hover-stay-time="240"
+        hover-stay-time="80"
       >
         <text class="filter-strong">{{subjectFilterText}}</text>
         <view class="filter-caret"></view>
@@ -67,7 +69,7 @@
         bindtap="handleSortTap"
         hover-class="filter-hover"
         hover-start-time="0"
-        hover-stay-time="240"
+        hover-stay-time="80"
       >
         <view class="filter-sort-icon"></view>
         <text class="filter-weak">{{sortText}}</text>
@@ -85,7 +87,7 @@
           bindtap="handleSubjectPick"
           hover-class="subject-option-hover"
           hover-start-time="0"
-          hover-stay-time="240"
+          hover-stay-time="80"
         >{{item.name}}</view>
       </view>
     </view>
@@ -101,7 +103,7 @@
       bindtap="handleChipTap"
       hover-class="chip-hover"
       hover-start-time="0"
-      hover-stay-time="240"
+      hover-stay-time="80"
     >{{item.text}}</view>
   </view>
 
@@ -115,7 +117,7 @@
       bindtap="handleItemTap"
       hover-class="q-card-hover"
       hover-start-time="0"
-      hover-stay-time="240"
+      hover-stay-time="80"
     >
       <view class="q-accent {{item.badgeTone}}"></view>
       <view class="q-body">
@@ -128,7 +130,7 @@
             catchtap="handleRemoveTap"
             hover-class="q-remove-hover"
             hover-start-time="0"
-            hover-stay-time="240"
+            hover-stay-time="80"
           >移除</view>
           <view class="q-chevron" wx:else></view>
         </view>
@@ -142,7 +144,7 @@
     </view>
   </view>
 
-  <view class="wb-empty" wx:if="{{!items.length}}">
+  <view class="wb-empty" wx:if="{{!items.length && !collectionLoading && !collectionError}}">
     <text class="wb-empty-text">{{emptyText}}</text>
   </view>
 
@@ -153,7 +155,7 @@
       bindtap="handlePrevPage"
       hover-class="pager-btn-hover"
       hover-start-time="0"
-      hover-stay-time="240"
+      hover-stay-time="80"
     >‹</view>
     <text class="pager-text">{{pageText}}</text>
     <text class="pager-index">{{page}} / {{pageCount}}</text>
@@ -162,7 +164,7 @@
       bindtap="handleNextPage"
       hover-class="pager-btn-hover"
       hover-start-time="0"
-      hover-stay-time="240"
+      hover-stay-time="80"
     >›</view>
   </view>
 
@@ -173,7 +175,7 @@
       bindtap="handleFooterTap"
       hover-class="wb-footer-hover"
       hover-start-time="0"
-      hover-stay-time="240"
+      hover-stay-time="80"
     >{{manage ? (type === 'wrong' ? '清空错题本' : '清空收藏') : footerText}}</view>
     <text class="wb-footer-hint">{{footerHint}}</text>
   </view>

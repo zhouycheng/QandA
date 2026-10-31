@@ -4,5 +4,5 @@
   "navigationBarTextStyle": "black",
   "backgroundColor": "#FFFFFF",
   "backgroundTextStyle": "dark",
-  "usingComponents": {}
+  "usingComponents": { "bottom-sheet": "/components/bottom-sheet/index" }
 }

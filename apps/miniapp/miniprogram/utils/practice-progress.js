@@ -147,6 +147,7 @@ function summarizeSubjectProgress(progress, subject) {
   if (!subject) {
     return summarizeAnswers({}, 0)
   }
+  if (subject.progress) return summarizeCounts(subject.progress, subject.questionCount)
 
   const bankIds = (subject.banks || []).map((bank) => bank.id)
   // 科目自身的 scope（整科抽题 / 模拟测试）也并入，题目 id 天然去重
@@ -161,8 +162,17 @@ function summarizeBankProgress(progress, bank) {
   }
 
   const entry = progress[bank.id]
-
+  if (bank.progress || entry && typeof entry.answeredCount === 'number') return summarizeCounts(bank.progress || entry, bank.questionCount)
   return summarizeAnswers(entry ? entry.answers : {}, bank.questionCount)
+}
+
+function summarizeCounts(counts, total) {
+  const answered = Number(counts.answeredCount) || 0
+  const correct = Number(counts.correctCount) || 0
+  const accuracy = answered ? Math.round(correct / answered * 100) : 0
+  return { total, answered, correct, wrong: Number(counts.wrongCount) || 0, accuracy, accuracyText: `${accuracy}%`,
+    progressPercent: total ? Math.min(100, Math.round(answered / total * 100)) : 0,
+    answeredText: `${answered} / ${total}`, hasProgress: answered > 0, totalText: `${total} 题` }
 }
 
 /**

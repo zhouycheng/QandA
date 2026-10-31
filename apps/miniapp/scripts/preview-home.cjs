@@ -21,7 +21,7 @@ function rpxToPx(css) {
 
 /** 组件 wxss 里没有变量定义，变量来自 app.wxss 的 page 选择器 */
 function combineCss() {
-  const app = read('app.wxss').replace(/^page\s*\{/m, 'body {')
+  const app = read('app.wxss').replace(/^page(?=\s*[,\{])/gm, 'body')
   const home = read('page/subject-list/index.wxss')
   const tabbar = read('custom-tab-bar/index.wxss')
   const sheet = read('components/bottom-sheet/index.wxss')
@@ -42,6 +42,8 @@ const coverUri = `data:image/jpeg;base64,${fs
   .readFileSync(path.join(MP, COVER_BY_DAY_PART[getDayPart(Date.now())].replace(/^\//, '')))
   .toString('base64')}`
 const liveGreeting = getGreetingText(Date.now())
+const { getInitialHomeHeaderData } = require(path.join(MP, 'utils/home-header.js'))
+const headerData = getInitialHomeHeaderData({ statusBarHeight: 44 }, { top: 50, height: 32 })
 
 /** 从页面 wxss 里取四宫格图标的 data URI（和线上用的是同一份） */
 const homeCss = read('page/subject-list/index.wxss')
@@ -88,6 +90,13 @@ const tabHtml = TABS.map(
  *   node scripts/preview-home.cjs configured|today|past|empty
  */
 const STATE = process.argv[2] || 'configured'
+const { SubjectListViewModel } = require(path.join(MP, 'viewmodels/subject-list-viewmodel.js'))
+const repository = require(path.join(MP, 'repositories/practice-repository.js'))
+const previewAnnouncements = ['notice', 'modal'].includes(STATE)
+  ? [{ id: 'preview', title: '联调公告示例', body: '公告发布后，首页喇叭会持续摇动。点击喇叭即可查看公告全文。' }]
+  : []
+const noticeData = new SubjectListViewModel({ repository: Object.assign({}, repository, { getRemoteAnnouncements: () => previewAnnouncements }) }).load().data
+const megaphoneUri = `data:image/png;base64,${fs.readFileSync(path.join(MP, 'assets/home/announcement-megaphone.png')).toString('base64')}`
 
 const MAIN_BLOCK = {
   configured: `<div class="exam-main">
@@ -105,7 +114,7 @@ const MAIN_BLOCK = {
   empty: `<div class="exam-main exam-main-empty">
             <span class="exam-text">设置考试倒计时</span>
           </div>`
-}[STATE] || ''
+}[['notice', 'modal'].includes(STATE) ? 'configured' : STATE] || ''
 
 const ACTION_TEXT = STATE === 'empty' ? '去设置' : '修改'
 
@@ -118,17 +127,13 @@ const MODAL_HTML = !SHOW_MODAL ? '' : `
     <div class="mask"></div>
     <div class="panel panel-center">
       <div class="panel-header">
-        <span class="panel-title">待复习</span>
+        <span class="panel-title">公告</span>
         <span class="panel-close">关闭</span>
       </div>
       <div class="panel-body">
-        <div class="notice-sheet">
-          <div class="notice-badge"><div class="notice-badge-icon"></div></div>
-          <span class="notice-title">错题本里还有 7 道题没攻克。</span>
-          <span class="notice-body">错题本收录的是你答错或跳过的题目，一共 7 道待复习。
-
-同一道题连续答对 2 次，就会被判定为已攻克，移入「已攻克」列表，不再占用待复习名额。</span>
-          <div class="notice-btn">去复习</div>
+        <div class="notice-sheet portal-theme">
+          <div class="notice-badge"><img class="notice-badge-icon" src="${megaphoneUri}"></div>
+          ${noticeData.announcements.map((item) => `<div class="notice-item"><span class="notice-title">${item.title}</span><span class="notice-body">${item.body}</span></div>`).join('')}
         </div>
       </div>
     </div>
@@ -142,33 +147,29 @@ const html = `<!doctype html>
   body { width: 375px; }
   .stage { position: relative; width: 375px; height: 812px; overflow: hidden; background: #f4f7fb; }
 
-  /* 真机顶部：状态栏 + 导航栏。首页已改成蓝底白字、标题留空（品牌字在 hero 里）。
-     高度按 iPhone 的 44 + 44 取，用来看导航栏和头部渐变有没有色差接缝。 */
-  .chrome { position: absolute; left: 0; right: 0; top: 0; height: 88px;
-            background: #4A7BFB; color: #fff; z-index: 5; }
-  .chrome-status { height: 44px; display: flex; align-items: center;
+  /* 状态栏和系统胶囊叠在自定义页头上，品牌标题与胶囊同行。 */
+  .chrome { position: absolute; left: 0; right: 0; top: 0; height: ${headerData.homeStatusBarHeight + headerData.homeNavigationBarHeight}px;
+            color: #fff; z-index: 5; pointer-events: none; }
+  .chrome-status { height: ${headerData.homeStatusBarHeight}px; display: flex; align-items: center;
                    justify-content: space-between; padding: 0 22px; font-size: 13px; font-weight: 600; }
-  .chrome-bar { height: 44px; display: flex; align-items: center;
+  .chrome-bar { height: ${headerData.homeNavigationBarHeight}px; display: flex; align-items: center;
                 justify-content: flex-end; padding: 0 10px; }
   .capsule { width: 87px; height: 32px; border-radius: 16px;
              border: 1px solid rgba(255, 255, 255, 0.35);
              background: rgba(0, 0, 0, 0.12); }
 
-  .scroller { position: absolute; left: 0; right: 0; top: 88px; bottom: 0; overflow: hidden; }
+  .scroller { position: absolute; left: 0; right: 0; top: 0; bottom: 0; overflow: hidden; }
   .page { min-height: 0; }
 ${combineCss()}
 
   /* 预览专用修正：headless Edge 会把窗口宽度钳到 ~504，position:fixed 于是按那个
      错误的视口宽度铺开（截图却还是 375），底栏会整体右移、第 4 个 tab 跑出画面。
      真机上视口宽度就等于设备宽度，所以这里改成 absolute 对齐 375 宽的舞台即可等价。 */
-  /* .scroller 本身是 absolute，天然就是子元素的包含块，不要再改 relative：
-     改了以后 top:88px 会变成「整体下移 88px」，底栏直接被挤出画面。 */
   .tabbar-wrap { position: absolute !important; }
+  .hero-notice-icon, .notice-badge-icon { object-fit: contain; }
+  .search-input { border: 0; outline: 0; background: transparent; padding: 0; }
 
-  /* 真机上 .bottom-sheet 是 fixed，包含块是整个视口；预览里被迫改成 absolute 后
-     包含块变成 .scroller（从导航栏下方开始），居中的弹窗会整体下移 88px。
-     这里补回导航栏高度，让预览和真机一致。 */
-  .bottom-sheet { position: absolute !important; top: -88px !important; bottom: auto !important; height: 812px; }
+  .bottom-sheet { position: absolute !important; top: 0 !important; bottom: auto !important; height: 812px; }
 </style></head>
 <body><div class="stage">
 <div class="chrome">
@@ -177,14 +178,14 @@ ${combineCss()}
 </div>
 <div class="scroller">
   <div class="page home-page">
-    <div class="hero">
-      <div class="hero-brand">QandA</div>
+    <div class="hero" style="padding-top: ${headerData.homeStatusBarHeight}px;">
+      <div class="hero-navigation" style="height: ${headerData.homeNavigationBarHeight}px;"><div class="hero-brand">QandA</div></div>
       <div class="hero-search">
         <div class="search-box">
           <input class="search-input" placeholder="搜索题目、关键词">
           <div class="search-icon"></div>
         </div>
-        <div class="hero-notice-btn"><div class="hero-notice-icon"></div></div>
+        <div class="hero-notice-btn" role="button" aria-label="查看公告"><img class="hero-notice-icon${noticeData.hasAnnouncements ? ' hero-notice-icon-active' : ''}" src="${megaphoneUri}"><span class="hero-notice-label">公告</span></div>
       </div>
     </div>
 

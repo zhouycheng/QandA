@@ -153,6 +153,52 @@ class BankDetailViewModel {
     this.bankIndex = null
   }
 
+  refreshRemote(subjectId, options) {
+    if (!this.repository.isRemoteEnabled || !this.repository.isRemoteEnabled()) return Promise.resolve(null)
+    if (subjectId) this.currentSubjectId = subjectId
+    return this.repository.refreshRemote(this.storage, 'catalog', Object.assign({}, options, { subjectId: this.currentSubjectId, page: this.remotePage || 1 }))
+      .then(() => ({ data: this.projectRemote() })).catch(() => ({ data: this.projectRemote() }))
+  }
+
+  projectRemote() {
+    const subjects = this.repository.getSubjectSummaries()
+    const id = this.currentSubjectId || (subjects[0] || {}).id
+    const detail = this.repository.getSubjectDetail(id)
+    if (!this.repository.isRemoteEnabled || !this.repository.isRemoteEnabled()) return detail ? this.buildViewData(subjects, detail) : {}
+    const current = this.repository.getRemoteCatalogPage({ subjectId: id, page: this.remotePage || 1 })
+    const ids = new Set()
+    for (let page = 1; page <= (this.remotePage || 1); page += 1) {
+      const cached = this.repository.getRemoteCatalogPage({ subjectId: id, page }).data
+      ;(cached && cached.items || []).forEach(bank => ids.add(bank.id))
+    }
+    const data = detail ? this.buildViewData(subjects, Object.assign({}, detail, { banks: detail.banks.filter(bank => ids.has(bank.id)) })) : { subject: null, subjects: [] }
+    ;['searchKeyword', 'searchActive', 'searchResults', 'searchEmptyText', 'configSheetVisible'].forEach(key => delete data[key])
+    const subjectState = this.repository.getRemoteSubjectPage(this.remoteSubjectPage || 1)
+    const subjectPage = subjectState.data
+    Object.assign(data, { catalogLoading: (current.status === 'loading' || subjectState.status === 'loading') && !ids.size, catalogError: current.error || subjectState.error,
+      catalogHasMore: !!current.data && (this.remotePage || 1) * 20 < current.data.total,
+      subjectsHasMore: !!subjectPage && (this.remoteSubjectPage || 1) * 20 < subjectPage.total })
+    return data
+  }
+
+  loadMoreBanks() {
+    if (this.loadingMoreBanks) return this.loadingMoreBanks
+    const current = this.repository.getRemoteCatalogPage({ subjectId: this.currentSubjectId, page: this.remotePage || 1 })
+    if (!current.error) this.remotePage = (this.remotePage || 1) + 1
+    this.loadingMoreBanks = this.refreshRemote(this.currentSubjectId).finally(() => { this.loadingMoreBanks = null })
+    return this.loadingMoreBanks
+  }
+
+  loadMoreSubjects() {
+    if (this.loadingMoreSubjects) return this.loadingMoreSubjects
+    const current = this.repository.getRemoteSubjectPage(this.remoteSubjectPage || 1)
+    if (!current.error) this.remoteSubjectPage = (this.remoteSubjectPage || 1) + 1
+    this.loadingMoreSubjects = this.repository.loadRemoteSubjects(this.storage, { page: this.remoteSubjectPage })
+      .then(() => ({ data: this.projectRemote() })).catch(() => ({ data: this.projectRemote() }))
+      .finally(() => { this.loadingMoreSubjects = null })
+    return this.loadingMoreSubjects
+  }
+
   static getInitialData() {
     return getInitialBankDetailViewData()
   }
@@ -166,6 +212,7 @@ class BankDetailViewModel {
       this.repository.getSubjectDetail(firstSubjectId)
 
     if (!detail) {
+      if (this.repository.isRemoteEnabled && this.repository.isRemoteEnabled()) return { data: { catalogLoading: true } }
       return {
         command: {
           type: 'toast',
@@ -184,6 +231,7 @@ class BankDetailViewModel {
   }
 
   switchSubject(subjectId) {
+    if (this.currentSubjectId !== subjectId) this.remotePage = 1
     const detail = this.repository.getSubjectDetail(subjectId)
 
     if (!detail) {
@@ -203,7 +251,17 @@ class BankDetailViewModel {
    * 不额外存「最近浏览」，只认真实练习记录（进度表里 updatedAt 最新的那条），
    * 这样它不会变成一个点了没反应、或者和真实学习状态不符的假入口。
    */
-  enterRecent() {
+  enterRecent(loaded) {
+    if (!loaded && this.repository.isRemoteEnabled && this.repository.isRemoteEnabled()) {
+      return this.repository.refreshRemote(this.storage, 'recent').then(async () => {
+        const recent = this.repository.getRemoteRecent(this.storage)[0]
+        if (!recent) return { command: { type: 'toast', title: '还没有练习记录' } }
+        const bank = await this.repository.loadRemoteBank(this.storage, recent.questionBankId)
+        await this.refreshRemote(bank.subjectId)
+        this.railMode = 'recent'
+        return { data: this.projectRemote() }
+      })
+    }
     const subjects = this.repository.getSubjectSummaries()
     const recent = this.resolveRecentSubject(subjects)
     const detail = this.repository.getSubjectDetail(recent ? recent.subjectId : '') ||
@@ -232,6 +290,11 @@ class BankDetailViewModel {
   }
 
   resolveRecentSubject(subjects) {
+    if (this.repository.isRemoteEnabled && this.repository.isRemoteEnabled()) {
+      const recent = this.repository.getRemoteRecent(this.storage)[0]
+      const subject = recent && subjects.find(item => item.banks.some(bank => bank.id === recent.questionBankId))
+      return subject ? { subjectId: subject.id, scopeKey: recent.questionBankId } : null
+    }
     const progress = this.safeProgress()
     const entries = Object.keys(progress)
       .map((key) => ({ key, at: Number(progress[key] && progress[key].updatedAt) || 0 }))
@@ -269,6 +332,7 @@ class BankDetailViewModel {
    * 组装左栏、统计卡、章节列表。
    */
   buildViewData(subjects, detail) {
+    this.currentSubjectId = detail.id
     const progress = this.safeProgress()
     const subjectStats = summarizeSubjectProgress(progress, detail)
     const allRows = (detail.banks || []).map((bank, index) => {
@@ -392,10 +456,26 @@ class BankDetailViewModel {
     return index
   }
 
-  updateSearch(keyword) {
+  updateSearch(keyword, nextPage) {
     const text = String(keyword === undefined || keyword === null ? '' : keyword)
       .trim()
       .slice(0, MAX_KEYWORD_LENGTH)
+
+    if (text && this.repository.isRemoteEnabled && this.repository.isRemoteEnabled()) {
+      this.remoteSearchText = text
+      const pageNumber = nextPage || 1
+      return this.repository.loadRemoteBanks(this.storage, { keyword: text, page: pageNumber }).then(() => {
+        if (this.remoteSearchText !== text) return null
+        const page = this.repository.getRemoteCatalogPage({ keyword: text, page: pageNumber }).data
+        this.remoteSearchPage = pageNumber
+        const rows = (page && page.items || []).map(bank => ({
+          bankId: bank.id, subjectId: bank.subjectId, subjectName: bank.subjectName, title: bank.name, chapterTitle: bank.name, metaText: `${bank.activeQuestionCount} 题`
+        }))
+        this.remoteSearchResults = pageNumber === 1 ? rows : (this.remoteSearchResults || []).concat(rows)
+        return { data: { searchActive: true, searchResults: this.remoteSearchResults, searchHasMore: !!page && page.total > pageNumber * 20, searchEmptyText: page && page.total ? '' : `没有匹配「${text}」的题库` } }
+      })
+    }
+    this.remoteSearchText = ''
 
     if (!text) {
       return {
@@ -462,6 +542,9 @@ class BankDetailViewModel {
    */
   openConfig(target) {
     const normalized = target || {}
+    if (this.repository.isRemoteEnabled && this.repository.isRemoteEnabled() && normalized.type !== 'bank') {
+      return this.loadBankChoices(normalized.subjectId, 1)
+    }
     const detail = this.repository.getSubjectDetail(normalized.subjectId)
     const sheet = Object.assign({}, DEFAULT_SHEET)
 
@@ -501,11 +584,35 @@ class BankDetailViewModel {
   }
 
   openBankConfig(subjectId, bankId) {
+    if (this.repository.isRemoteEnabled && this.repository.isRemoteEnabled()) {
+      return this.repository.loadRemoteBank(this.storage, bankId).then(bank => this.openConfig({ type: 'bank', subjectId: bank.subjectId, bankId }))
+    }
     return this.openConfig({ type: 'bank', subjectId, bankId })
+  }
+
+  async restorePendingPractice() {
+    const pending = this.storage && this.storage.get('qandaPendingPractice')
+    if (!pending || !this.repository.getAuth(this.storage).loggedIn) return null
+    const result = await this.openBankConfig(pending.subjectId, pending.bankId)
+    if (!result || !this.sheetTarget) return null
+    this.sheet.mode = pending.mode === 'test' ? 'test' : pending.mode === 'view' ? 'view' : 'practice'
+    this.sheet.order = pending.mode === 'order' || pending.mode === 'view' ? 'order' : 'random'
+    this.sheet.timed = !!pending.duration || pending.mode === 'test'
+    this.sheet.duration = Number(pending.duration) || DEFAULT_DURATION_MINUTES
+    this.storage.remove('qandaPendingPractice')
+    return this.buildConfigOpenResult()
   }
 
   openSubjectConfig(subjectId) {
     return this.openConfig({ type: 'subject', subjectId })
+  }
+
+  async loadBankChoices(subjectId, page) {
+    const result = await this.repository.loadRemoteBanks(this.storage, { subjectId, page })
+    if (!result) return null
+    const banks = result.items.filter(bank => bank.activeQuestionCount > 0)
+    if (result.total === 1 && banks.length === 1) return this.openBankConfig(subjectId, banks[0].id)
+    return { command: { type: 'chooseBank', subjectId, banks, remotePage: page, hasMore: page * result.pageSize < result.total } }
   }
 
   buildConfigOpenResult() {
@@ -577,7 +684,7 @@ class BankDetailViewModel {
 
   setSheetOnlyWrong(onlyWrong) {
     const target = this.sheetTarget
-    const wrongCount = target ? this.collectWrongIds(target).length : 0
+    const wrongCount = this.wrongCountFor(target)
 
     if (onlyWrong && !wrongCount) {
       // 这一章没有错题：开关不生效，用 toast 说清楚，避免点了没反应
@@ -597,9 +704,19 @@ class BankDetailViewModel {
     }
   }
 
+  wrongCountFor(target) {
+    if (!target) return 0
+    if (this.repository.isRemoteEnabled && this.repository.isRemoteEnabled()) {
+      const detail = this.repository.getSubjectDetail(target.subjectId)
+      const scope = target.type === 'bank' ? detail && detail.banks.find(bank => bank.id === target.bankId) : detail
+      return scope && scope.progress && scope.progress.wrongCount || 0
+    }
+    return this.collectWrongIds(target).length
+  }
+
   buildSheetData() {
     const target = this.sheetTarget
-    const wrongCount = target ? this.collectWrongIds(target).length : 0
+    const wrongCount = this.wrongCountFor(target)
     const isView = this.sheet.mode === 'view'
     const startText = this.sheet.mode === 'test'
       ? '开始测试'
@@ -694,7 +811,8 @@ class BankDetailViewModel {
       title: '',
       questionCount: (state.stats && state.stats.total) || 0
     }
-    const wrongIds = this.sheet.onlyWrong ? this.collectWrongIds(target) : []
+    const remote = this.repository.isRemoteEnabled && this.repository.isRemoteEnabled()
+    const wrongIds = this.sheet.onlyWrong && !remote ? this.collectWrongIds(target) : []
     const routeMode = this.resolveRouteMode()
     const query = []
 
@@ -705,6 +823,8 @@ class BankDetailViewModel {
       query.push(`subjectId=${encodeURIComponent(target.subjectId)}`)
       query.push('scope=subject')
     }
+
+    if (remote && this.sheet.onlyWrong) query.push('selectionKind=WRONG')
 
     if (wrongIds.length) {
       query.push(`ids=${encodeURIComponent(wrongIds.join(','))}`)
@@ -719,9 +839,7 @@ class BankDetailViewModel {
 
     query.push(`seed=${Date.now()}`)
 
-    const count = wrongIds.length || target.questionCount || 0
-
-    return {
+    const buildCommand = (count) => ({
       data: {
         configSheetVisible: false
       },
@@ -735,7 +853,23 @@ class BankDetailViewModel {
             : `${count} 题 · ${target.title || target.name || '全部题目'}`
         }
       }
+    })
+
+    if (remote && this.sheet.onlyWrong) {
+      return this.repository.previewRemotePracticeScope(this.storage, {
+        questionBankId: target.bankId,
+        count: 1000,
+        selectionKind: 'WRONG',
+        collectionChip: 'all'
+      }).then(preview => {
+        const availableCount = Math.min(Number(preview.availableCount) || 0, 1000)
+        if (!availableCount) return { command: { type: 'toast', title: '当前筛选下没有可练习的错题' } }
+        query.push(`count=${availableCount}`)
+        return buildCommand(availableCount)
+      })
     }
+
+    return buildCommand(wrongIds.length || target.questionCount || 0)
   }
 
   getShareMessage(subjectId) {

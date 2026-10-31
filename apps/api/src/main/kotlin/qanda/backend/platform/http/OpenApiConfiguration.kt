@@ -106,6 +106,9 @@ class OpenApiConfiguration {
 }
 
 object PublicRoutes {
-    fun permits(method: String,path: String): Boolean = method=="GET" && (path=="/api/v1/colleges" || path.matches(Regex("/api/v1/colleges/(?:[0-9a-fA-F-]+|\\{id})/majors")) || path=="/api/v1/health") ||
-        method=="POST" && path in setOf("/api/v1/auth/email-challenges","/api/v1/auth/email-registrations","/api/v1/auth/wechat-registrations","/api/v1/auth/sessions","/api/v1/auth/wechat-sessions","/api/v1/auth/password-resets","/api/v1/admin/auth/sessions")
+    private const val ID="(?:[0-9a-fA-F-]+|\\{id})"
+    fun permits(method: String,path: String): Boolean = method=="GET" && (
+        path in setOf("/api/v1/colleges","/api/v1/health","/api/v1/subjects","/api/v1/question-banks","/api/v1/questions") ||
+        path.matches(Regex("/api/v1/(?:colleges/$ID/majors|subjects/$ID|question-banks/$ID(?:/chapters|/questions)?|questions/$ID|files/$ID)"))) ||
+        method=="POST" && path in setOf("/api/v1/auth/email-challenges","/api/v1/auth/email-registrations","/api/v1/auth/wechat-registrations","/api/v1/auth/sessions","/api/v1/auth/wechat-sessions","/api/v1/auth/password-resets","/api/v1/admin/auth/sessions","/api/v1/practice/scope-preview","/api/v1/practice/trial-snapshots")
 }

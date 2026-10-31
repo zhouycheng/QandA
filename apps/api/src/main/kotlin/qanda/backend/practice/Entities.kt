@@ -21,6 +21,14 @@ class PracticeSession {
     var durationSeconds: Int = 0
     var createdAt: Instant = Instant.now()
     var submittedAt: Instant? = null
+    var configurationSnapshot: String? = null
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
+    var writerDeviceId: UUID? = null
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
+    var writerToken: UUID? = null
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
+    var pendingWriterDeviceId: UUID? = null
+    var acknowledgedSequence: Long = 0
 }
 
 @TableName("practice_item")

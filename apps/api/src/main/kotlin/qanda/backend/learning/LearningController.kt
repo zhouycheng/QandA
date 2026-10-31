@@ -10,11 +10,14 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1",produces=["application/json"])
-class LearningController(private val service: LearningService,private val practice: PracticeService,private val sessions: Sessions) {
+class LearningController(private val reads: LearningReadService,private val service: LearningService,private val practice: PracticeService,private val sessions: Sessions) {
+    @GetMapping("/me/learning-overview") fun overview(): LearningOverviewView = reads.overview(sessions.student().id)
+    @GetMapping("/me/question-collections/summary") fun collectionSummary(@RequestParam kind: String): CollectionSummaryView = reads.summary(sessions.student().id,kind)
     @GetMapping("/me/practice-history") fun history(@RequestParam(defaultValue="1") page: Int,@RequestParam(defaultValue="20") pageSize: Int): Page<PracticeSummary> = practice.history(sessions.student().id,PageSpec(page,pageSize),true)
     @GetMapping("/me/practice-history/{id}") fun record(@PathVariable id: UUID): ResultView=practice.result(sessions.student().id,id)
     @GetMapping("/me/recent-learning") fun recent(@RequestParam(defaultValue="1") page: Int,@RequestParam(defaultValue="20") pageSize: Int): Page<PracticeSummary> = practice.history(sessions.student().id,PageSpec(page,pageSize),false)
-    @GetMapping("/me/wrong-questions") fun wrong(@RequestParam(defaultValue="UNMASTERED") status: String,@RequestParam(required=false) questionBankId: UUID?,@RequestParam(defaultValue="1") page: Int,@RequestParam(defaultValue="20") pageSize: Int): Page<WrongView> = service.wrong(sessions.student().id,status,questionBankId,PageSpec(page,pageSize))
+    @GetMapping("/me/question-progress") fun questionProgress(@RequestParam(required=false) questionBankId: UUID?,@RequestParam(defaultValue="1") page: Int,@RequestParam(defaultValue="20") pageSize: Int): Page<QuestionProgressView> = service.questionProgress(sessions.student().id,questionBankId,PageSpec(page,pageSize))
+    @GetMapping("/me/wrong-questions") fun wrong(@RequestParam(defaultValue="UNMASTERED") status: String,@RequestParam(required=false) questionBankId: UUID?,@RequestParam(required=false) subjectId: UUID?,@RequestParam(defaultValue="all") chip: String,@RequestParam(defaultValue="recent") sort: String,@RequestParam(defaultValue="1") page: Int,@RequestParam(defaultValue="20") pageSize: Int): Page<WrongView> = reads.wrong(sessions.student().id,status,questionBankId,PageSpec(page,pageSize),subjectId,chip,sort)
     @GetMapping("/me/wrong-questions/{id}/history") fun wrongHistory(@PathVariable id: UUID,@RequestParam(defaultValue="1") page: Int,@RequestParam(defaultValue="20") pageSize: Int): Page<WrongAttemptView> = service.wrongHistory(sessions.student().id,id,PageSpec(page,pageSize))
     @GetMapping("/me/statistics") fun summary(@RequestParam(defaultValue="WEEK") period: String,@RequestParam(required=false) @DateTimeFormat(iso=DateTimeFormat.ISO.DATE) periodDate: LocalDate?): StatisticsView = service.statistics(service.filter(period,periodDate,sessions.student().id))
     @GetMapping("/me/statistics/days") fun days(@RequestParam @DateTimeFormat(iso=DateTimeFormat.ISO.DATE) startDate: LocalDate,@RequestParam @DateTimeFormat(iso=DateTimeFormat.ISO.DATE) endDateExclusive: LocalDate): List<DayView> = service.days(sessions.student().id,startDate,endDateExclusive)

@@ -17,14 +17,24 @@ class ContentService(private val banks: QuestionBankMapper,private val chapters:
                      private val revisions: QuestionRevisionMapper,private val audiences: BankAudienceMapper,private val files: FileAssetMapper,
                      private val admins: AdminAccountMapper,private val colleges: CollegeMapper,private val majors: MajorMapper,private val subjects: SubjectMapper,
                      private val sql: ContentQueries,private val access: ContentAccess) {
-    fun bankView(row: QuestionBank,admin: Boolean): BankView = BankView(row.id!!,row.subjectId!!,row.name,row.description,row.textbook,row.status,row.publicationStatus,row.scopeType,
-        audiences.selectList(QueryWrapper<BankAudience>().eq("bank_id",row.id)).map { AudienceInput(it.majorId?.let { id -> majors.selectById(id)?.collegeId } ?: it.collegeId,it.majorId,it.enrollmentYear) },
-        if(admin) sql.maintainers(row.id!!) else emptyList(),row.version,row.contentVersion,sql.questionCount(row.id!!,!admin),sql.questionCount(row.id!!,true),row.updatedAt)
-    fun banks(actor: Actor,subjectId: UUID?,keyword: String?,p: PageSpec): Page<BankView> {
-        val publicOnly=actor.kind=="USER";val adminId=actor.takeIf { it.kind=="ADMIN" && it.role!="PLATFORM_ADMIN" }?.id
-        return Page(sql.banks(subjectId,keyword,publicOnly,adminId,p.offset,p.pageSize).map { bankView(it,!publicOnly) },sql.bankCount(subjectId,keyword,publicOnly,adminId),p.page,p.pageSize)
+    fun bankView(row: QuestionBank,admin: Boolean): BankView = bankViews(listOf(row),admin).first()
+    private fun bankViews(rows: List<QuestionBank>,admin: Boolean,userId: UUID?=null): List<BankView> {
+        if(rows.isEmpty()) return emptyList()
+        val ids=rows.map { it.id!! };val facts=sql.bankListFacts(ids,userId).associateBy { it.bankId }
+        val audienceRows=sql.bankAudiences(ids).groupBy { it.bankId }
+        val maintainers=if(admin) sql.bankMaintainers(ids).groupBy { it.bankId } else emptyMap()
+        return rows.map { row -> val f=facts.getValue(row.id)
+            BankView(row.id!!,row.subjectId!!,row.name,row.description,row.textbook,row.status,row.publicationStatus,row.scopeType,
+                audienceRows[row.id].orEmpty().map { AudienceInput(it.collegeId,it.majorId,it.enrollmentYear) },
+                maintainers[row.id].orEmpty().map { it.adminId!! },row.version,row.contentVersion,if(admin) f.questionCount else f.activeQuestionCount,f.activeQuestionCount,row.updatedAt,f.subjectName,
+                userId?.let { BankProgressView(f.answeredCount,f.correctCount,f.wrongCount) })
+        }
     }
-    fun bank(actor: Actor,id: UUID)=bankView(access.bank(actor,id),actor.kind=="ADMIN")
+    fun banks(actor: Actor?,subjectId: UUID?,keyword: String?,p: PageSpec,includeProgress: Boolean=false): Page<BankView> {
+        val publicOnly=actor?.kind!="ADMIN";val adminId=actor?.takeIf { it.kind=="ADMIN" && it.role!="PLATFORM_ADMIN" }?.id
+        return Page(bankViews(sql.banks(subjectId,keyword,publicOnly,adminId,p.offset,p.pageSize),!publicOnly,actor?.id?.takeIf { publicOnly && includeProgress }),sql.bankCount(subjectId,keyword,publicOnly,adminId),p.page,p.pageSize)
+    }
+    fun bank(actor: Actor?,id: UUID)=bankView(access.bank(actor,id),actor?.kind=="ADMIN")
     fun saveBank(actor: Actor,id: UUID?,input: BankInput): MutationResult {
         if(id==null && actor.role!="PLATFORM_ADMIN") forbidden()
         val row=id?.let { access.bank(actor,it,true) } ?: QuestionBank().apply { this.id=UUID.randomUUID();createdBy=actor.id;subjectId=input.subjectId }
@@ -52,7 +62,7 @@ class ContentService(private val banks: QuestionBankMapper,private val chapters:
         if(input.enrollmentYear!=null && input.enrollmentYear !in 1900..2200) invalid("/audiences/enrollmentYear")
         return input.copy(collegeId=if(major==null) input.collegeId else null)
     }
-    fun chapters(actor: Actor,bankId: UUID): List<ChapterView> {
+    fun chapters(actor: Actor?,bankId: UUID): List<ChapterView> {
         access.bank(actor,bankId)
         return chapters.selectList(QueryWrapper<Chapter>().eq("bank_id",bankId).orderByAsc("sort_order")).map { ChapterView(it.id!!,bankId,it.name,it.sortOrder,it.version) }
     }
@@ -111,13 +121,28 @@ class ContentService(private val banks: QuestionBankMapper,private val chapters:
             options.map { OptionInput(it.optionKey,it.content) },if(answers) options.filter { it.isCorrect }.map { it.optionKey } else null,
             revision.correctValue.takeIf { answers },revision.referenceAnswer.takeIf { answers },revision.explanation.takeIf { answers },sql.attachments(revisionId))
     }
-    fun question(actor: Actor,id: UUID): QuestionView {
-        val row=questions.selectById(id) ?: missing();access.bank(actor,row.bankId!!);if(actor.kind=="USER" && row.status!="ACTIVE") missing()
-        return questionView(row,answers=actor.kind=="ADMIN")
+    fun question(actor: Actor?,id: UUID): QuestionView {
+        val row=questions.selectById(id) ?: missing();access.bank(actor,row.bankId!!);if(actor?.kind!="ADMIN" && row.status!="ACTIVE") missing()
+        return questionView(row,answers=actor?.kind=="ADMIN")
     }
-    fun questions(actor: Actor,bankId: UUID,chapterId: UUID?,keyword: String?,p: PageSpec): Page<QuestionView> {
-        access.bank(actor,bankId);val activeOnly=actor.kind=="USER"
-        return Page(sql.questions(bankId,chapterId,keyword,activeOnly,p.offset,p.pageSize).map { questionView(it,answers=!activeOnly) },sql.filteredQuestionCount(bankId,chapterId,keyword,activeOnly),p.page,p.pageSize)
+    fun search(actor: Actor?,keyword: String,p: PageSpec,view: String="full"): Page<QuestionView> {
+        if(actor!=null && actor.kind!="USER") forbidden()
+        val query=keyword.trim()
+        if(query.isEmpty() || query.length>200 || '\u0000' in query) invalid("/keyword")
+        return Page(listQuestions(sql.search(query,p.offset,p.pageSize),false,view),sql.searchCount(query),p.page,p.pageSize)
+    }
+    fun questions(actor: Actor?,bankId: UUID,chapterId: UUID?,keyword: String?,p: PageSpec,view: String="full"): Page<QuestionView> {
+        access.bank(actor,bankId);val activeOnly=actor?.kind!="ADMIN"
+        return Page(listQuestions(sql.questions(bankId,chapterId,keyword,activeOnly,p.offset,p.pageSize),!activeOnly,view),sql.filteredQuestionCount(bankId,chapterId,keyword,activeOnly),p.page,p.pageSize)
+    }
+    private fun listQuestions(rows: List<Question>,answers: Boolean,view: String): List<QuestionView> {
+        if(view !in setOf("full","summary")) invalid("/view")
+        if(view=="full") return rows.map { questionView(it,answers=answers) }
+        if(rows.isEmpty()) return emptyList()
+        val summaries=sql.questionSummaries(rows.map { it.id!! }).associateBy { it.id }
+        return rows.map { row -> val q=summaries.getValue(row.id)
+            QuestionView(q.id!!,q.bankId!!,q.chapterId,q.status,q.version,q.revisionId!!,q.revision,q.type,q.stem,emptyList(),null,null,null,null,emptyList(),q.subjectId,q.subjectName,q.bankName)
+        }
     }
     fun saveQuestion(actor: Actor,id: UUID?,input: QuestionInput): MutationResult {
         access.bank(actor,input.questionBankId,true);validate(input)

@@ -11,7 +11,6 @@ const sessionRepository = require('./session-repository.js')
 const practiceGateway = require('./practice-gateway.js')
 const mockScenario = require('../utils/mock-scenario.js')
 const playgroundSwitch = require('../utils/playground-switch.js')
-const playgroundScenarios = require('../playground/playground-scenarios.js')
 const userBankRepository = require('./user-bank-repository.js')
 const authRepository = require('./auth-repository.js')
 const reminderRepository = require('./reminder-repository.js')
@@ -21,9 +20,6 @@ const reminderRepository = require('./reminder-repository.js')
  * 未来接入服务端接口时，只需替换本文件的实现，上层保持不变。
  */
 
-/** 历史最佳成绩的键前缀（成绩散落在 storage 里，清理时要按前缀扫） */
-const BEST_SCORE_PREFIX = 'qandaBestScore:'
-
 /**
  * 冷启动时把 storage 里的用户题库同步进 catalog 快照。
  * 不做这一步，上一次导入的题库在这次启动里会凭空消失。
@@ -32,40 +28,7 @@ function syncUserBanks(storage) {
   return questionBankCatalog.registerUserBanks(userBankRepository.getUserBanks(storage))
 }
 
-/**
- * 清空本机学习数据。
- *
- * 只清历史最佳成绩是不够的：进度、错题本、收藏、自测、学习时长、每日日志
- * 都是同一个「本机学习数据」的一部分，留一部分会让用户以为没清干净。
- *
- * 学习偏好与登录态**刻意不清**：偏好属于设置，登录态属于身份，
- * 都不该因为「清空成绩」而丢掉。
- *
- * 「我的」和「设置」两个入口共用这一份实现，避免两处清出两种结果。
- */
-function clearLearningData(storage) {
-  const adapter = storage || {}
-  const keys = typeof adapter.keys === 'function' ? adapter.keys() : []
-
-  keys
-    .filter((key) => key.indexOf(BEST_SCORE_PREFIX) === 0)
-    .forEach((key) => {
-      if (typeof adapter.remove === 'function') {
-        adapter.remove(key)
-      }
-    })
-
-  progressRepository.clearProgress(storage)
-  wrongBookRepository.clearWrongBook(storage)
-  favoriteRepository.clearFavorites(storage)
-  customQuizRepository.clearCustomQuiz(storage)
-  studyTimeRepository.clearStudyTime(storage)
-  dailyLogRepository.clearDailyLog(storage)
-}
-
 module.exports = {
-  BEST_SCORE_PREFIX,
-  clearLearningData,
   syncUserBanks,
   getSubjectSummaries: questionBankCatalog.getSubjectSummaries,
   getSubjectDetail: questionBankCatalog.getSubjectDetail,
@@ -144,8 +107,8 @@ module.exports = {
   isPlaygroundEnabled: playgroundSwitch.isEnabled,
   setPlaygroundEnabled: playgroundSwitch.setEnabled,
   syncPlaygroundEnabled: playgroundSwitch.syncFromStorage,
-  listPlaygroundScenarios: playgroundScenarios.listScenarios,
-  applyPlaygroundScenario: playgroundScenarios.applyScenario,
+  listPlaygroundScenarios: (...args) => require('../playground/playground-scenarios.js').listScenarios(...args),
+  applyPlaygroundScenario: (...args) => require('../playground/playground-scenarios.js').applyScenario(...args),
   // Playground 场景开关
   getMockScenario: mockScenario.getScenario,
   setMockScenario: mockScenario.setScenario,
@@ -179,3 +142,40 @@ module.exports = {
   addReminderExam: reminderRepository.addReminderExam,
   removeReminderExam: reminderRepository.removeReminderExam
 }
+
+// 在线运行由 App 启用；开发场景继续使用显式的本地仓储。
+const remoteData = require('./remote-data-repository.js')
+;['addQuestionFavorite', 'removeQuestionFavorite', 'getSubjectSummaries', 'getSubjectDetail', 'getCatalogStats', 'getBankQuiz', 'getSubjectQuiz', 'getQuestionIndex', 'findQuestionEntries', 'getFavorites', 'getWrongBook', 'getDailyLog', 'getStudyTime', 'getProgress', 'getScopeMeta', 'toggleQuestionFavorite', 'removeQuestionFavorites', 'clearFavorites', 'removeWrongQuestions'].forEach((name) => {
+  const local = module.exports[name]
+  module.exports[name] = function () { return (remoteData.isEnabled() ? remoteData[name] : local).apply(null, arguments) }
+})
+module.exports.refreshRemote = remoteData.refresh
+module.exports.isRemoteEnabled = remoteData.isEnabled
+module.exports.getRemoteStatistics = remoteData.getStatistics
+module.exports.getRemoteRecent = function (storage) {
+  return remoteData.isEnabled() && !authRepository.getAuth(storage).loggedIn ? require('./trial-practice.js').recent(storage) : remoteData.getRecent(storage)
+}
+module.exports.getResumableSession = function (storage) {
+  if (!remoteData.isEnabled()) return sessionRepository.getResumableSession(storage)
+  const auth = authRepository.getAuth(storage)
+  const snapshot = !auth.loggedIn ? require('./trial-practice.js').resumable(storage) : storage.get(`qandaOnline:${auth.userId}:${storage.get(`qandaOnlineLast:${auth.userId}`) || ''}`)
+  return snapshot && snapshot.status !== 'SUBMITTED' ? Object.assign({}, snapshot.localState || {}, { sessionId: snapshot.id, config: snapshot.route }) : null
+}
+module.exports.getRemoteHistory = remoteData.getHistory
+module.exports.getRemoteAnnouncements = remoteData.getAnnouncements
+module.exports.loadRemoteQuestion = remoteData.loadQuestion
+
+module.exports.searchRemoteQuestions = remoteData.searchQuestions
+
+module.exports.getRemoteOverview = remoteData.getOverview
+module.exports.getRemoteCollection = remoteData.getCollection
+module.exports.getRemoteCollectionSummary = remoteData.getCollectionSummary
+module.exports.getRemoteCatalogPage = remoteData.getCatalogPage
+module.exports.getRemoteSubjectPage = remoteData.getSubjectPage
+module.exports.getRemoteResourceState = remoteData.getResourceState
+module.exports.getRemoteAnnouncementTotal = remoteData.getAnnouncementTotal
+module.exports.loadRemoteSubjects = remoteData.refreshSubjects
+module.exports.loadRemoteBanks = remoteData.refreshBanks
+module.exports.loadRemoteBank = remoteData.loadBank
+module.exports.loadRemoteChapters = remoteData.loadChapters
+module.exports.previewRemotePracticeScope = remoteData.previewPracticeScope

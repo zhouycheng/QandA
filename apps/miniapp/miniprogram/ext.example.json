@@ -1,0 +1,7 @@
+{
+  "extEnable": true,
+  "extAppid": "填写当前小程序 AppID",
+  "extConfig": {
+    "apiBaseUrl": ""
+  }
+}

@@ -11,7 +11,7 @@ const path = require('path')
 const MINIPROGRAM = path.resolve(__dirname, '../miniprogram')
 const examCountdown = require(path.join(MINIPROGRAM, 'utils/exam-countdown.js'))
 const preferences = require(path.join(MINIPROGRAM, 'utils/preferences.js'))
-const { SettingsViewModel } = require(path.join(MINIPROGRAM, 'viewmodels/settings-viewmodel.js'))
+const { ExamCountdownViewModel } = require(path.join(MINIPROGRAM, 'viewmodels/exam-countdown-viewmodel.js'))
 const { SubjectListViewModel } = require(path.join(MINIPROGRAM, 'viewmodels/subject-list-viewmodel.js'))
 const practiceRepository = require(path.join(MINIPROGRAM, 'repositories/practice-repository.js'))
 
@@ -43,7 +43,7 @@ function createMemoryStorage(initial) {
 
 /** 用真实的 practice-repository 驱动，才能验到「落盘 → 读回」这一步 */
 function createViewModel(storage) {
-  return new SettingsViewModel({ repository: practiceRepository, storage })
+  return new ExamCountdownViewModel({ repository: practiceRepository, storage })
 }
 
 function createHomeViewModel(storage) {
@@ -138,28 +138,27 @@ function checkSettingsFlow() {
   const vm = createViewModel(storage)
 
   // 初始状态
-  const initial = vm.buildData()
+  const initial = vm.load().data
   assert('设置 - 初始为未配置', initial.exam.configured === false)
   assert('设置 - 初始草稿名为空', initial.examDraftName === '')
-  assert('设置 - 提供 picker 起始日期', /^\d{4}-\d{2}-\d{2}$/.test(vm.getTodayDateKey()), vm.getTodayDateKey())
 
   // 只填名称：不该生成倒计时（没有日期）
   vm.setExamName('研究生入学考试')
-  let data = vm.buildData()
+  let data = vm.load().data
   assert('设置 - 只填名称时不算已配置', data.exam.configured === false)
   assert('设置 - 只填名称时提示待设置日期', data.exam.title.indexOf('待设置日期') >= 0, data.exam.title)
   assert('设置 - 名称回显到草稿', data.examDraftName === '研究生入学考试')
 
   // 补上日期：这时才成立
   vm.setExamDate('2026-12-20')
-  data = vm.buildData()
+  data = vm.load().data
   assert('设置 - 名称与日期齐全后已配置', data.exam.configured === true)
   assert('设置 - 天数计算正确', data.exam.daysLeft === daysTo('2026-12-20'),
     `实际 ${data.exam.daysLeft}，期望 ${daysTo('2026-12-20')}`)
 
   // 清除：两个字段一起清，不留半套状态
   vm.clearExam()
-  data = vm.buildData()
+  data = vm.load().data
   assert('设置 - 清除后回到未配置', data.exam.configured === false)
   assert('设置 - 清除后名称也清空', data.examDraftName === '')
 
@@ -169,7 +168,7 @@ function checkSettingsFlow() {
 
   // 只选日期没填名称：先存下日期，提示补名称
   vm.setExamDate('2026-12-25')
-  data = vm.buildData()
+  data = vm.load().data
   assert('设置 - 未填名称时仍不能算已配置', data.exam.configured === false,
     `title=${data.exam.title}`)
   // 只选了日期会出现「距离 考试 考试还有 N 天」，所以引导态必须提示补名称
@@ -182,7 +181,7 @@ function checkSettingsFlow() {
   // 名称清空 → 连带清日期
   vm.setExamName('期末考试')
   vm.setExamName('   ')
-  data = vm.buildData()
+  data = vm.load().data
   assert('设置 - 名称清空会连带清掉日期', data.exam.configured === false)
 
   const clearedByEmptyName = practiceRepository.getPreferences(storage)

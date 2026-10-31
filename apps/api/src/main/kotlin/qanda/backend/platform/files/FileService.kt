@@ -43,9 +43,9 @@ class FileService(private val files: FileAssetMapper,private val access: Content
         files.insert(row)
         return FileView(row.id!!,row.mediaType,row.sizeBytes,row.sha256,row.widthPixels,row.heightPixels)
     }
-    fun read(actor: Actor,id: UUID): ByteArray {
+    fun read(actor: Actor?,id: UUID): ByteArray {
         val row=files.selectById(id) ?: missing()
-        if(actor.kind=="ADMIN") access.bank(actor,row.bankId!!) else if(content.bank(row.bankId!!)==null && !sql.issuedTo(actor.id,id)) missing()
+        if(actor?.kind=="ADMIN") access.bank(actor,row.bankId!!) else if(!sql.publiclyVisible(id) && (actor==null || !sql.issuedTo(actor.id,id))) missing()
         if(!row.storageKey.matches(Regex("[0-9a-f-]{36}\\.png"))) missing()
         val path=root().resolve(row.storageKey)
         val bytes=try { Files.newInputStream(path,LinkOption.NOFOLLOW_LINKS).use { ImageNormalizer.readBounded(it,5L*1024*1024) } } catch(_: java.io.IOException) { throw ApiException(HttpStatus.SERVICE_UNAVAILABLE,"FILE_UNAVAILABLE","图片暂不可读取") }
@@ -65,5 +65,5 @@ class FileController(private val service: FileService,private val sessions: Sess
         val normalized=mediaType.substringBefore(';').lowercase(java.util.Locale.ROOT)
         val a=sessions.admin();return commands.run(a,key,"UPLOAD_IMAGE:$id:$normalized",bytes,FileView::class.java,r.requestId()) { service.upload(a,id,normalized,bytes) }
     }
-    @GetMapping("/files/{id}",produces=["image/png"]) fun read(@PathVariable id: UUID): ResponseEntity<ByteArray> = ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(service.read(sessions.current(),id))
+    @GetMapping("/files/{id}",produces=["image/png"]) fun read(@PathVariable id: UUID): ResponseEntity<ByteArray> = ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(service.read(sessions.optional(),id))
 }

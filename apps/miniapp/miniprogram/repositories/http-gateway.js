@@ -1,438 +1,33 @@
-const {
-  SESSION_STATUS,
-  SYNC_STATUS
-} = require('../models/practice-session-state.js')
+const { SESSION_STATUS, SYNC_STATUS } = require('../models/practice-session-state.js')
+const transport = require('./api-transport.js')
+const { configure, getConfig, request, isConfigured, uuid } = transport
 
-/**
- * HttpPracticeGateway —— PRD 第 12 节「联调入口」的真实后端实现。
- *
- * 接口路径对齐 API PRD 第 8 节用户侧，六个全部覆盖：
- *   GET  /api/subjects
- *   GET  /api/subjects/{subjectId}/question-banks
- *   POST /api/practice-sessions
- *   GET  /api/practice-sessions/{sessionId}
- *   POST /api/practice-sessions/{sessionId}/submit
- *   GET  /api/practice-sessions/{sessionId}/result
- *
- * 三条硬约束：
- * 1. **不在模块顶层碰 `wx`**——本文件要能在 Node 里被 require 跑断言，
- *    顶层取 `wx` 会直接 ReferenceError。每次调用时再取。
- * 2. **未配置 baseUrl 时返回失败而不是抛错**：域名还没申请下来是常态，
- *    此时应该落回「提交失败 → 可重试」，而不是让页面白屏。
- * 3. **失败一律 SYNC_PENDING**：与 Mock 的失败语义保持一致，
- *    这样结果页的重试条在任何一种网关下都是同一条代码路径。
- *
- * 联调前置：小程序后台需配置 request 合法域名，且必须 HTTPS。
- */
-
-const DEFAULT_TIMEOUT = 10000
-
-const config = {
-  baseUrl: '',
-  timeout: DEFAULT_TIMEOUT
+async function identity(response) {
+  if (!response.ok) return response
+  const session = response.data.session || response.data
+  const token = session.accessToken
+  if (!token) return { ok: false, reason: '微信账号需要先完成注册', registrationToken: response.data.registrationToken }
+  const me = await request('GET', '/me', {}, { token })
+  if (!me.ok) return me
+  if (!me.data || !me.data.id) return { ok: false, reason: '登录接口未返回用户标识' }
+  return { ok: true, userId: me.data.id, token, email: me.data.email || '', nickname: me.data.nickname, version: me.data.version, profile: me.data }
 }
-
-function configure(options) {
-  const payload = options || {}
-
-  if (typeof payload.baseUrl === 'string') {
-    // 去掉结尾斜杠，避免拼出 //api
-    config.baseUrl = payload.baseUrl.replace(/\/+$/, '')
-  }
-
-  if (Number(payload.timeout) > 0) {
-    config.timeout = Number(payload.timeout)
-  }
-
-  return getConfig()
+function login(code, options) { return request('POST', '/auth/wechat-sessions', { code, deviceId: options && options.deviceId || uuid() }, { token: '' }).then(identity) }
+function registerWechat(input) { return request('POST', '/auth/wechat-registrations', { registrationToken: input.registrationToken, nickname: input.nickname || 'Q友' }, { token: '', idempotencyKey: input.idempotencyKey || uuid() }) }
+function loginByEmail(email, password, options) { return request('POST', '/auth/sessions', { email, password, deviceId: options && options.deviceId || uuid(), clientType: 'MINI_PROGRAM' }, { token: '' }).then(identity) }
+async function register(input) {
+  const response = await request('POST', '/auth/email-registrations', { challengeId: input.challengeId, code: input.code, password: input.password, nickname: input.nickname || 'Q友' }, { token: '', idempotencyKey: input.idempotencyKey || uuid() })
+  return response.ok ? loginByEmail(input.email, input.password, input) : response
 }
-
-function getConfig() {
-  return {
-    baseUrl: config.baseUrl,
-    timeout: config.timeout
-  }
+async function sendCode(input) {
+  const response = await request('POST', '/auth/email-challenges', { email: input.email, purpose: input.purpose === 'reset' ? 'RESET_PASSWORD' : 'REGISTER' }, { token: '', idempotencyKey: input.idempotencyKey || uuid() })
+  return response.ok ? Object.assign({}, response, { challengeId: response.data.id, expiresAt: response.data.expiresAt, cooldown: response.data.resendAfterSeconds }) : response
 }
+function resetPassword(input) { return request('POST', '/auth/password-resets', { challengeId: input.challengeId, code: input.code, newPassword: input.password }, { token: '', idempotencyKey: input.idempotencyKey || uuid() }) }
 
-function getWx() {
-  return typeof wx !== 'undefined' && wx && typeof wx.request === 'function' ? wx : null
-}
-
-function buildUrl(path) {
-  return `${config.baseUrl}${path}`
-}
-
-function isConfigured() {
-  return !!config.baseUrl
-}
-
-/**
- * 把后端返回的错误文案挑出来。
- *
- * FastAPI 用 `detail`、Express / Nest 用 `message`、Spring 用 `error`，
- * 端上不猜是哪一家，按常见字段依次取第一个非空字符串即可。
- * 全都取不到才退回「接口返回 400」——那种话用户既看不懂也没法照着做。
- */
-function pickServerMessage(payload) {
-  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
-    return ''
-  }
-
-  const keys = ['message', 'msg', 'error', 'detail', 'reason', 'error_description']
-
-  for (let index = 0; index < keys.length; index += 1) {
-    const value = payload[keys[index]]
-
-    if (typeof value === 'string' && value.trim()) {
-      return value.trim()
-    }
-  }
-
-  return ''
-}
-
-/** 统一把 wx.request 的回调包成 Promise；fail 也走 resolve，由调用方按 ok 分支处理 */
-function request(method, path, data) {
-  const wxApi = getWx()
-
-  if (!isConfigured() || !wxApi) {
-    return Promise.resolve({
-      ok: false,
-      statusCode: 0,
-      data: null,
-      reason: isConfigured() ? '当前环境不支持网络请求' : '未配置接口域名'
-    })
-  }
-
-  return new Promise((resolve) => {
-    wxApi.request({
-      url: buildUrl(path),
-      method,
-      data: data || {},
-      header: {
-        'content-type': 'application/json'
-      },
-      timeout: config.timeout,
-      success: (response) => {
-        const statusCode = Number(response && response.statusCode) || 0
-        const isOk = statusCode >= 200 && statusCode < 300
-        const payload = response && response.data ? response.data : null
-
-        resolve({
-          ok: isOk,
-          statusCode,
-          data: payload,
-          // statusCode 0 = 压根没连上（未配域名 / 断网 / 超时），上层据此决定能否降级；
-          // 4xx / 5xx 说明后端**明确拒绝了**这次请求，不能当成「没接入」放行
-          unavailable: statusCode === 0,
-          reason: isOk ? '' : pickServerMessage(payload) || `接口返回 ${statusCode}`
-        })
-      },
-      fail: (error) => {
-        resolve({
-          ok: false,
-          statusCode: 0,
-          data: null,
-          unavailable: true,
-          reason: describeRequestError(error && error.errMsg)
-        })
-      }
-    })
-  })
-}
-
-/**
- * 把 wx 的 errMsg 翻成用户看得懂、且能照着做的话。
- *
- * 直接透传 `request:fail url not in domain list` 这类英文串，用户只会以为程序坏了。
- * 而这几种恰恰是联调期最常见的**配置**问题（不是 Bug），
- * 说清楚就能自己搞定，说不清楚就只能来问一次。
- */
-function describeRequestError(errMsg) {
-  const text = typeof errMsg === 'string' ? errMsg : ''
-
-  if (/url not in domain list|not in domain/i.test(text)) {
-    return '接口域名未加入小程序后台的合法域名'
-  }
-
-  if (/timeout/i.test(text)) {
-    return '请求超时，请稍后重试'
-  }
-
-  if (/ssl|certificate/i.test(text)) {
-    return '接口证书校验失败，请使用 HTTPS 证书'
-  }
-
-  return '网络请求失败，请检查网络后重试'
-}
-
-function readText(value, maxLength) {
-  if (typeof value !== 'string') {
-    return ''
-  }
-
-  return maxLength ? value.slice(0, maxLength) : value
-}
-
-/**
- * 微信登录：用 wx.login 拿到的 code 换身份（API PRD 第 13 节的 auth 模块）。
- *
- * 后端字段命名各家不一（openId / openid、userId / uid），这里统一兜一遍。
- * 但**用户标识必须有**：返回 200 却没有 userId/openId 时直接判失败，
- * 否则端上会拿着一个空壳身份显示成「已登录」，实际什么都同步不了。
- */
-function login(code) {
-  return request('POST', '/api/auth/login', { code: code || '' }).then((response) => {
-    if (!response.ok) {
-      return {
-        ok: false,
-        unavailable: !!response.unavailable,
-        reason: response.reason || '登录接口调用失败'
-      }
-    }
-
-    const data = response.data || {}
-    const userId = readText(data.userId || data.uid || data.id || data.openId || data.openid, 64)
-    const openId = readText(data.openId || data.openid, 64)
-
-    if (!userId && !openId) {
-      return {
-        ok: false,
-        reason: '登录接口未返回用户标识'
-      }
-    }
-
-    return {
-      ok: true,
-      userId,
-      openId,
-      token: readText(data.token || data.accessToken, 512),
-      nickname: readText(data.nickname || data.nickName, 32),
-      avatarUrl: readText(data.avatarUrl || data.avatar, 512),
-      reason: ''
-    }
-  })
-}
-
-/**
- * 邮箱 + 密码登录（API PRD 第 13 节 auth 模块）。
- *
- * 与微信登录共用 `/api/auth/login`，靠 body 里的 `type` 区分：
- * 后端按 type 决定去哪张表校验，端上不必记两个路径。
- */
-function loginByEmail(email, password) {
-  return request('POST', '/api/auth/login', {
-    type: 'email',
-    email: email || '',
-    password: password || ''
-  }).then((response) => {
-    if (!response.ok) {
-      return {
-        ok: false,
-        unavailable: !!response.unavailable,
-        reason: response.reason || '登录接口调用失败'
-      }
-    }
-
-    const data = response.data || {}
-    const userId = readText(data.userId || data.uid || data.id, 64)
-    const givenEmail = readText(data.email || email, 128)
-
-    if (!userId && !givenEmail) {
-      return {
-        ok: false,
-        reason: '登录接口未返回用户标识'
-      }
-    }
-
-    return {
-      ok: true,
-      userId,
-      email: givenEmail,
-      token: readText(data.token || data.accessToken, 512),
-      nickname: readText(data.nickname || data.nickName, 32),
-      avatarUrl: readText(data.avatarUrl || data.avatar, 512),
-      reason: ''
-    }
-  })
-}
-
-/** 注册：POST /api/auth/register { email, code, password } */
-function register(input) {
-  const payload = input || {}
-
-  return request('POST', '/api/auth/register', {
-    email: payload.email || '',
-    code: payload.code || '',
-    password: payload.password || ''
-  }).then((response) => {
-    if (!response.ok) {
-      return {
-        ok: false,
-        unavailable: !!response.unavailable,
-        reason: response.reason || '注册接口调用失败'
-      }
-    }
-
-    const data = response.data || {}
-
-    return {
-      ok: true,
-      userId: readText(data.userId || data.uid || data.id, 64),
-      email: readText(data.email || payload.email, 128),
-      token: readText(data.token || data.accessToken, 512),
-      reason: ''
-    }
-  })
-}
-
-/** 发送邮箱验证码：POST /api/auth/code { email, purpose } */
-function sendCode(input) {
-  const payload = input || {}
-
-  return request('POST', '/api/auth/code', {
-    email: payload.email || '',
-    purpose: payload.purpose || 'register'
-  }).then((response) => {
-    if (!response.ok) {
-      return {
-        ok: false,
-        unavailable: !!response.unavailable,
-        reason: response.reason || '验证码发送失败'
-      }
-    }
-
-    const data = response.data || {}
-
-    return {
-      ok: true,
-      // 后端若返回剩余秒数就按它倒计时，没返回就由端上用默认值
-      cooldown: Math.max(Number(data.cooldown) || 0, 0),
-      reason: ''
-    }
-  })
-}
-
-/** 重置密码：POST /api/auth/reset-password { email, code, password } */
-function resetPassword(input) {
-  const payload = input || {}
-
-  return request('POST', '/api/auth/reset-password', {
-    email: payload.email || '',
-    code: payload.code || '',
-    password: payload.password || ''
-  }).then((response) => {
-    if (!response.ok) {
-      return {
-        ok: false,
-        unavailable: !!response.unavailable,
-        reason: response.reason || '重置密码失败'
-      }
-    }
-
-    return {
-      ok: true,
-      reason: ''
-    }
-  })
-}
-
-function getSubjects() {
-  return request('GET', '/api/subjects').then((response) => {
-    if (!response.ok) {
-      return []
-    }
-
-    const payload = response.data || {}
-
-    return Array.isArray(payload.subjects) ? payload.subjects : Array.isArray(payload) ? payload : []
-  })
-}
-
-function getQuestionBanks(storage, subjectId) {
-  const path = `/api/subjects/${encodeURIComponent(subjectId || '')}/question-banks`
-
-  return request('GET', path).then((response) => {
-    if (!response.ok) {
-      return []
-    }
-
-    const payload = response.data || {}
-
-    return Array.isArray(payload.questionBanks)
-      ? payload.questionBanks
-      : Array.isArray(payload) ? payload : []
-  })
-}
-
-function createSession(storage, input) {
-  const payload = input || {}
-
-  return request('POST', '/api/practice-sessions', {
-    subjectId: payload.subjectId || '',
-    questionBankId: payload.questionBankId || '',
-    config: payload.config || {},
-    questionIds: payload.questionIds || [],
-    questionOrder: payload.questionOrder || []
-  }).then((response) => {
-    if (!response.ok) {
-      return {
-        ok: false,
-        sessionId: payload.sessionId || '',
-        syncStatus: SYNC_STATUS.SYNC_PENDING,
-        reason: response.reason || '创建练习失败'
-      }
-    }
-
-    const data = response.data || {}
-
-    return {
-      ok: true,
-      sessionId: data.sessionId || payload.sessionId || '',
-      questionCount: Number(data.questionCount) || 0,
-      syncStatus: SYNC_STATUS.LOCAL_ONLY
-    }
-  })
-}
-
-function submitSession(storage, input) {
-  const payload = input || {}
-  const sessionId = payload.sessionId || ''
-  const path = `/api/practice-sessions/${encodeURIComponent(sessionId)}/submit`
-
-  return request('POST', path, {
-    answers: payload.answers || [],
-    duration: Number(payload.elapsedTime) || 0
-  }).then((response) => {
-    if (!response.ok) {
-      return {
-        ok: false,
-        sessionId,
-        syncStatus: SYNC_STATUS.SYNC_PENDING,
-        reason: response.reason || '提交失败，请检查网络后重试'
-      }
-    }
-
-    return {
-      ok: true,
-      sessionId,
-      syncStatus: SYNC_STATUS.SYNCED,
-      reason: '',
-      result: response.data || null
-    }
-  })
-}
-
-/**
- * 查询会话：GET /api/practice-sessions/{sessionId}（API PRD 8）
- *
- * **读接口不参与同步状态机**，因此返回值里没有 syncStatus——
- * 查一次失败不代表本地数据没同步上去，把查询结果接进 syncStatus 会把
- * SYNC_PENDING 莫名其妙改掉，重试条也就跟着消失或乱闪。
- */
 function getSession(storage, sessionId) {
   const id = sessionId || ''
-  const path = `/api/practice-sessions/${encodeURIComponent(id)}`
+  const path = `/practice/sessions/${encodeURIComponent(id)}`
 
   return request('GET', path).then((response) => {
     if (!response.ok) {
@@ -456,14 +51,14 @@ function getSession(storage, sessionId) {
 }
 
 /**
- * 查询结果：GET /api/practice-sessions/{sessionId}/result（API PRD 8）
+ * 查询结果：GET /api/v1/practice/sessions/{sessionId}/result（API PRD 8）
  *
  * 与 submitSession 的差别：这个接口是**幂等重取**，用来在提交成功但结果丢失时
  * 把成绩捞回来，不会触发服务端重新判题（API PRD 11 要求同一 Session 只出一个 Result）。
  */
 function getResult(storage, sessionId) {
   const id = sessionId || ''
-  const path = `/api/practice-sessions/${encodeURIComponent(id)}/result`
+  const path = `/practice/sessions/${encodeURIComponent(id)}/result`
 
   return request('GET', path).then((response) => {
     if (!response.ok) {
@@ -632,13 +227,13 @@ function normalizeAccuracy(rawAccuracy, totalCount, correctCount) {
 
 module.exports = {
   RESULT_STATUS,
+  request,
+  uuid,
+  getAll: transport.getAll,
   configure,
-  createSession,
   getConfig,
-  getQuestionBanks,
   getResult,
   getSession,
-  getSubjects,
   isConfigured,
   login,
   loginByEmail,
@@ -646,8 +241,7 @@ module.exports = {
   normalizeRemoteResult,
   normalizeRemoteSession,
   register,
+  registerWechat,
   resetPassword,
-  retrySubmit: submitSession,
-  sendCode,
-  submitSession
+  sendCode
 }

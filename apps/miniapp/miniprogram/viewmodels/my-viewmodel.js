@@ -1,6 +1,7 @@
 const practiceRepository = require('../repositories/practice-repository.js')
 const { describeAuth, getProviderLabel } = require('../utils/auth-session.js')
-const { describeChoiceLabel, normalizePreferences } = require('../utils/preferences.js')
+const { normalizePreferences } = require('../utils/preferences.js')
+const { DEFAULT_ORDER } = require('../utils/practice-layout.js')
 const { maskEmail } = require('../utils/auth-form.js')
 
 const LOGIN_URL = '/page/login/index'
@@ -8,24 +9,18 @@ const ACCOUNT_URL = '/page/account/index'
 const SETTINGS_URL = '/page/settings/index'
 const REMINDER_URL = '/page/reminder/index'
 
-/**
- * 「我的」页是设置的总入口（设计稿 Figma 781:1922）。
- *
- * 账号管理 / 邮箱提醒各自是独立页面；答题偏好与自定义布局都落在设置页，
- * 用 focus 参数指定滚动到哪个分组——两行指向同一页但锚点不同，
- * 比为了两行再造两个页面更省，也不会出现「同一个开关两处都能改」。
- */
+// 「我的」集中提供账号、独立学习设置与关于入口。
 
 /** 协议正文：只有摘要，正式文本随发布版本补充，避免凭空编法务条款 */
 const AGREEMENT_TEXT = [
-  'QandA 是一款本地优先的刷题工具：题库与练习记录默认保存在本机。',
-  '你在使用中导入的题库内容由你自行负责，请勿上传侵权或违规材料。',
+  'QandA 提供课程复习与题库练习，登录后通过服务端保存学习记录。',
+  '正式练习草稿联网后同步到账号，游客试答记录保存在当前设备。',
   '完整协议文本将随正式版本一并发布。'
 ].join('\n')
 
 const PRIVACY_TEXT = [
-  '学习数据（进度、错题、收藏、时长）默认只写在本机，不上传服务端。',
-  '登录只用于标识身份；未接入后端时使用本地身份，不采集任何设备信息。',
+  '学习数据（进度、错题、收藏、时长）按账号保存并同步到服务端。',
+  '登录会创建用于身份验证与设备会话管理的服务端会话。',
   '完整隐私政策将随正式版本一并发布。'
 ].join('\n')
 
@@ -53,7 +48,7 @@ function createGuestAuthView() {
     college: '',
     emailMasked: '',
     subText: '未登录',
-    metaText: '点击登录，学习数据只存本机'
+    metaText: '登录后记录正式练习'
   }
 }
 
@@ -64,9 +59,8 @@ function createGuestAuthView() {
 function getInitialMyViewData() {
   return {
     auth: createGuestAuthView(),
-    // 学习设置三行：右侧摘要随偏好 / 提醒设置变化
+    // 学习设置与关于：右侧摘要随偏好 / 提醒设置变化
     learnRows: [],
-    otherRows: [],
     links: [],
     about: {
       version: '',
@@ -95,6 +89,20 @@ class MyViewModel {
     this.version = ''
   }
 
+  refreshRemote(options) {
+    if (!this.repository.isRemoteEnabled || !this.repository.isRemoteEnabled()) return Promise.resolve(null)
+    return this.repository.refreshRemote(this.storage, 'profile', options).then(() => ({ data: this.projectRemote() })).catch((error) => ({ command: { type: 'toast', title: error.message } }))
+  }
+
+  projectRemote() {
+    require('../repositories/remote-data-repository.js').getProfile(this.storage)
+    const data = this.load().data
+    delete data.sheet
+    delete data.sheetTitle
+    delete data.sheetBody
+    return data
+  }
+
   static getInitialData() {
     return getInitialMyViewData()
   }
@@ -110,10 +118,10 @@ class MyViewModel {
         auth,
         learnRows: [
           { key: 'practice', title: '答题偏好', value: describeExplanationLabel(preferences) },
-          { key: 'layout', title: '自定义布局', value: describeChoiceLabel(preferences, 'answerLayout') },
-          { key: 'reminder', title: '邮箱提醒', value: reminder.enabled ? '已开启' : '已关闭' }
+          { key: 'layout', title: '自定义布局', value: preferences.moduleOrder.join() === DEFAULT_ORDER.join() ? '默认布局' : '已自定义' },
+          { key: 'reminder', title: '邮箱提醒', value: reminder.enabled ? '已开启' : '已关闭' },
+          { key: 'about', title: '关于QandA', value: '' }
         ],
-        otherRows: this.buildOtherRows(auth),
         links: [
           { key: 'agreement', title: '用户协议' },
           { key: 'privacy', title: '隐私政策' }
@@ -127,20 +135,6 @@ class MyViewModel {
         }
       })
     }
-  }
-
-  /**
-   * 未登录时不给「退出登录」：点了只会弹「当前没有登录状态」，
-   * 摆在那里像坏掉一样。登录入口在资料头，不需要额外一行。
-   */
-  buildOtherRows(auth) {
-    const rows = [{ key: 'about', title: '关于QandA', value: '' }]
-
-    if (auth && auth.loggedIn) {
-      rows.push({ key: 'logout', title: '退出登录', value: '' })
-    }
-
-    return rows
   }
 
   /**
@@ -189,7 +183,7 @@ class MyViewModel {
       return {
         command: {
           type: 'navigate',
-          url: `${SETTINGS_URL}?focus=practice`
+          url: SETTINGS_URL
         }
       }
     }
@@ -198,7 +192,7 @@ class MyViewModel {
       return {
         command: {
           type: 'navigate',
-          url: `${SETTINGS_URL}?focus=practice`
+          url: '/page/practice-layout/index'
         }
       }
     }
@@ -271,6 +265,11 @@ class MyViewModel {
     }
 
     return null
+  }
+
+  unlockPlayground() {
+    try { this.repository.setPlaygroundEnabled(this.storage, true); return this.openSheet('about') }
+    catch (error) { return { command: { type: 'toast', title: '设置保存失败，请重试' } } }
   }
 
   closeSheet() {
