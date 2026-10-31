@@ -19,7 +19,7 @@ function mapQuestion(item, grading) {
 function enable(storage) { runtime = new OnlinePractice(storage); return runtime }
 function current() { return runtime }
 class OnlinePractice {
-  constructor(storage) { this.storage = storage; this.userId = ''; this.token = ''; this.queue = null; this.releasing = {}; this.finishing = {}; this.creating = {} }
+  constructor(storage) { this.storage = storage; this.userId = ''; this.token = ''; this.queue = null; this.releasing = {}; this.finishing = {}; this.creating = {}; this.assessing = {} }
   identity() {
     const identity = auth.getAuth(this.storage)
     if (!identity.loggedIn || !identity.token) throw new Error('请先登录')
@@ -159,7 +159,7 @@ class OnlinePractice {
     for (const id of completed) {
       if (retained.length < 5) { retained.push(id); continue }
       const snapshot = this.get(id)
-      if (snapshot && (snapshot.status !== 'SUBMITTED' || !snapshot.result || snapshot.releaseCommand || Object.keys(snapshot.assessmentCommands || {}).length || this.finishing[`${this.userId}:${id}`])) { retained.push(id); continue }
+      if (snapshot && (snapshot.status !== 'SUBMITTED' || !snapshot.result || snapshot.releaseCommand || Object.keys(snapshot.assessmentCommands || {}).length || this.finishing[`${this.userId}:${id}`] || this.assessing[`${this.userId}:${id}`])) { retained.push(id); continue }
       if (!this.queue.removeConfirmed(id)) { retained.push(id); continue }
       this.storage.remove(this.key(id))
     }
@@ -241,24 +241,36 @@ class OnlinePractice {
     this.finishing[key] = this.finishSession(session).then((result) => { delete this.finishing[key]; return result }, (error) => { delete this.finishing[key]; throw error })
     return this.finishing[key]
   }
-  async assess(id, itemId, value) {
+  assess(id, itemId, value) {
+    const userId = this.identity().userId
+    const key = `${userId}:${id}`
+    const previous = this.assessing[key] || Promise.resolve()
+    const operation = previous.catch(() => {}).then(() => this.assessSession(id, itemId, value, userId))
+    this.assessing[key] = operation
+    return operation.then(result => { if (this.assessing[key] === operation) delete this.assessing[key]; return result }, error => { if (this.assessing[key] === operation) delete this.assessing[key]; throw error })
+  }
+  async assessSession(id, itemId, value, userId) {
     if (!['CORRECT', 'WRONG'].includes(value)) throw new Error('自评结果无效')
+    if (this.identity().userId !== userId) throw new Error('账号已切换，请重新打开练习')
     const snapshot = this.get(id)
+    if (!snapshot || snapshot.status !== 'SUBMITTED' || !snapshot.result) throw new Error('正在确认交卷，请稍后自评')
     snapshot.assessmentCommands = snapshot.assessmentCommands || {}
     snapshot.assessed = snapshot.assessed || {}
-    if (snapshot.assessed[itemId] === value) return snapshot.result
-    if (!snapshot.assessmentCommands[itemId]) {
-      snapshot.assessmentCommands[itemId] = { key: http.uuid(), body: { expectedVersion: snapshot.version, assessment: value } }
+    const replay = async pendingItemId => {
+      const command = snapshot.assessmentCommands[pendingItemId]
+      const rated = await this.required('PUT', `/practice/sessions/${id}/items/${pendingItemId}/self-assessment`, command.body, { idempotencyKey: command.key })
+      snapshot.version = rated.version
+      snapshot.result = rated
+      snapshot.assessed[pendingItemId] = command.body.assessment
+      delete snapshot.assessmentCommands[pendingItemId]
       this.put(id, snapshot)
     }
-    const command = snapshot.assessmentCommands[itemId]
-    const rated = await this.required('PUT', `/practice/sessions/${id}/items/${itemId}/self-assessment`, command.body, { idempotencyKey: command.key })
-    snapshot.version = rated.version
-    snapshot.result = rated
-    snapshot.assessed[itemId] = command.body.assessment
-    delete snapshot.assessmentCommands[itemId]
+    for (const pendingItemId of Object.keys(snapshot.assessmentCommands)) await replay(pendingItemId)
+    if (snapshot.assessed[itemId] === value) return snapshot.result
+    snapshot.assessmentCommands[itemId] = { key: http.uuid(), body: { expectedVersion: snapshot.version, assessment: value } }
     this.put(id, snapshot)
-    return rated
+    await replay(itemId)
+    return snapshot.result
   }
   async finishSession(session) {
     const id = session.meta.sessionId

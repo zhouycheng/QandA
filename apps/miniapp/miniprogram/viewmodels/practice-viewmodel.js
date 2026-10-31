@@ -57,7 +57,7 @@ class PracticeViewModel {
     this.online.activeId = snapshot.id
     const quiz = this.online.quiz(snapshot)
     const restored = this.online.restored(snapshot)
-    this.session = new PracticeSession({ quiz, restored, mode: snapshot.feedback === 'AFTER_FINISH' ? 'test' : (options.mode || 'practice'),
+    this.session = new PracticeSession({ quiz, restored, mode: snapshot.feedback === 'AFTER_FINISH' ? 'test' : (this.routeOptions.mode || 'practice'),
       config: snapshot.route, durationMinutes: Number(snapshot.route.duration) || DEFAULT_TEST_DURATION_MINUTES, preferences: this.repository.getPreferences(this.storage),
       favoriteQuestionIds: snapshot.favoriteQuestionIds || [] })
     this.session.reset()
