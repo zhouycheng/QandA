@@ -323,7 +323,7 @@
 }
 
 .entry-hover {
-  opacity: 0.62;
+  opacity: 0.86;
 }
 
 /* ===== 四宫格图标 =====
@@ -405,7 +405,7 @@
   top: 0;
   right: 0;
   bottom: 0;
-  z-index: 60;
+  z-index: 10000;
 }
 
 .search-mask {
@@ -467,7 +467,7 @@
 }
 
 .search-item-hover {
-  opacity: 0.62;
+  opacity: 0.86;
 }
 
 .search-item-stem {

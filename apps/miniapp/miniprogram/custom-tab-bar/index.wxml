@@ -1,9 +1,6 @@
 <!-- 自定义 tabBar：胶囊悬浮 + 中央「继续答题」圆钮。
      结构上把中央按钮单独拿出来定位，避免它挤在四个 tab 之间把间距压变形 -->
-<!-- hidden：页面里有弹层时由页面调用 setHidden(true) 收起。
-     自定义 tabBar 是独立图层，永远盖在页面之上，弹层躲不开它，
-     所以打开弹层时干脆把整条底栏藏掉。 -->
-<view class="tabbar-wrap {{hidden ? 'tabbar-hidden' : ''}}">
+<view class="tabbar-wrap">
   <view class="tabbar">
     <view
       wx:for="{{tabs}}"
@@ -13,7 +10,7 @@
       bindtap="handleTabTap"
       hover-class="tab-item-hover"
       hover-start-time="0"
-      hover-stay-time="240"
+      hover-stay-time="80"
     >
       <image class="tab-icon" src="{{selected === index ? item.activeIcon : item.icon}}" mode="aspectFit"></image>
       <text class="tab-text">{{item.text}}</text>
@@ -28,7 +25,7 @@
     bindtap="handleContinueTap"
     hover-class="continue-hover"
     hover-start-time="0"
-    hover-stay-time="240"
+    hover-stay-time="80"
   >
     <view class="continue-icon"></view>
   </view>
@@ -38,6 +35,6 @@
     bindtap="handleContinueTap"
     hover-class="continue-label-hover"
     hover-start-time="0"
-    hover-stay-time="240"
+    hover-stay-time="80"
   >继续答题</text>
 </view>

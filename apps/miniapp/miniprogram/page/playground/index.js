@@ -1,6 +1,8 @@
+const navigation = require('../../utils/navigation.js')
+const { withPageLifecycle } = require('../../utils/page-lifecycle.js')
 const { PlaygroundViewModel } = require('../../viewmodels/playground-viewmodel.js')
 const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
-Page({
+Page(withPageLifecycle({
   data: PlaygroundViewModel.getInitialData(),
 
   onLoad() {
@@ -48,9 +50,9 @@ Page({
     }
 
     if (result.command && result.command.type === 'navigate' && result.command.url) {
-      wx.navigateTo({
+      navigation.navigateTo({
         url: result.command.url
       })
     }
   }
-})
+}))

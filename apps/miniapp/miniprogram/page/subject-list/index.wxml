@@ -13,7 +13,7 @@
         bindtap="handleOpenSearch"
         hover-class="search-box-hover"
         hover-start-time="0"
-        hover-stay-time="240"
+        hover-stay-time="80"
       >
         <input
           class="search-input"
@@ -37,7 +37,7 @@
         bindtap="handleAnnouncementTap"
         hover-class="hero-notice-hover"
         hover-start-time="0"
-        hover-stay-time="240"
+        hover-stay-time="80"
       >
         <image class="hero-notice-icon {{hasAnnouncements ? 'hero-notice-icon-active' : ''}}" src="/assets/home/announcement-megaphone.png" mode="aspectFit"></image>
         <text class="hero-notice-label">公告</text>
@@ -52,7 +52,7 @@
       bindtap="handleExamTap"
       hover-class="exam-card-hover"
       hover-start-time="0"
-      hover-stay-time="240"
+      hover-stay-time="80"
     >
       <!-- 底图 + 左侧压暗层：插画只在右侧，压暗层保证左边文字始终读得清。
            底图早/中/晚三张，由 home.coverImage 按时段给（utils/home-content.js），
@@ -113,7 +113,7 @@
         bindtap="handleEntryTap"
         hover-class="entry-hover"
         hover-start-time="0"
-        hover-stay-time="240"
+        hover-stay-time="80"
       >
         <view class="entry-icon entry-icon-{{item.key}}">
           <view class="entry-badge" wx:if="{{item.badge}}">{{item.badge}}</view>
@@ -126,11 +126,14 @@
     <view class="home-foot" wx:if="{{overall}}">
       <text class="home-foot-text">已做 {{overall.answered}} / {{overall.total}} 题 · 正确率 {{overall.accuracyText}}</text>
     </view>
+    <view class="load-note" wx:if="{{overviewLoading}}">正在读取学习摘要…</view>
+    <view class="load-note" wx:if="{{overviewError}}" bindtap="handleRetryLoad" hover-class="chip-flat-hover" hover-start-time="0" hover-stay-time="80">{{overviewError}} · 点击重试</view>
   </view>
 
-  <!-- 搜索结果面板：输入即搜，完全本地 -->
-  <view class="search-panel" wx:if="{{searchVisible}}">
-    <view class="search-mask" bindtap="handleSearchClose"></view>
+  <!-- 搜索结果按页读取，遮罩覆盖导航栏。 -->
+  <root-portal enable="{{true}}">
+  <view class="search-panel portal-theme" wx:if="{{searchVisible}}">
+    <view class="search-mask" catchtouchmove="noop" catchtap="handleSearchClose"></view>
 
     <view class="search-panel-body">
       <view class="search-panel-head">
@@ -147,14 +150,14 @@
           bindtap="handleSearchResultTap"
           hover-class="search-item-hover"
           hover-start-time="0"
-          hover-stay-time="240"
+          hover-stay-time="80"
         >
           <text class="search-item-stem">{{item.stem}}</text>
           <text class="search-item-meta">{{item.typeText}}<text wx:if="{{item.sourceText}}"> · {{item.sourceText}}</text></text>
         </view>
 
         <view wx:if="{{searchLoading}}" class="search-empty"><text>正在搜索…</text></view>
-        <view wx:if="{{searchHasMore && !searchLoading}}" class="search-item" bindtap="handleSearchMore" hover-class="search-item-hover" hover-start-time="0"><text>加载更多</text></view>
+        <view wx:if="{{searchHasMore && !searchLoading}}" class="search-item" bindtap="handleSearchMore" hover-class="search-item-hover" hover-start-time="0" hover-stay-time="80"><text>加载更多</text></view>
 
         <view class="search-empty" wx:if="{{searchSearched && searchResultCount === 0}}">
           <text class="search-empty-title">没有找到匹配的题目</text>
@@ -168,15 +171,16 @@
       </scroll-view>
     </view>
   </view>
+  </root-portal>
 
-  <!-- 公告使用居中弹窗，打开时收起自定义 tabBar。 -->
+  <!-- 公告与底栏共用完整遮罩，正文在居中面板内滚动。 -->
   <bottom-sheet
     visible="{{announcementSheetVisible}}"
     title="公告"
     placement="center"
     bind:close="handleAnnouncementClose"
   >
-    <view class="notice-sheet">
+    <view class="notice-sheet portal-theme">
       <view class="notice-badge">
         <image class="notice-badge-icon" src="/assets/home/announcement-megaphone.png" mode="aspectFit"></image>
       </view>
@@ -184,13 +188,11 @@
         <text class="notice-title">{{item.title}}</text>
         <text class="notice-body">{{item.body || item.summary}}</text>
       </view>
-      <text class="notice-empty" wx:if="{{!hasAnnouncements}}">暂无公告</text>
+      <text class="notice-empty" wx:if="{{announcementLoading}}">正在读取公告…</text>
+      <text class="notice-empty" wx:elif="{{announcementError}}" bindtap="handleAnnouncementTap">{{announcementError}} · 点击重试</text>
+      <text class="notice-empty" wx:elif="{{!hasAnnouncements}}">暂无公告</text>
+      <view class="load-note" wx:if="{{announcementHasMore && !announcementLoading}}" bindtap="handleAnnouncementMore" hover-class="chip-flat-hover" hover-start-time="0" hover-stay-time="80">加载更多公告</view>
     </view>
   </bottom-sheet>
 
-  <route-loading
-    visible="{{routeLoadingVisible}}"
-    title="{{routeLoadingTitle}}"
-    description="{{routeLoadingDescription}}"
-  />
 </view>

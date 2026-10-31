@@ -1,6 +1,6 @@
 /**
  * 「我的 / 账号管理 / 邮箱提醒」静态预览：把真实 WXSS 的 rpx 按 750rpx = 402px
- * （设计稿画板宽）换算后渲染 HTML，三页并排出一张图，
+ * （设计稿画板宽）换算后渲染 HTML，包含「我的」静止与按压状态，
  * 用来和 Figma 781:1922 / 781:2123 / 781:2043 逐项比对。
  *
  * 只用真实样式，不手写任何尺寸 —— 预览和线上不一致就等于没验。
@@ -17,6 +17,7 @@ const OUT_DIR = path.join(ROOT, '.tmp-preview')
 const STAGE_W = 402 // 设计稿画板宽度
 const STAGE_H = 874 // 设计稿画板高度
 const NAV_H = 91 // 状态栏 + 导航栏，画板的顶部留白里含这部分
+const header = require('../miniprogram/utils/home-header.js').getInitialHomeHeaderData({ statusBarHeight: 47 }, { top: 51, height: 32 })
 
 const read = (relative) => fs.readFileSync(path.join(MP, relative), 'utf8')
 
@@ -101,7 +102,7 @@ const PREVIEW_BASE = `
 `
 
 function buildCss(pageDir) {
-  const app = read('app.wxss').replace(/^page\s*\{/m, 'body {')
+  const app = read('app.wxss').replace(/^page(?=\s*[,\{])/gm, 'body')
   const page = inlineImports(read(`${pageDir}/index.wxss`), pageDir)
 
   return rpxToPx(`
@@ -138,9 +139,8 @@ function row(title, value) {
 }
 
 const myBody = `
-  <div class="nav"></div>
-  <div class="list-page">
-    <div class="page-head"><span class="page-head-title">我的</span></div>
+  <div class="list-page" style="padding-top:${header.homeStatusBarHeight}px">
+    <div class="page-head" style="height:${header.homeNavigationBarHeight}px"><span class="page-head-title">我的</span></div>
     ${profileHead}
     <div class="pill-row">
       <span class="pill-row-label">账号管理</span>
@@ -150,14 +150,11 @@ const myBody = `
     <div class="group">
       <span class="group-title">学习设置</span>
       ${row('答题偏好', '即时答案')}
-      ${row('自定义布局', '选项在下')}
+      ${row('自定义布局', '默认布局')}
       ${row('邮箱提醒', '已开启')}
-    </div>
-    <div class="group">
-      <span class="group-title">其他</span>
       ${row('关于QandA', '')}
-      ${row('退出登录', '')}
     </div>
+    <div class="bottom-btn logout-button">退出登录</div>
     <div class="links">
       <span class="link">用户协议</span>
       <div class="link-divider"></div>
@@ -271,6 +268,7 @@ const reminderBody = `
 
 const stages = [
   { dir: 'page/my', body: myBody, tag: '我的 781:1922' },
+  { dir: 'page/my', body: myBody.replace('class="row"', 'class="row row-hover"'), tag: '我的 · 按压反馈' },
   { dir: 'page/account', body: accountBody, tag: '账号管理 781:2123' },
   { dir: 'page/reminder', body: reminderBody, tag: '邮箱提醒 781:2043' }
 ]
@@ -334,7 +332,7 @@ execFileSync(edge, [
   '--hide-scrollbars',
   '--force-device-scale-factor=2',
   '--virtual-time-budget=2000',
-  `--window-size=${STAGE_W * 3 + 160},${WINDOW_H}`,
+  `--window-size=${STAGE_W * stages.length + 160},${WINDOW_H}`,
   `--screenshot=${pngPath}`,
   `file:///${htmlPath.replace(/\\/g, '/')}`
 ], { stdio: 'ignore' })

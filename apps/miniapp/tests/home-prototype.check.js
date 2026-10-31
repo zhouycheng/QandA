@@ -115,12 +115,12 @@ function checkStructure() {
   assert('结构 - 四宫格按 entries 渲染', /wx:for="\{\{entries\}\}"/.test(homeWxml))
   assert('结构 - 四宫格有计数徽标', homeWxml.indexOf('class="entry-badge"') >= 0)
 
-  assert('结构 - 搜索结果面板存在', homeWxml.indexOf('class="search-panel"') >= 0)
+  assert('结构 - 搜索结果面板存在', /class="search-panel(?:\s|")/.test(homeWxml))
   assert('结构 - 搜索空态区分「已搜无果」与「未搜索」',
     homeWxml.indexOf('searchSearched && searchResultCount === 0') >= 0 &&
     homeWxml.indexOf('!searchSearched') >= 0)
   assert('结构 - 公告复用 bottom-sheet', /<bottom-sheet[\s\S]{0,200}?announcementSheetVisible/.test(homeWxml))
-  assert('结构 - 保留 route-loading 遮罩', homeWxml.indexOf('route-loading') >= 0)
+  assert('结构 - 首页直接调用原生路由', !homeWxml.includes('route-loading') && /navigation\.navigateTo/.test(homeJs))
 
   // 公告必须是居中弹窗：底部升起的形态会被自定义 tabBar 压住（用户截图投诉过）
   assert('公告 - 用居中的弹窗形态', /announcementSheetVisible[\s\S]{0,200}?placement="center"/.test(homeWxml),

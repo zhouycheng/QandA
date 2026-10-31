@@ -52,7 +52,7 @@
         bindtap="handleToggleFavorite"
         hover-class="btn-flat-hover"
         hover-start-time="0"
-        hover-stay-time="240"
+        hover-stay-time="80"
       >{{isFavorite ? '已收藏' : '收藏本题'}}</view>
     </scroll-view>
   </block>

@@ -1,3 +1,5 @@
+const navigation = require('../../utils/navigation.js')
+const { withPageLifecycle } = require('../../utils/page-lifecycle.js')
 const { RegisterViewModel } = require('../../viewmodels/register-viewmodel.js')
 const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
 const cooldown = require('../../utils/cooldown.js')
@@ -6,7 +8,7 @@ const TOAST_DELAY = 120
 
 // 验证码倒计时是纯界面状态（要挂定时器、跟业务规则无关），留在页面里不进 ViewModel；
 // 字段初始值由 cooldown 模块自己给，页面不硬写 0
-Page({
+Page(withPageLifecycle({
   data: Object.assign(RegisterViewModel.getInitialData(), cooldown.getInitialCooldownData()),
 
   onLoad() {
@@ -171,11 +173,11 @@ Page({
   goLogin() {
     wx.navigateBack({
       fail: () => {
-        wx.redirectTo({
+        navigation.redirectTo({
           url: '/page/login/index',
-          fail: () => wx.reLaunch({ url: '/page/login/index' })
+          fail: () => navigation.reLaunch({ url: '/page/login/index' })
         })
       }
     })
   }
-})
+}))

@@ -114,11 +114,8 @@ function checkMyViewModel() {
 
   assert('我的 - 未登录资料头引导登录', guest.auth.displayName === '点击登录', guest.auth.displayName)
   assert('我的 - 未登录副行给账号状态', guest.auth.subText === '未登录', guest.auth.subText)
-  assert('我的 - 未登录不显示退出登录',
-    guest.otherRows.every((item) => item.key !== 'logout'),
-    JSON.stringify(guest.otherRows))
-  assert('我的 - 学习设置三行齐全',
-    guest.learnRows.map((item) => item.key).join(',') === 'practice,layout,reminder',
+  assert('我的 - 学习设置依次显示偏好、布局、提醒与关于',
+    guest.learnRows.map((item) => item.key).join(',') === 'practice,layout,reminder,about',
     JSON.stringify(guest.learnRows.map((item) => item.key)))
   assert('我的 - 法律协议两条', guest.links.length === 2)
 
@@ -132,23 +129,18 @@ function checkMyViewModel() {
   assert('我的 - 登录后副行是学院', data.auth.subText === '计算机科学与技术学院', data.auth.subText)
   assert('我的 - 邮箱脱敏显示', data.auth.emailMasked.indexOf('@qq.com') > 0 && data.auth.emailMasked.indexOf('jiale@') < 0,
     data.auth.emailMasked)
-  assert('我的 - 登录后出现退出登录',
-    data.otherRows.some((item) => item.key === 'logout'),
-    JSON.stringify(data.otherRows))
+  assert('我的 - 登录后保持相同设置入口',
+    data.learnRows.map((item) => item.key).join(',') === guest.learnRows.map((item) => item.key).join(','))
 
   // 路由
   assert('我的 - 账号管理进账号页', vm.tapRow('account').command.url === '/page/account/index')
-  assert('我的 - 答题偏好进设置页偏好锚点',
-    vm.tapRow('practice').command.url === '/page/settings/index?focus=practice',
+  assert('我的 - 答题偏好进独立答题偏好页',
+    vm.tapRow('practice').command.url === '/page/settings/index',
     vm.tapRow('practice').command.url)
   assert('我的 - 邮箱提醒进提醒页', vm.tapRow('reminder').command.url === '/page/reminder/index')
 
   // 学习设置的右侧摘要跟着真实设置走
-  const prefs = preferences.setPreferenceChoice(
-    preferences.setPreferenceSwitch(preferences.normalizePreferences(null), 'autoShowExplanation', false),
-    'answerLayout',
-    'above'
-  )
+  const prefs = preferences.normalizePreferences({ autoShowExplanation: false, answerLayout: 'above' })
   storage.set('qandaPreferences', prefs)
   storage.set('qandaReminder', reminderSettings.setReminderSwitch(null, 'enabled', false))
 
@@ -158,16 +150,22 @@ function checkMyViewModel() {
     changed.learnRows.find((item) => item.key === 'practice').value === '仅看对错',
     changed.learnRows.find((item) => item.key === 'practice').value)
   assert('我的 - 摘要跟随「选项在上」',
-    changed.learnRows.find((item) => item.key === 'layout').value === '选项在上',
+    changed.learnRows.find((item) => item.key === 'layout').value === '已自定义',
     changed.learnRows.find((item) => item.key === 'layout').value)
   assert('我的 - 摘要跟随提醒开关',
     changed.learnRows.find((item) => item.key === 'reminder').value === '已关闭',
     changed.learnRows.find((item) => item.key === 'reminder').value)
 
   // 弹层
+  assert('我的 - 关于行打开关于弹层', vm.tapRow('about').data.sheet === 'about')
   assert('我的 - 关于弹层有题库规模', vm.openSheet('about').data.about.questionCount > 0)
   assert('我的 - 协议弹层有正文', vm.openSheet('agreement').data.sheetBody.length > 10)
   assert('我的 - 隐私弹层有正文', vm.openSheet('privacy').data.sheetBody.length > 10)
+  const refreshed = vm.projectRemote()
+  assert('我的 - 资料刷新保留已打开弹层及正文',
+    !Object.prototype.hasOwnProperty.call(refreshed, 'sheet') &&
+    !Object.prototype.hasOwnProperty.call(refreshed, 'sheetTitle') &&
+    !Object.prototype.hasOwnProperty.call(refreshed, 'sheetBody'))
   assert('我的 - 关闭弹层清空状态', vm.closeSheet().data.sheet === '')
   assert('我的 - 未知行返回空', vm.tapRow('unknown') === null)
 
@@ -367,28 +365,13 @@ function checkReminderViewModel() {
 // ---------- 六、自定义布局真的生效 ----------
 
 function checkAnswerLayout() {
-  const defaultPrefs = preferences.normalizePreferences(null)
-
-  assert('布局 - 默认选项在下', defaultPrefs.answerLayout === 'below')
-  assert('布局 - 可切到选项在上',
-    preferences.setPreferenceChoice(defaultPrefs, 'answerLayout', 'above').answerLayout === 'above')
-  assert('布局 - 非法值不生效',
-    preferences.setPreferenceChoice(defaultPrefs, 'answerLayout', 'side').answerLayout === 'below')
-  assert('布局 - 摘要文案跟随取值',
-    preferences.describeChoiceLabel({ answerLayout: 'above' }, 'answerLayout') === '选项在上')
-
-  const practiceWxml = readFile('page/practice/index.wxml')
-  const practiceWxss = readFile('page/practice/index.wxss')
-
-  assert('布局 - 答题页按偏好切换顺序类',
-    practiceWxml.indexOf('pra-content-above') >= 0 && practiceWxml.indexOf('preferences.answerLayout') >= 0)
-  // 调换顺序必须用 order，不能重排 DOM：重排 scroll-view 的子节点会让滚动位置跳
-  assert('布局 - 用 flex order 调换而不是重排 DOM',
-    /\.pra-content-above \.pra-stem\s*\{[^}]*order:\s*2/.test(practiceWxss) &&
-      /\.pra-content-above \.pra-options\s*\{[^}]*order:\s*1/.test(practiceWxss),
-    '缺少 order 规则')
-  assert('布局 - 题干与选项都在同一个 flex 容器里',
-    /\.pra-content\s*\{[^}]*display:\s*flex/.test(practiceWxss))
+  const layout = require('../miniprogram/utils/practice-layout.js')
+  assert('布局 - 默认包含五个模块', preferences.normalizePreferences(null).moduleOrder.join() === layout.DEFAULT_ORDER.join())
+  assert('布局 - 原选项在上读取为等效顺序', preferences.normalizePreferences({ answerLayout: 'above' }).moduleOrder[1] === 'response')
+  assert('布局 - 重复与非法项回落默认', preferences.normalizePreferences({ moduleOrder: ['stem', 'stem'] }).moduleOrder.join() === layout.DEFAULT_ORDER.join())
+  const template = readFile('templates/practice-content.wxml')
+  assert('布局 - 五个稳定模块按样式排序', template.split('order: {{layoutRanks.').length === 6)
+  assert('布局 - 正式答题与编辑器共用模板', ['practice', 'practice-layout'].every(page => readFile('page/' + page + '/index.wxml').includes('templates/practice-content.wxml')))
 }
 
 // ---------- 七、交互与文档 ----------

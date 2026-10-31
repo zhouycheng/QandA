@@ -1,7 +1,7 @@
 <!-- 我的｜设计稿 Figma 781:1922（画板 402x874，系数 750/402 ≈ 1.8657）
-     页内大标题 + 资料头 + 账号管理 + 学习设置 + 其他 + 法律协议。 -->
-<view class="list-page">
-  <view class="page-head">
+     页内大标题 + 资料头 + 账号管理 + 学习设置 + 法律协议。 -->
+<view class="list-page" style="padding-top: {{homeStatusBarHeight}}px;">
+  <view class="page-head" style="height: {{homeNavigationBarHeight}}px; padding-right: 210rpx;">
     <text class="page-head-title">我的</text>
   </view>
 
@@ -11,7 +11,7 @@
     bindtap="handleProfileTap"
     hover-class="profile-hover"
     hover-start-time="0"
-    hover-stay-time="240"
+    hover-stay-time="80"
   >
     <view class="profile-avatar">
       <image class="profile-avatar-img" src="{{auth.avatarUrl}}" mode="aspectFill" wx:if="{{auth.avatarUrl}}"></image>
@@ -30,7 +30,7 @@
     bindtap="handleAccountTap"
     hover-class="pill-row-hover"
     hover-start-time="0"
-    hover-stay-time="240"
+    hover-stay-time="80"
   >
     <text class="pill-row-label">账号管理</text>
     <text class="pill-row-value">个人信息与安全</text>
@@ -47,7 +47,7 @@
       bindtap="handleRowTap"
       hover-class="row-hover"
       hover-start-time="0"
-      hover-stay-time="240"
+      hover-stay-time="80"
     >
       <text class="row-label">{{item.title}}</text>
       <text class="row-value">{{item.value}}</text>
@@ -55,23 +55,15 @@
     </view>
   </view>
 
-  <view class="group">
-    <text class="group-title">其他</text>
-    <view
-      class="row"
-      wx:for="{{otherRows}}"
-      wx:key="key"
-      data-key="{{item.key}}"
-      bindtap="handleRowTap"
-      hover-class="row-hover"
-      hover-start-time="0"
-      hover-stay-time="240"
-    >
-      <text class="row-label">{{item.title}}</text>
-      <text class="row-value" wx:if="{{item.value}}">{{item.value}}</text>
-      <view class="chevron"></view>
-    </view>
-  </view>
+  <view
+    wx:if="{{auth.loggedIn}}"
+    class="bottom-btn logout-button"
+    bindtap="confirmLogout"
+    hover-class="bottom-btn-hover"
+    hover-start-time="0"
+    hover-stay-time="80"
+    aria-role="button"
+  >退出登录</view>
 
   <view class="links">
     <text
@@ -80,7 +72,7 @@
       bindtap="handleRowTap"
       hover-class="link-hover"
       hover-start-time="0"
-      hover-stay-time="240"
+      hover-stay-time="80"
     >用户协议</text>
     <view class="link-divider"></view>
     <text
@@ -89,12 +81,12 @@
       bindtap="handleRowTap"
       hover-class="link-hover"
       hover-start-time="0"
-      hover-stay-time="240"
+      hover-stay-time="80"
     >隐私政策</text>
   </view>
 </view>
 
-<!-- 居中弹窗：自定义 tabBar 是独立图层，底部弹层会被它压住 -->
+<!-- 关于和协议共用居中弹窗。 -->
 <bottom-sheet
   visible="{{sheet !== ''}}"
   title="{{sheetTitle}}"
@@ -104,7 +96,7 @@
   <view wx:if="{{sheet === 'about'}}">
     <view class="about-line">
       <text class="about-label">版本</text>
-      <text class="about-value">{{about.version || '—'}}</text>
+      <text class="about-value" bindtap="handleVersionTap" hover-class="chip-flat-hover" hover-start-time="0" hover-stay-time="80">{{about.version || '—'}}</text>
     </view>
     <view class="about-line">
       <text class="about-label">题库题量</text>
@@ -116,7 +108,7 @@
     </view>
     <view class="about-line">
       <text class="about-label">技术形态</text>
-      <text class="about-value">原生小程序 · 零依赖零构建</text>
+      <text class="about-value">微信原生小程序</text>
     </view>
     <view
       class="about-line"
@@ -124,7 +116,7 @@
       bindtap="handlePlaygroundTap"
       hover-class="row-hover"
       hover-start-time="0"
-      hover-stay-time="240"
+      hover-stay-time="80"
     >
       <text class="about-label">开发者 Playground</text>
       <view class="chevron"></view>
@@ -138,7 +130,7 @@
       bindtap="handleSheetClose"
       hover-class="bottom-btn-hover"
       hover-start-time="0"
-      hover-stay-time="240"
+      hover-stay-time="80"
     >知道了</view>
   </view>
 </bottom-sheet>

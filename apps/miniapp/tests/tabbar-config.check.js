@@ -139,7 +139,7 @@ tabs.forEach((tab) => {
 })
 
 // ---------- 2. 跳转方式与页面类型是否匹配 ----------
-const routePattern = /wx\.(navigateTo|redirectTo|switchTab|reLaunch)\s*\(\s*\{[\s\S]{0,200}?url:\s*[`'"]([^`'"?]+)/g
+const routePattern = /(?:wx|navigation)\.(navigateTo|redirectTo|switchTab|reLaunch)\s*\(\s*\{[\s\S]{0,200}?url:\s*[`'"]([^`'"?]+)/g
 const routeFiles = walkJsFiles(path.join(MINIPROGRAM, 'page'), [])
   .concat(walkJsFiles(path.join(MINIPROGRAM, 'components'), []))
 const mismatches = []
@@ -173,7 +173,7 @@ const subjectListSource = fs.readFileSync(
   'utf8'
 )
 
-assert('路由 - 首页跳题库走 switchTab', subjectListSource.indexOf('wx.switchTab') >= 0, '未找到 switchTab')
+assert('路由 - 首页跳题库走 switchTab', subjectListSource.indexOf('navigation.switchTab') >= 0, '未找到 switchTab')
 assert('路由 - 首页跳题库不带参数',
   subjectListSource.indexOf('/page/bank-detail/index?') < 0,
   'switchTab 的 url 里拼接了 query，参数会被忽略')
@@ -206,6 +206,7 @@ practiceRepository.saveWrongResults(storage, [
 ])
 practiceRepository.addQuestionFavorite(storage, firstQuestionId)
 storage.set('qandaBestScore:chinese-ch001', 80)
+storage.set('qandaAuth', { provider: 'email', userId: 'stats-test', token: 'stats-test-token' })
 
 const statsData = new StatsViewModel({ storage }).load().data
 const catalogStats = practiceRepository.getCatalogStats()
@@ -241,7 +242,7 @@ assert('复盘页 - load 无写副作用',
 // 空数据不应抛错
 const emptyData = new StatsViewModel({ storage: createMemoryStorage() }).load().data
 assert('复盘页 - 空数据可用',
-  emptyData.overall.answered === 0 && emptyData.metrics.answered === '0' && emptyData.trend.hasData === false,
+  emptyData.requiresLogin && emptyData.overall === null && emptyData.metrics.answered === '0' && emptyData.trend.hasData === false,
   JSON.stringify(emptyData.overall))
 
 // ---------- 输出 ----------

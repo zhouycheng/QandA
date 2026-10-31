@@ -1,6 +1,9 @@
+const navigation = require('../../utils/navigation.js')
+const { withPageLifecycle } = require('../../utils/page-lifecycle.js')
 const { MyViewModel } = require('../../viewmodels/my-viewmodel.js')
 const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
-Page({
+Page(withPageLifecycle({
+  customHeader: true,
   data: MyViewModel.getInitialData(),
 
   onLoad() {
@@ -13,8 +16,6 @@ Page({
 
     // 版本号来自全局配置，ViewModel 不依赖 getApp()，由页面注入
     this.viewModel.setVersion(version)
-    this.applyViewModelResult(this.viewModel.load())
-    this.applyViewModelResult(this.viewModel.refreshRemote())
   },
 
   onShow() {
@@ -23,14 +24,11 @@ Page({
     }
 
     this.syncTabBar()
-    // 弹层没关就跳走会让底栏永久消失，回页面必须兜底恢复
-    this.setTabBarHidden(false)
     this.applyViewModelResult(this.viewModel.load())
     this.applyViewModelResult(this.viewModel.refreshRemote())
   },
 
   onUnload() {
-    this.setTabBarHidden(false)
   },
 
   /** 自定义 tabBar 不会自动跟随页面切换，选中态要由页面主动同步 */
@@ -46,19 +44,6 @@ Page({
     }
   },
 
-  /** 自定义 tabBar 永远盖在页面之上，弹层要让它先躲开 */
-  setTabBarHidden(hidden) {
-    if (typeof this.getTabBar !== 'function') {
-      return
-    }
-
-    const tabBar = this.getTabBar()
-
-    if (tabBar && typeof tabBar.setHidden === 'function') {
-      tabBar.setHidden(hidden)
-    }
-  },
-
   // 下拉刷新
   onPullDownRefresh() {
     if (!this.viewModel) {
@@ -66,12 +51,7 @@ Page({
       return
     }
 
-    this.applyViewModelResult(this.viewModel.load())
-    this.applyViewModelResult(this.viewModel.refreshRemote())
-    // 留一小会儿让「正在刷新」被看到，避免指示器一闪而过
-    setTimeout(() => {
-      wx.stopPullDownRefresh()
-    }, 400)
+    return this.applyViewModelResult(this.viewModel.refreshRemote({ force: true })).finally(() => wx.stopPullDownRefresh())
   },
 
   /** 资料头：未登录去登录页，已登录进账号管理 */
@@ -83,18 +63,8 @@ Page({
     this.applyViewModelResult(this.viewModel.tapRow('account'))
   },
 
-  /**
-   * 列表行。
-   * 退出登录要二次确认——它是不可逆的身份操作，误触后要重新走登录流程。
-   */
   handleRowTap(e) {
     const key = e.currentTarget.dataset.key
-
-    if (key === 'logout') {
-      this.confirmLogout()
-      return
-    }
-
     this.applyViewModelResult(this.viewModel.tapRow(key))
   },
 
@@ -115,6 +85,13 @@ Page({
     this.applyViewModelResult(this.viewModel.closeSheet())
   },
 
+  handleVersionTap() {
+    const now = Date.now()
+    this.versionTaps = now - (this.versionTappedAt || 0) < 1500 ? (this.versionTaps || 0) + 1 : 1
+    this.versionTappedAt = now
+    if (this.versionTaps === 5) { this.versionTaps = 0; this.applyViewModelResult(this.viewModel.unlockPlayground()) }
+  },
+
   handlePlaygroundTap() {
     this.applyViewModelResult(this.viewModel.openPlayground())
   },
@@ -129,8 +106,6 @@ Page({
 
     if (result.data) {
       this.setData(result.data)
-      // setData 之后 this.data 已同步，弹层开着就把底栏藏起来
-      this.setTabBarHidden(!!this.data.sheet)
     }
 
     if (!result.command) {
@@ -146,9 +121,9 @@ Page({
     }
 
     if (result.command.type === 'navigate' && result.command.url) {
-      wx.navigateTo({
+      navigation.navigateTo({
         url: result.command.url
       })
     }
   }
-})
+}))

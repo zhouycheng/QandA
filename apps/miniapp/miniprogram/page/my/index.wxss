@@ -1,10 +1,11 @@
 @import "../../styles/list-page.wxss";
+page { background: #fff; }
 
 /* 我的｜设计稿 Figma 781:1922（画板 402x874，系数 750/402 ≈ 1.8657）
    三页公共的行高 / 分隔线 / 配色在 styles/list-page.wxss，这里只写本页差异。 */
 
 .profile-hover {
-  opacity: 0.72;
+  opacity: 0.86;
 }
 
 /* 分区标题与第一行之间留 8px（设计稿 276 → 284） */
@@ -34,5 +35,11 @@
 }
 
 .link-hover {
-  opacity: 0.6;
+  opacity: 0.72;
+}
+
+.bottom-btn.logout-button {
+  margin-top: 40rpx;
+  background: #f7f8fa;
+  color: #6b7684;
 }

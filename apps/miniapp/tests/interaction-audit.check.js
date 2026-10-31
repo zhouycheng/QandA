@@ -62,7 +62,8 @@ const usedHoverClasses = new Map() // class -> [files]
 const zeroGuard = []
 
 for (const f of wxmls) {
-  const src = fs.readFileSync(f, 'utf8')
+  if (rel(f).startsWith('templates/')) continue
+  const src = fs.readFileSync(f, 'utf8').replace(/<include\s+src="([^"]+)"\s*\/>/g, (_, name) => fs.readFileSync(path.resolve(path.dirname(f), name), 'utf8'))
   const jsPath = f.replace(/\.wxml$/, '.js')
   const jsSrc = fs.existsSync(jsPath) ? fs.readFileSync(jsPath, 'utf8') : ''
 
@@ -81,7 +82,7 @@ for (const f of wxmls) {
   // 以及组件 methods 块内的 `foo() {}`（缩进是 4 空格，别再写死 2 空格）
   // ⚠️ 参数表要用 `\([^)\n]*\)` 而不是 `\([^)]*\)`：后者会跨行贪婪吞掉，
   //    让 `Component({ ... handleMaskTap() {` 里的方法名被当成前一个匹配的一部分而漏掉。
-  for (const m of jsSrc.matchAll(/^\s*([a-zA-Z_$][\w$]*)\s*\([^)\n]*\)\s*\{/gm)) defined.add(m[1])
+  for (const m of jsSrc.matchAll(/(?:^|[,}])\s*([a-zA-Z_$][\w$]*)\s*\([^)\n]*\)\s*\{/gm)) defined.add(m[1])
   for (const m of jsSrc.matchAll(/([a-zA-Z_$][\w$]*)\s*[:=]\s*(?:async\s*)?(?:function|\()/g)) defined.add(m[1])
 
   for (const h of handlers) {
@@ -91,7 +92,7 @@ for (const f of wxmls) {
   // hover-class 收集
   for (const m of src.matchAll(/hover-class\s*=\s*"([^"{}]+)"/g)) {
     for (const cls of m[1].trim().split(/\s+/)) {
-      if (!cls) continue
+      if (!cls || cls === 'none') continue
       if (!usedHoverClasses.has(cls)) usedHoverClasses.set(cls, [])
       usedHoverClasses.get(cls).push(rel(f))
     }
@@ -158,7 +159,7 @@ zeroGuard.forEach((l) => console.log(`      · ${l}`))
 // 起因：给全宽卡片 / 滚动区域内的元素加 scale 后，用户反馈「整个画面在抖动」——
 // 一张接近满屏宽的卡片缩 3.5%，等于半屏内容同时位移；在 scroll-view 里
 // 还会被基础库当成内容尺寸变化，滚动位置跟着跳。
-// 这类反馈必须改用「背景色 + inset 描边」，几何上完全不动。
+// 滚动区域的按压反馈使用底色或透明度，保持内容位置稳定。
 console.log('\n=== 5) scroll-view 内的按压反馈是否会产生位移 ===')
 const shaking = []
 for (const f of wxmls) {
@@ -235,7 +236,7 @@ if (!fs.existsSync(componentsDir)) {
     const used = new Set()
 
     // 动态类名（含 {{}}）跳过：那部分由状态决定，静态审计容易误报
-    for (const m of src.matchAll(/class="([^"]*)"/g)) {
+    for (const m of src.matchAll(/(?:^|\s)class="([^"]*)"/g)) {
       if (m[1].includes('{{')) continue
       m[1].split(/\s+/).filter(Boolean).forEach((c) => used.add(c))
     }

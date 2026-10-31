@@ -1,9 +1,10 @@
+<root-portal enable="{{true}}" wx:if="{{visible}}">
 <view class="overview" wx:if="{{visible}}">
   <!-- 答题卡（设计稿：标题 + 三格统计 + 图例 + 6 列网格 + 按钮组）
        ⚠️ 根节点必须留在第 1 行：自检用「第一行是否有 wx:if」判断浮层会不会常驻占位。 -->
-  <view class="mask" bindtap="handleMaskTap"></view>
+  <view class="mask" catchtap="handleMaskTap" catchtouchmove="noop"></view>
 
-  <view class="panel">
+  <view class="panel" catchtap="noop" hover-class="none">
     <view class="panel-grip"></view>
 
     <view class="panel-header">
@@ -47,7 +48,7 @@
           bindtap="handleItemTap"
           hover-class="cell-hover"
           hover-start-time="0"
-          hover-stay-time="240"
+          hover-stay-time="80"
         >
           <text class="cell-number">{{item.number}}</text>
           <view class="cell-mark" wx:if="{{item.isMarked}}"></view>
@@ -67,14 +68,14 @@
           bindtap="handleSubmitTap"
           hover-class="panel-btn-hover"
           hover-start-time="0"
-          hover-stay-time="240"
+          hover-stay-time="80"
         >确认结束</view>
         <view
           class="panel-btn primary"
           bindtap="handleMaskTap"
           hover-class="panel-btn-hover"
           hover-start-time="0"
-          hover-stay-time="240"
+          hover-stay-time="80"
         >继续答题</view>
       </view>
 
@@ -85,7 +86,7 @@
             bindtap="handleMaskTap"
             hover-class="panel-btn-hover"
             hover-start-time="0"
-            hover-stay-time="240"
+            hover-stay-time="80"
           >继续答题</view>
           <view
             class="panel-btn accent"
@@ -93,7 +94,7 @@
             bindtap="handleJumpMarkedTap"
             hover-class="panel-btn-hover"
             hover-start-time="0"
-            hover-stay-time="240"
+            hover-stay-time="80"
           >含标记，前往查看</view>
           <view
             class="panel-btn accent"
@@ -101,7 +102,7 @@
             bindtap="handleSubmitTap"
             hover-class="panel-btn-hover"
             hover-start-time="0"
-            hover-stay-time="240"
+            hover-stay-time="80"
           >确认结束</view>
         </view>
         <view
@@ -110,9 +111,11 @@
           bindtap="handleSubmitTap"
           hover-class="panel-btn-hover"
           hover-start-time="0"
-          hover-stay-time="240"
+          hover-stay-time="80"
         >确认结束</view>
       </block>
     </view>
   </view>
 </view>
+
+</root-portal>

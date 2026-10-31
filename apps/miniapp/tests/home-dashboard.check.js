@@ -241,7 +241,9 @@ function checkDailyQuotes() {
 
 // ---------- 四、首页 ViewModel 集成 ----------
 function checkSubjectListViewModel() {
-  const storage = createMemoryStorage()
+  const storage = createMemoryStorage({
+    qandaAuth: { provider: 'email', userId: 'home-user', token: 'home-token' }
+  })
   const vm = new SubjectListViewModel({ storage })
   const data = vm.load().data
 
@@ -402,8 +404,31 @@ function checkStudyTimeEndToEnd() {
     JSON.stringify(viewVm.repository.getProgress(viewVm.storage)))
 }
 
-// ---------- 五、清除数据 ----------
-function checkClearRecords() {
+function checkPersonalEntryAccess() {
+  const storage = createMemoryStorage()
+  const vm = new SubjectListViewModel({ storage })
+  const entries = [
+    ['错题', () => vm.openEntry('wrong'), '/page/wrong-book/index?tab=wrong'],
+    ['收藏', () => vm.openEntry('favorite'), '/page/wrong-book/index?tab=favorite'],
+    ['考试倒计时', () => vm.openExamSettings(), '/page/exam-countdown/index']
+  ]
+
+  entries.forEach(([name, open]) => {
+    assert(`首页 - 游客点击${name}进入登录`, open().command.payload.url === '/page/login/index')
+  })
+  storage.set('qandaAuth', { provider: 'email', userId: 'home-user', token: 'home-token' })
+  entries.forEach(([name, open, url]) => {
+    assert(`首页 - 登录后点击${name}进入对应页面`, open().command.payload.url === url)
+  })
+  storage.remove('qandaAuth')
+  entries.forEach(([name, open]) => {
+    assert(`首页 - 退出登录后${name}重新要求登录`, open().command.payload.url === '/page/login/index')
+  })
+  assert('首页 - 游客可以继续浏览题库', vm.openBank().command.url === '/page/bank-detail/index')
+}
+
+// ---------- 五、个人页导航保留学习数据 ----------
+function checkMyNavigationPreservesRecords() {
   const storage = createMemoryStorage()
   const practiceVm = new PracticeViewModel({ storage })
 
@@ -415,44 +440,16 @@ function checkClearRecords() {
 
   practiceVm.repository.addQuestionFavorite(storage, practiceVm.session.state.questions[0].id)
 
-  const homeVm = new SubjectListViewModel({ storage })
-
-  assert('清除 - 清空前进度/错题/时长都有值',
-    homeVm.load().data.home.wrongCount > 0 &&
-    homeVm.load().data.home.studyTimeText !== '尚未开始',
-    homeVm.load().data.home.studyTimeText)
-
-  // 清空入口改到设置页（改版后「我的」只放导航），实现下沉到仓储层，语义不变
-  const { SettingsViewModel } = require(path.join(MINIPROGRAM, 'viewmodels/settings-viewmodel.js'))
-  const settingsVm = new SettingsViewModel({ storage })
-  const result = settingsVm.clearRecords()
-
-  assert('清除 - 返回提示', result.command && result.command.type === 'toast', JSON.stringify(result.command))
-
-  const after = homeVm.load().data
-
-  assert('清除 - 进度被清空',
-    Object.keys(homeVm.repository.getProgress(storage)).length === 0)
-
-  assert('清除 - 错题本被清空',
-    homeVm.repository.summarizeWrongBook(homeVm.repository.getWrongBook(storage)).total === 0)
-
-  assert('清除 - 收藏被清空',
-    homeVm.repository.getFavoriteIds(homeVm.repository.getFavorites(storage)).length === 0)
-
-  assert('清除 - 学习时长归零',
-    homeVm.repository.getStudyTime(storage).totalSeconds === 0,
-    JSON.stringify(homeVm.repository.getStudyTime(storage)))
-
-  assert('清除 - 首页回到全新状态',
-    after.home.wrongCount === 0 &&
-    after.home.studyTimeText === '尚未开始' &&
-    after.overall.answered === 0,
-    JSON.stringify({ wrong: after.home.wrongCount, time: after.home.studyTimeText, answered: after.overall.answered }))
-
-  assert('清除 - 首页公告回到新手引导',
-    after.home.tip.key === 'fresh-start',
-    after.home.tip.key)
+  const before = JSON.stringify(storage.raw)
+  const { MyViewModel } = require(path.join(MINIPROGRAM, 'viewmodels/my-viewmodel.js'))
+  const my = new MyViewModel({ storage })
+  my.load()
+  my.tapRow('about')
+  my.closeSheet()
+  assert('个人页 - 旧清理动作不触发操作', my.tapRow('clearRecords') === null)
+  assert('个人页 - 历史清理操作已移除',
+    typeof my.clearRecords === 'undefined' && typeof my.repository.clearLearningData === 'undefined')
+  assert('个人页 - 导航和弹窗保留已有学习数据', JSON.stringify(storage.raw) === before)
 }
 
 // ---------- 执行 ----------
@@ -461,7 +458,8 @@ checkHomeContent()
 checkDailyQuotes()
 checkSubjectListViewModel()
 checkStudyTimeEndToEnd()
-checkClearRecords()
+checkPersonalEntryAccess()
+checkMyNavigationPreservesRecords()
 
 const failed = results.filter((item) => !item.passed)
 

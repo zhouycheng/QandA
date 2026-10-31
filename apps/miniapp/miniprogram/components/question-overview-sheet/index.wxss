@@ -20,7 +20,7 @@
   right: 0;
   top: 0;
   bottom: 0;
-  z-index: 80;
+  z-index: 10000;
   display: flex;
   align-items: flex-end;
 }
@@ -183,7 +183,7 @@
 }
 
 .cell-hover {
-  opacity: 0.6;
+  opacity: 0.86;
 }
 
 .cell-number {
@@ -259,7 +259,7 @@
 
 /* 按压反馈只用 opacity：弹层里的按钮如果加位移，整块面板会跟着视觉抖动 */
 .panel-btn-hover {
-  opacity: 0.68;
+  opacity: 0.86;
 }
 
 /* 主操作：蓝底白字。

@@ -1,9 +1,11 @@
+const navigation = require('../../utils/navigation.js')
+const { withPageLifecycle } = require('../../utils/page-lifecycle.js')
 const { LoginViewModel } = require('../../viewmodels/login-viewmodel.js')
 const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
 // hideLoading 之后立刻 showToast 会被吞掉，留一帧再弹
 const TOAST_DELAY = 120
 
-Page({
+Page(withPageLifecycle({
   data: LoginViewModel.getInitialData(),
 
   onLoad() {
@@ -105,13 +107,13 @@ Page({
   },
 
   handleForgotTap() {
-    wx.navigateTo({
+    navigation.navigateTo({
       url: '/page/forgot-password/index'
     })
   },
 
   handleRegisterTap() {
-    wx.navigateTo({
+    navigation.navigateTo({
       url: '/page/register/index'
     })
   },
@@ -146,11 +148,11 @@ Page({
     }
 
     if (command.type === 'navigate' && command.url) {
-      const go = command.mode === 'redirect' ? wx.redirectTo : wx.navigateTo
+      const go = command.mode === 'redirect' ? navigation.redirectTo : navigation.navigateTo
 
       go({
         url: command.url,
-        fail: () => wx.reLaunch({ url: command.url })
+        fail: () => navigation.reLaunch({ url: command.url })
       })
 
       if (command.title) {
@@ -171,7 +173,7 @@ Page({
   finishBack(title) {
     wx.navigateBack({
       fail: () => {
-        wx.reLaunch({
+        navigation.reLaunch({
           url: '/page/subject-list/index'
         })
       }
@@ -185,4 +187,4 @@ Page({
       })
     }
   }
-})
+}))

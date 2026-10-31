@@ -4,7 +4,7 @@
   right: 0;
   top: 0;
   bottom: 0;
-  z-index: 900;
+  z-index: 10000;
 }
 
 .mask {
@@ -37,16 +37,6 @@
   }
 }
 
-/**
- * 居中弹窗形态（placement="center"）。
- *
- * 微信的自定义 tabBar 是独立图层，永远盖在页面内容之上 —— 页面里任何 fixed 弹层
- * 都会被它压住（公告的正文和按钮就是这么被挡住的）。居中弹窗够不到屏幕底部，
- * 从根上避开这个限制，不依赖 z-index（z-index 再大也没用）。
- *
- * transform 里必须带上 translateY(-50%)：父级用 top:50% 定中，
- * 动画如果只写 scale 会把弹窗顶回屏幕中心下方。
- */
 .panel-center {
   left: 60rpx;
   right: 60rpx;
@@ -86,18 +76,18 @@
   align-items: center;
   justify-content: space-between;
   padding: 28rpx 32rpx;
-  border-bottom: 1rpx solid var(--line);
+  border-bottom: 1rpx solid #e5e7eb;
 }
 
 .panel-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: var(--text-main);
+  color: #1f2a37;
 }
 
 .panel-close {
   font-size: 26rpx;
-  color: var(--text-muted);
+  color: #8490a3;
 }
 
 .panel-body {

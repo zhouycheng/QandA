@@ -125,7 +125,7 @@
   padding: 0 26rpx;
   border-radius: 22rpx;
   background: #efefef;
-  transition: background-color 0.16s ease;
+  transition: background-color 100ms ease;
 }
 
 .pill-row-hover {
@@ -167,7 +167,7 @@
   min-height: 101rpx;
   border-bottom: 2rpx solid #eef0f5;
   background: transparent;
-  transition: background-color 0.16s ease;
+  transition: background-color 100ms ease;
 }
 
 .row-hover {
@@ -350,7 +350,7 @@
   line-height: 90rpx;
   font-weight: 500;
   text-align: center;
-  transition: opacity 0.16s ease;
+  transition: opacity 100ms ease;
 }
 
 .bottom-btn-hover {
@@ -439,7 +439,7 @@
   font-weight: 500;
   color: #466bff;
   text-align: center;
-  transition: background-color 0.16s ease;
+  transition: background-color 100ms ease;
 }
 
 .add-btn-hover {

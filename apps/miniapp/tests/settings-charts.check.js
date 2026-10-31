@@ -95,7 +95,7 @@ function checkPreferences() {
     defaults.showOverviewEntry === true &&
     defaults.vibrateOnAnswer === false &&
     defaults.fontSize === 'normal' &&
-    defaults.voice === 'standard',
+    defaults.moduleOrder.length === 5,
     JSON.stringify(defaults))
 
   const dirty = preferenceUtils.normalizePreferences({
@@ -105,7 +105,7 @@ function checkPreferences() {
     autoNextWhenCorrect: true
   })
 
-  assert('偏好 - 非法枚举回落默认', dirty.fontSize === 'normal' && dirty.voice === 'standard')
+  assert('偏好 - 非法枚举回落默认', dirty.fontSize === 'normal' && !('voice' in dirty))
   assert('偏好 - 非布尔值回落默认', dirty.autoShowExplanation === true)
   assert('偏好 - 合法布尔被采纳', dirty.autoNextWhenCorrect === true)
 
@@ -121,21 +121,15 @@ function checkPreferences() {
   assert('偏好 - 字号拒绝非法值',
     preferenceUtils.setPreferenceChoice(defaults, 'fontSize', 'xxl').fontSize === 'normal')
 
-  // 发音音色尚未开放：连存储都不该被写
-  const voice = preferenceUtils.setPreferenceChoice(defaults, 'voice', 'gentle')
-
-  assert('偏好 - 未开放的音色不可改', voice.voice === 'standard')
-
   const view = preferenceUtils.buildPreferenceView({ fontSize: 'large' })
   const fontChoice = view.choices.find((item) => item.key === 'fontSize')
-  const voiceChoice = view.choices.find((item) => item.key === 'voice')
 
   assert('偏好 - 设置视图含 5 个开关', view.switches.length === 5, `实际 ${view.switches.length}`)
-  assert('偏好 - 设置视图含 3 个选择项（字号 / 布局 / 音色）',
-    view.choices.length === 3, `实际 ${view.choices.length}`)
+  assert('偏好 - 设置视图只包含字号选择',
+    view.choices.length === 1, `实际 ${view.choices.length}`)
   assert('偏好 - 字号选中态唯一',
     fontChoice.options.filter((option) => option.selected).length === 1)
-  assert('偏好 - 音色标记为未开放', voiceChoice.available === false)
+  assert('偏好 - 音色配置已移除', !view.choices.some(item => item.key === 'voice'))
 }
 
 // ---------- 三、每日日志 ----------
@@ -237,20 +231,13 @@ function checkSettingsViewModel() {
   const initial = vm.load()
 
   assert('设置 - 初始开关非空', initial.data.switches.length === 5)
-  assert('设置 - 初始目录统计带题量', initial.data.catalog.questionCount > 0,
-    `实际 ${initial.data.catalog.questionCount}`)
+  assert('设置 - 目录统计由其他页面负责', initial.data.catalog === undefined)
   // 改版后账户分组迁到「我的 → 账号管理」（设计稿 781:2123），设置页不该再有第二份账号状态
   assert('设置 - 账户分组已迁出',
     initial.data.accountActions === undefined && initial.data.auth === undefined,
     JSON.stringify(Object.keys(initial.data)))
 
-  // 「自定义布局」是新增的可用选项（设计稿「我的 · 学习设置」的第二行）
-  const layout = initial.data.choices.find((item) => item.key === 'answerLayout')
-
-  assert('设置 - 自定义布局可选项齐全',
-    !!layout && layout.available === true &&
-      layout.options.map((option) => option.value).join(',') === 'below,above',
-    JSON.stringify(layout))
+  assert('设置 - 布局由独立页面编辑', !initial.data.choices.some(item => item.key === 'answerLayout'))
 
   vm.toggleSwitch('autoShowExplanation', false)
 
@@ -270,24 +257,13 @@ function checkSettingsViewModel() {
   assert('设置 - 字号选择落盘',
     fontSize.data.choices.find((item) => item.key === 'fontSize').value === 'large')
 
-  const voice = vm.selectChoice('voice', 'gentle')
-
-  assert('设置 - 未开放的音色只提示不改数据',
-    !voice.data && voice.command.type === 'toast', JSON.stringify(voice))
-  assert('设置 - 音色提示说明原因', voice.command.title.indexOf('题目朗读') > 0, voice.command.title)
-
   const reset = vm.resetPreferences()
 
   assert('设置 - 恢复默认把字号还原',
     reset.data.choices.find((item) => item.key === 'fontSize').value === 'normal')
   assert('设置 - 恢复默认带提示', reset.command.type === 'toast')
 
-  // 危险操作收到设置页底部：账号页只管身份资料，清数据仍归「设置」
-  const cleared = vm.clearRecords()
 
-  assert('设置 - 清空学习数据带提示', cleared.command.type === 'toast', JSON.stringify(cleared.command))
-  assert('设置 - 清空学习数据不影响偏好视图',
-    Array.isArray(cleared.data.choices) && cleared.data.choices.length > 0)
 }
 
 // ---------- 六、统计页 ViewModel ----------
@@ -335,8 +311,11 @@ function checkStatsViewModel() {
     fresh.activity.dataUri.indexOf('data:image/svg+xml') === 0 && fresh.activity.hasData === false)
   assert('复盘 - 未登录时身份行有兜底文案',
     fresh.identity.subtitle.length > 0, fresh.identity.subtitle)
+  assert('复盘 - 游客显示登录入口', fresh.requiresLogin === true)
 
   const storage = createMemoryStorage()
+  storage.set('qandaAuth', { provider: 'email', userId: 'stats-test', token: 'stats-test-token' })
+  assert('复盘 - 已登录且暂无记录显示正常空态', new StatsViewModel({ storage }).load().data.requiresLogin === false)
   const practiceVm = seedPractice(storage, { wrongFirstN: 4 })
   const practiceData = practiceVm.session.getViewData()
   const correctCount = practiceData.correctCount
@@ -399,6 +378,11 @@ function checkStatsViewModel() {
   // 切换区间不应该动热力图与身份（只重算数字与趋势）
   assert('复盘 - 切区间不返回热力图字段',
     thirty.data.activity === undefined && thirty.data.identity === undefined)
+
+  storage.remove('qandaAuth')
+  const signedOut = vm.load().data
+  assert('复盘 - 退出登录清空展示缓存', signedOut.requiresLogin && signedOut.overall === null && signedOut.metrics.answered === '0' && !signedOut.activity.hasData && !signedOut.trend.hasData && vm.cache === null)
+  assert('复盘 - 游客不能切换统计范围', vm.setRange('30d') === null)
 
   // 图表：空数据 / 单点不出图，两列以上才画
   assert('图表 - 趋势图少于两点不出图',

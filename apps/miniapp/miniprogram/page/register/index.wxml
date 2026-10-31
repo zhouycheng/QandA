@@ -38,7 +38,7 @@
           bindtap="handleSendCode"
           hover-class="text-hover"
           hover-start-time="0"
-          hover-stay-time="240"
+          hover-stay-time="80"
         >{{cooldown > 0 ? cooldown + 's 后重发' : '发送验证码'}}</text>
       </view>
     </view>
@@ -76,7 +76,7 @@
       bindtap="handleToggleAgreed"
       hover-class="ghost-flat-hover"
       hover-start-time="0"
-      hover-stay-time="240"
+      hover-stay-time="80"
     >
       <view class="checkbox {{agreed ? 'checkbox-on' : ''}} {{errorField === 'agreed' ? 'checkbox-error' : ''}}">
         <view class="checkbox-tick" wx:if="{{agreed}}"></view>
@@ -90,7 +90,7 @@
     bindtap="handleSubmitTap"
     hover-class="btn-hover"
     hover-start-time="0"
-    hover-stay-time="240"
+    hover-stay-time="80"
   >注册</view>
 
   <text class="degrade-note" wx:if="{{degradedNote}}">{{degradedNote}}</text>
@@ -102,7 +102,7 @@
       bindtap="handleBackLogin"
       hover-class="text-hover"
       hover-start-time="0"
-      hover-stay-time="240"
+      hover-stay-time="80"
     >返回登录</text>
   </view>
 </view>

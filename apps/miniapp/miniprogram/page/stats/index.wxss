@@ -1,24 +1,39 @@
 @import "../../styles/list-page.wxss";
+page { background: #ffffff; }
 
 /* 复盘页（设计稿「复盘」画板，402x874，系数 750/402 ≈ 1.8657）
-   页边距来自 styles/list-page.wxss，这里只写这一页独有的灰底、卡片与图表。
+   页边距来自 styles/list-page.wxss，这里维护卡片与图表。
    换算：22px 页边距 → 41rpx；14px 卡内边距 → 26rpx；12px 圆角 → 22rpx；
         34px 分段高 → 63rpx；24px 指标数字 → 45rpx。
 
-   设计稿是「浅灰底 + 白卡」的层次，和「我的」那种纯白长页不一样：
-   标题和三指标直接落在底色上，只有热力图与趋势图各占一张白卡。 */
+   页面白底与其他 Tab 一致，浅色容器区分图表和范围选择。 */
 
 .review-page {
-  background: #f4f5f9;
+  background: #ffffff;
   padding-bottom: 272rpx;
   padding-bottom: calc(272rpx + env(safe-area-inset-bottom));
 }
 
 .review-page .page-head {
-  height: 128rpx;
+  flex: none;
   border-bottom: none;
   background: transparent;
 }
+
+.review-stage { position: relative; margin: 0 -41rpx; }
+.review-content { padding: 0 41rpx; }
+.review-page-locked { position: relative; height: 100vh; display: flex; flex-direction: column; overflow: hidden; padding-bottom: 0; }
+.review-page-locked .review-stage { flex: 1; min-height: 0; overflow: hidden; }
+.review-page-locked .page-head,
+.review-content.is-locked { filter: blur(10rpx); pointer-events: none; user-select: none; }
+.review-content.is-locked { height: 100%; box-sizing: border-box; overflow: hidden; }
+.review-access { position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(31, 42, 55, .16); text-align: center; padding: 32rpx 32rpx 272rpx; padding-bottom: calc(272rpx + env(safe-area-inset-bottom)); box-sizing: border-box; }
+.review-lock { display: flex; align-items: center; justify-content: center; width: 112rpx; height: 112rpx; border-radius: 50%; background: #e8f1ff; }
+.review-lock .mi-icon { width: 60rpx; height: 60rpx; }
+.review-access-title { margin-top: 28rpx; font-size: 34rpx; font-weight: 600; color: #1f2a37; }
+.review-access-desc { margin-top: 16rpx; font-size: 24rpx; color: #6b7684; line-height: 1.6; }
+.review-login { min-width: 320rpx; height: 88rpx; line-height: 88rpx; margin-top: 36rpx; padding: 0 40rpx; border-radius: 20rpx; background: #2b7ffc; color: #fff; font-size: 28rpx; font-weight: 600; }
+.review-login::after { border: none; }
 
 .page-head-main {
   flex: 1;
@@ -31,7 +46,7 @@
 /* 身份行：学院 · 昵称，紧跟在标题下面，是标题的延伸而不是另一块内容 */
 .review-sub {
   display: block;
-  margin-top: 4rpx;
+  margin: 12rpx 0 28rpx;
   font-size: 21rpx;
   line-height: 32rpx;
   font-weight: 500;
@@ -51,7 +66,7 @@
   padding: 6rpx;
   box-sizing: border-box;
   border-radius: 20rpx;
-  background: #ffffff;
+  background: #f7f9fc;
 }
 
 .seg {
@@ -63,11 +78,11 @@
   font-weight: 500;
   color: #6b7684;
   text-align: center;
-  transition: background-color 0.16s ease, color 0.16s ease;
+  transition: background-color 0.16s ease, color 0.16s ease, opacity 100ms ease;
 }
 
 .seg-hover {
-  opacity: 0.7;
+  opacity: 0.86;
 }
 
 /* 选中态：蓝色胶囊 + 白字。蓝底白字对比度足够，不要再叠透明度 */
@@ -141,7 +156,7 @@
 }
 
 .entry-card-hover {
-  opacity: 0.72;
+  opacity: 0.86;
 }
 
 .entry-wrong {
@@ -215,13 +230,13 @@
   text-overflow: ellipsis;
 }
 
-/* ---------- 图表白卡 ---------- */
+/* ---------- 图表容器 ---------- */
 
 .block {
   margin-top: 26rpx;
   padding: 26rpx 26rpx 22rpx;
   border-radius: 26rpx;
-  background: #ffffff;
+  background: #f7f9fc;
 }
 
 .block-head {

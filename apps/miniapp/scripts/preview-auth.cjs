@@ -32,7 +32,7 @@ function inlineImports(css) {
 }
 
 function buildCss(pageDir) {
-  const app = read('app.wxss').replace(/^page\s*\{/m, 'body {')
+  const app = read('app.wxss').replace(/^page(?=\s*[,\{])/gm, 'body')
   const page = inlineImports(read(`${pageDir}/index.wxss`))
   const shared = read('styles/auth-form.wxss')
 

@@ -22,7 +22,7 @@
         bindchooseavatar="handleChooseAvatar"
         hover-class="link-btn-hover"
         hover-start-time="0"
-        hover-stay-time="240"
+        hover-stay-time="80"
       >
         <text class="info-action">更换头像</text>
         <view class="chevron"></view>
@@ -47,9 +47,7 @@
     <!-- 学院：设计稿「我的」页要显示这一行，所以得有个能填的地方 -->
     <view class="field">
       <text class="field-label">学院 / 单位</text>
-      <picker range="{{collegeOptions}}" range-key="name" value="{{collegeIndex}}" bindchange="handleCollegeChange">
-        <view class="field-input">{{collegeOptions[collegeIndex].name || '未选择'}}</view>
-      </picker>
+      <view class="field-input" bindtap="handleCollegeOpen" hover-class="card-hover" hover-start-time="0" hover-stay-time="80">{{draft.college || '未选择'}}</view>
     </view>
   </view>
 
@@ -61,7 +59,7 @@
       bindtap="handleEmailTap"
       hover-class="row-hover"
       hover-start-time="0"
-      hover-stay-time="240"
+      hover-stay-time="80"
     >
       <text class="info-label">绑定邮箱</text>
       <view class="info-line">
@@ -76,7 +74,7 @@
       bindtap="handleWechatTap"
       hover-class="row-hover"
       hover-start-time="0"
-      hover-stay-time="240"
+      hover-stay-time="80"
     >
       <text class="info-label">微信绑定</text>
       <view class="info-line">
@@ -91,7 +89,7 @@
       bindtap="handlePasswordTap"
       hover-class="row-hover"
       hover-start-time="0"
-      hover-stay-time="240"
+      hover-stay-time="80"
     >
       <text class="info-label">登录密码</text>
       <view class="info-line">
@@ -104,6 +102,12 @@
     <text class="section-note">邮箱用于登录、找回密码与接收提醒。</text>
   </view>
 </view>
+<bottom-sheet visible="{{collegePickerVisible}}" title="选择院校" bind:close="handleCollegeClose">
+  <view class="load-note" wx:for="{{collegeOptions}}" wx:key="id" data-index="{{index}}" bindtap="handleCollegePick" hover-class="card-hover" hover-start-time="0" hover-stay-time="80">{{item.name}}</view>
+  <view class="load-note" wx:if="{{collegeLoading}}">正在读取院校…</view>
+  <view class="load-note" wx:if="{{collegeError}}" bindtap="handleCollegeOpen" hover-class="card-hover" hover-start-time="0" hover-stay-time="80">{{collegeError}} · 点击重试</view>
+  <view class="load-note" wx:if="{{collegeHasMore && !collegeLoading}}" bindtap="handleCollegeMore" hover-class="card-hover" hover-start-time="0" hover-stay-time="80">加载更多院校</view>
+</bottom-sheet>
 
 <view class="bottom-bar">
   <view
@@ -111,6 +115,6 @@
     bindtap="handleSaveTap"
     hover-class="bottom-btn-hover"
     hover-start-time="0"
-    hover-stay-time="240"
+    hover-stay-time="80"
   >保存资料</view>
 </view>

@@ -3,7 +3,7 @@
   bindtap="handleOpenTap"
   hover-class="chapter-hover"
   hover-start-time="0"
-  hover-stay-time="200"
+  hover-stay-time="80"
 >
   <view class="chapter-body">
     <text class="chapter-title">{{bank.title}}</text>

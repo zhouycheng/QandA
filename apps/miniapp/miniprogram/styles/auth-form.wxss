@@ -220,19 +220,8 @@
   color: rgba(0, 0, 0, 0.9);
 }
 
-/* 认证页的按钮是满宽大块，按压只做透明度（见 AGENTS.md 交互约定）。
-   ⚠️ 只写 opacity 是**盖不掉**全局 .btn-hover 的：app.wxss 里的
-   transform: scale(0.96) 和 box-shadow 会继续生效，满宽按钮会整体抽动一下。
-   所以 transform / box-shadow 必须显式置回 none。 */
-.btn-hover {
-  transform: none;
-  box-shadow: none;
-  opacity: 0.86;
-}
-
-/* 纯文字链接的按压态：全局没有 text-hover，这里补一个 */
 .text-hover {
-  opacity: 0.6;
+  opacity: 0.72;
 }
 
 .or-text {

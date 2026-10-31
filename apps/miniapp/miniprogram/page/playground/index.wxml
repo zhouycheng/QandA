@@ -24,7 +24,7 @@
       class="row {{item.isCurrent ? 'row-current' : ''}}"
       hover-class="row-hover"
       hover-start-time="0"
-      hover-stay-time="240"
+      hover-stay-time="80"
       data-key="{{item.key}}"
       bindtap="handleScenarioTap"
     >
@@ -46,7 +46,7 @@
       class="pg-btn"
       hover-class="btn-flat-hover"
       hover-start-time="0"
-      hover-stay-time="240"
+      hover-stay-time="80"
       bindtap="handleResetGateway"
     >退回 Mock 网关</view>
   </view>

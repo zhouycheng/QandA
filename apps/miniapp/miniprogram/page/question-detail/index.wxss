@@ -1,6 +1,6 @@
 .detail-page {
   min-height: 100vh;
-  background: #f4f7fb;
+  background: #ffffff;
 }
 
 .detail-loading,

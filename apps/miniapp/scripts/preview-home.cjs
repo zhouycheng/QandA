@@ -21,7 +21,7 @@ function rpxToPx(css) {
 
 /** 组件 wxss 里没有变量定义，变量来自 app.wxss 的 page 选择器 */
 function combineCss() {
-  const app = read('app.wxss').replace(/^page\s*\{/m, 'body {')
+  const app = read('app.wxss').replace(/^page(?=\s*[,\{])/gm, 'body')
   const home = read('page/subject-list/index.wxss')
   const tabbar = read('custom-tab-bar/index.wxss')
   const sheet = read('components/bottom-sheet/index.wxss')
@@ -131,7 +131,7 @@ const MODAL_HTML = !SHOW_MODAL ? '' : `
         <span class="panel-close">关闭</span>
       </div>
       <div class="panel-body">
-        <div class="notice-sheet">
+        <div class="notice-sheet portal-theme">
           <div class="notice-badge"><img class="notice-badge-icon" src="${megaphoneUri}"></div>
           ${noticeData.announcements.map((item) => `<div class="notice-item"><span class="notice-title">${item.title}</span><span class="notice-body">${item.body}</span></div>`).join('')}
         </div>

@@ -44,7 +44,7 @@
       bindtap="handleToggleAgreed"
       hover-class="ghost-flat-hover"
       hover-start-time="0"
-      hover-stay-time="240"
+      hover-stay-time="80"
     >
       <view class="checkbox {{agreed ? 'checkbox-on' : ''}} {{errorField === 'agreed' ? 'checkbox-error' : ''}}">
         <view class="checkbox-tick" wx:if="{{agreed}}"></view>
@@ -57,7 +57,7 @@
       bindtap="handleForgotTap"
       hover-class="text-hover"
       hover-start-time="0"
-      hover-stay-time="240"
+      hover-stay-time="80"
     >忘记密码？</text>
   </view>
 
@@ -66,7 +66,7 @@
     bindtap="handleLoginTap"
     hover-class="btn-hover"
     hover-start-time="0"
-    hover-stay-time="240"
+    hover-stay-time="80"
   >登录</view>
 
   <text class="or-text">或</text>
@@ -76,7 +76,7 @@
     bindtap="handleWechatTap"
     hover-class="btn-hover"
     hover-start-time="0"
-    hover-stay-time="240"
+    hover-stay-time="80"
   >微信登录</view>
 
   <text class="degrade-note" wx:if="{{degradedNote}}">{{degradedNote}}</text>
@@ -86,6 +86,6 @@
     bindtap="handleRegisterTap"
     hover-class="text-hover"
     hover-start-time="0"
-    hover-stay-time="240"
+    hover-stay-time="80"
   >没有账号？立即注册</text>
 </view>

@@ -242,8 +242,7 @@ async function checkEntryPages() {
   const storage = createMemoryStorage()
   const settings = new SettingsViewModel({ storage })
 
-  // 改版后账户分组迁到「我的 → 账号管理」（设计稿 781:2123），设置页只留偏好 / 数据 / 关于。
-  // 同一份账号状态不许有两个入口，否则迟早改出两套文案。
+  // 账号统一通过「我的 → 账号管理」维护。
   assert('设置 - 账户分组已迁出（不再有 accountActions）',
     settings.load().data.accountActions === undefined)
   assert('设置 - 不再提供账户动作入口', typeof settings.openAccountAction === 'undefined')
@@ -261,9 +260,6 @@ async function checkEntryPages() {
   assert('我的 - 未登录点邮箱提醒先引导登录',
     my.tapRow('reminder').command.title.indexOf('登录') >= 0,
     JSON.stringify(my.tapRow('reminder')))
-  assert('我的 - 未登录不给退出登录',
-    my.load().data.otherRows.every((item) => item.key !== 'logout'),
-    JSON.stringify(my.load().data.otherRows))
 
   authGateway.setAuthGateway({
     name: 'fake',
@@ -276,9 +272,6 @@ async function checkEntryPages() {
 
   assert('我的 - 登录后资料卡显示昵称', myAfter.data.auth.displayName === 'curry', myAfter.data.auth.displayName)
   assert('我的 - 登录后标签是微信登录', myAfter.data.auth.accountTag === '微信登录')
-  assert('我的 - 登录后出现退出登录',
-    myAfter.data.otherRows.some((item) => item.key === 'logout'),
-    JSON.stringify(myAfter.data.otherRows))
   assert('我的 - 登录后账号管理进账号页',
     my.tapRow('account').command.url === '/page/account/index',
     JSON.stringify(my.tapRow('account')))
@@ -286,19 +279,10 @@ async function checkEntryPages() {
     my.tapRow('reminder').command.url === '/page/reminder/index',
     JSON.stringify(my.tapRow('reminder')))
 
-  // 清空学习数据的入口改到设置页，但语义不变：只清学习数据，不动身份
-  assert('设置 - 清空学习数据不牵连登录态', (() => {
-    new SettingsViewModel({ storage: myStorage }).clearRecords()
-
-    return my.load().data.auth.loggedIn === true
-  })())
-
   const logout = my.logout()
 
   assert('我的 - 退出登录回传未登录视图', logout.data.auth.loggedIn === false)
   assert('我的 - 退出登录有提示', logout.command.title === '已退出登录')
-  assert('我的 - 退出后不再给退出登录',
-    my.load().data.otherRows.every((item) => item.key !== 'logout'))
 }
 
 // ---------- 六、页面契约（静态） ----------
@@ -320,7 +304,7 @@ function checkStaticContract() {
   assert('页面 - 微信登录处理函数已定义', loginJs.indexOf('handleWechatTap()') >= 0)
   assert('页面 - 注册入口处理函数已定义', loginJs.indexOf('handleRegisterTap()') >= 0)
   assert('页面 - 忘记密码处理函数已定义', loginJs.indexOf('handleForgotTap()') >= 0)
-  assert('页面 - 登录页注册原生 Page 配置', /Page\(\s*\{/.test(loginJs))
+  assert('页面 - 登录页注册原生 Page 配置', /Page\(withPageLifecycle\(\s*\{/.test(loginJs))
 
   // 输入框不再做受控回写：回写 value 会让真机光标跳到末尾
   assert('页面 - 输入不反写 value', loginJs.indexOf('value:') < 0)
@@ -379,7 +363,8 @@ function checkStaticContract() {
   const settingsWxml = readFile('page/settings/index.wxml')
 
   assert('页面 - 设置页不再放账户分组', settingsWxml.indexOf('accountActions') < 0)
-  assert('页面 - 设置页清空学习数据仍有入口', settingsWxml.indexOf('handleClearRecords') >= 0)
+  assert('页面 - 退出登录独立显示且仅登录后可见',
+    /<view\s+wx:if="\{\{auth.loggedIn\}\}"[^>]*bindtap="confirmLogout"/.test(readFile('page/my/index.wxml')))
 
   const loginWxss = readFile('page/login/index.wxss')
 

@@ -1,7 +1,8 @@
+<root-portal enable="{{true}}" wx:if="{{visible}}">
 <view class="bottom-sheet" wx:if="{{visible}}">
-  <view class="mask" bindtap="handleMaskTap"></view>
+  <view class="mask" catchtouchmove="noop" catchtap="handleMaskTap"></view>
 
-  <view class="panel {{placement === 'center' ? 'panel-center' : ''}}">
+  <view catchtap="noop" hover-class="none" class="panel {{placement === 'center' ? 'panel-center' : ''}}">
     <view class="panel-header">
       <text class="panel-title">{{title}}</text>
       <text class="panel-close" bindtap="handleCloseTap">关闭</text>
@@ -12,3 +13,5 @@
     </scroll-view>
   </view>
 </view>
+
+</root-portal>

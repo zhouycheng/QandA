@@ -187,12 +187,14 @@ function checkBottomSpace() {
     assert(`留白 - ${name} 页底部预留 ≥ ${reserved}rpx`, bottom >= reserved, `实际 ${bottom}rpx`)
   })
 
-  // 满屏两栏布局的页面：靠减去高度让位，不能用 padding
+  // 两栏背景铺满，末尾内容可滚动到悬浮底栏上方。
   const bankWxss = read('page/bank-detail/index.wxss')
 
-  assert('留白 - bank-detail 不再用整屏 100vh',
-    /\.bank-detail-page\s*\{[^}]*height:\s*calc\(/.test(bankWxss),
-    '整屏 100vh 会让底部被胶囊压住')
+  assert('背景 - 题库两栏铺满视口', /\.bank-detail-page\s*\{[^}]*height:\s*100vh/.test(bankWxss))
+  ;['rail-inner', 'panel-inner'].forEach(name => {
+    assert(`留白 - ${name} 末尾为底栏预留可滚动空间`,
+      new RegExp(`\\.${name}\\s*\\{[^}]*padding-bottom:\\s*calc\\(272rpx \\+ env\\(safe-area-inset-bottom\\)\\)`).test(bankWxss))
+  })
   assert('留白 - bank-detail 内部容器改用 100% 跟随父级',
     /\.workbench\s*\{[^}]*height:\s*100%/.test(bankWxss))
 
@@ -203,42 +205,19 @@ function checkBottomSpace() {
   assert(`留白 - 首页 .sheet 底部预留 ≥ ${reserved}rpx`, sheetBottom >= reserved, `实际 ${sheetBottom}rpx`)
 }
 
-// ---------- 二·补二、弹层打开时底栏让位 ----------
-
-/**
- * 自定义 tabBar 由基础库渲染在页面之上，页面里的 fixed 弹层（公告、抽题设置）
- * 一定会在它下面 —— z-index 拉多高都没用。唯一可靠的办法是弹层打开时把底栏收起来。
- * 这条只有 tab 页 + 弹层同时存在时才会踩到，所以放这里统一盯。
- */
+// ---------- 二·补二、弹层覆盖底栏 ----------
 function checkHiddenOnOverlay() {
-  assert('让位 - 组件暴露 setHidden', /\bsetHidden\s*\([^)\n]*\)\s*\{/.test(tabBarJs))
-  assert('让位 - 组件有 hidden 状态', /hidden:\s*false/.test(tabBarJs))
-  assert('让位 - WXML 根节点按 hidden 切换类名', /\{\{hidden \? 'tabbar-hidden'/.test(tabBarWxml))
-  assert('让位 - 收起样式用 display:none',
-    /\.tabbar-hidden\s*\{[^}]*display:\s*none/.test(tabBarWxss),
-    '用 opacity:0 会看不见但仍吃掉点击')
-
-  // 两个有弹层的 tab 页都要接入
-  const pages = [
-    { name: 'subject-list', flag: 'handleAnnouncementTap' },
-    { name: 'bank-detail', flag: 'setTabBarHidden' }
-  ]
-
-  pages.forEach((page) => {
-    const source = read(`page/${page.name}/index.js`)
-
-    assert(`让位 - ${page.name} 接入底栏收起`, source.indexOf('setTabBarHidden') >= 0)
-    assert(`让位 - ${page.name} 在 onShow 里恢复底栏`,
-      /onShow\(\)\s*\{[\s\S]{0,300}?setTabBarHidden\(false\)/.test(source),
-      '不恢复的话「弹层没关就跳走」会让底栏永久消失')
+  assert('弹层 - 底栏持续显示', !/setHidden|hidden:\s*false/.test(tabBarJs) && !/tabbar-hidden/.test(tabBarWxml))
+  ;['subject-list', 'bank-detail', 'my', 'stats'].forEach(name => {
+    assert(`弹层 - ${name} 使用统一层级`, !read(`page/${name}/index.js`).includes('setTabBarHidden'))
   })
-
-  // 公告打开的入口必须真的收起底栏
-  const homeJs = read('page/subject-list/index.js')
-  assert('让位 - 打开公告时收起底栏',
-    /handleAnnouncementTap\(\)\s*\{[\s\S]{0,160}?setTabBarHidden\(true\)/.test(homeJs))
-  assert('让位 - 关闭公告时恢复底栏',
-    /handleAnnouncementClose\(\)\s*\{[\s\S]{0,160}?setTabBarHidden\(false\)/.test(homeJs))
+  ;['bottom-sheet', 'question-overview-sheet', 'route-loading'].forEach(name => {
+    const source = read(`components/${name}/index.wxml`)
+    assert(`弹层 - ${name} 通过 root-portal 承载`, /<root-portal[^>]*wx:if="\{\{visible\}\}"/.test(source))
+  })
+  const sheet = read('components/bottom-sheet/index.wxml')
+  assert('弹层 - 遮罩拦截点击与滚动', /class="mask"[^>]*catchtouchmove="noop"[^>]*catchtap="handleMaskTap"/.test(sheet))
+  assert('弹层 - 页面隐藏时统一关闭弹窗', read('utils/page-lifecycle.js').includes('announcementSheetVisible'))
 }
 
 // ---------- 三、中央「继续答题」 ----------
