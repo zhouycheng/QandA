@@ -1,0 +1,16 @@
+{
+  "name": "qanda-miniapp",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "node scripts/check.cjs",
+    "build": "node scripts/build-npm.cjs"
+  },
+  "dependencies": {
+    "mobx-miniprogram": "6.12.3",
+    "mobx-miniprogram-bindings": "7.0.1"
+  },
+  "devDependencies": {
+    "miniprogram-api-typings": "5.1.2"
+  }
+}

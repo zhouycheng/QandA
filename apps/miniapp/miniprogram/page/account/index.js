@@ -1,6 +1,8 @@
+const navigation = require('../../utils/navigation.js')
+const { withPageLifecycle } = require('../../utils/page-lifecycle.js')
 const { AccountViewModel } = require('../../viewmodels/account-viewmodel.js')
 const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
-Page({
+Page(withPageLifecycle({
   data: AccountViewModel.getInitialData(),
 
   onLoad() {
@@ -8,15 +10,13 @@ Page({
       storage: createWxStorageAdapter()
     })
 
-    this.applyViewModelResult(this.viewModel.load())
-    this.applyViewModelResult(this.viewModel.refreshRemote())
   },
 
   /** 从登录 / 找回密码返回时资料可能变了；正在编辑就不覆盖用户输入 */
   onShow() {
     if (this.viewModel && !this.data.dirty) {
       this.applyViewModelResult(this.viewModel.load())
-    this.applyViewModelResult(this.viewModel.refreshRemote())
+      this.applyViewModelResult(this.viewModel.refreshRemote())
     }
   },
 
@@ -67,6 +67,27 @@ Page({
     this.applyViewModelResult(this.viewModel.selectCollege(e.detail.value))
   },
 
+  handleCollegeOpen() {
+    this.setData({ collegePickerVisible: true, collegeLoading: true, collegeError: '' })
+    return this.viewModel.loadColleges(1).then(result => this.applyViewModelResult(result))
+      .catch(error => this.setData({ collegeError: error.message }))
+      .finally(() => this.setData({ collegeLoading: false }))
+  },
+
+  handleCollegeMore() {
+    if (this.data.collegeLoading) return
+    this.setData({ collegeLoading: true })
+    return this.viewModel.loadColleges((this.data.collegePage || 1) + 1).then(result => this.applyViewModelResult(result))
+      .catch(error => this.setData({ collegeError: error.message }))
+      .finally(() => this.setData({ collegeLoading: false }))
+  },
+
+  handleCollegeClose() { this.setData({ collegePickerVisible: false }) },
+  handleCollegePick(e) {
+    this.applyViewModelResult(this.viewModel.selectCollege(e.currentTarget.dataset.index))
+    this.handleCollegeClose()
+  },
+
   handleEmailTap() {
     this.applyViewModelResult(this.viewModel.tapEmail())
   },
@@ -109,9 +130,9 @@ Page({
     }
 
     if (result.command.type === 'navigate' && result.command.url) {
-      wx.navigateTo({
+      navigation.navigateTo({
         url: result.command.url
       })
     }
   }
-})
+}))

@@ -4,7 +4,7 @@
   right: 0;
   top: 0;
   bottom: 0;
-  z-index: 999;
+  z-index: 10010;
   background: rgba(15, 23, 42, 0.45);
   display: flex;
   align-items: center;
@@ -24,8 +24,8 @@
 .spinner {
   width: 56rpx;
   height: 56rpx;
-  border: 6rpx solid var(--brand-soft);
-  border-top-color: var(--brand);
+  border: 6rpx solid var(--brand-soft, #e8f1ff);
+  border-top-color: var(--brand, #2b7ffc);
   border-radius: 50%;
   animation: route-loading-spin 0.8s linear infinite;
 }
@@ -39,12 +39,12 @@
 .loading-title {
   margin-top: 24rpx;
   font-size: 28rpx;
-  color: var(--text-main);
+  color: var(--text-main, #1f2a37);
 }
 
 .loading-desc {
   margin-top: 8rpx;
   font-size: 24rpx;
-  color: var(--text-muted);
+  color: var(--text-muted, #9aa4b2);
   text-align: center;
 }

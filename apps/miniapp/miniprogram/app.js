@@ -4,6 +4,7 @@ const practiceRepository = require('./repositories/practice-repository.js')
 const http = require('./repositories/http-gateway.js')
 const onlinePractice = require('./repositories/online-practice.js')
 const remoteData = require('./repositories/remote-data-repository.js')
+const localConfig = require('./runtime.local.js')
 
 App({
   globalData: {
@@ -16,7 +17,7 @@ App({
   onLaunch() {
     this.globalData.launchAt = Date.now()
     const storage = createWxStorageAdapter()
-    const config = typeof wx.getExtConfigSync === 'function' ? wx.getExtConfigSync() || {} : {}
+    const config = Object.assign({}, localConfig, typeof wx.getExtConfigSync === 'function' ? wx.getExtConfigSync() || {} : {})
     http.configure({ baseUrl: config.apiBaseUrl || '', tokenProvider: () => practiceRepository.getAuth(storage).token || '' })
     remoteData.enable(true)
     remoteData.bind(storage)
@@ -103,6 +104,10 @@ App({
 
   onUnhandledRejection(res) {
     console.error(`[trace] 未处理的 Promise 拒绝：${res && res.reason ? res.reason : res}`)
+  },
+
+  getLoadingMetrics() {
+    return require('./utils/loading-metrics.js').snapshot()
   },
 
   setPendingSubjectId(subjectId) {

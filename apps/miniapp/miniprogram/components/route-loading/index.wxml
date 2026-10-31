@@ -1,7 +1,10 @@
-<view class="route-loading" wx:if="{{visible}}">
+<root-portal enable="{{true}}" wx:if="{{visible}}">
+<view class="route-loading" wx:if="{{visible}}" catchtap="noop" catchtouchmove="noop" hover-class="none">
   <view class="loading-card">
     <view class="spinner"></view>
     <text class="loading-title">{{title}}</text>
     <text class="loading-desc" wx:if="{{description}}">{{description}}</text>
   </view>
 </view>
+
+</root-portal>

@@ -135,7 +135,7 @@ assert(
 )
 
 console.log('\n--- WXML ---')
-const wxmlOut = runCompiler(exePath(wccDir, 'wcc'), wxmlFiles)
+const wxmlOut = runCompiler(exePath(wccDir, 'wcc'), wxmlFiles.concat(collect(SRC, '.wxs')))
 // wcc 把报错写在一行 JSON 里，形如 {"error": ...} / "errMsg"
 const wxmlErrs = wxmlOut
   .split(/\r?\n/)

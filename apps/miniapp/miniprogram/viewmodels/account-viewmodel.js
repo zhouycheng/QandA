@@ -57,7 +57,12 @@ function getInitialAccountViewData() {
     dirty: false,
     saving: false,
     collegeOptions: [],
-    collegeIndex: 0
+    collegeIndex: 0,
+    collegePickerVisible: false,
+    collegeLoading: false,
+    collegeError: '',
+    collegeHasMore: false,
+    collegePage: 1
   }
 }
 
@@ -77,6 +82,20 @@ class AccountViewModel {
     return this.repository.refreshRemote(this.storage, 'profile').then(() => revision === this.editRevision ? this.load() : null).catch((error) => ({ command: { type: 'toast', title: error.message } }))
   }
 
+  projectRemote() {
+    remoteData.getProfile(this.storage)
+    if (this.loadedEditRevision !== this.editRevision) return { collegeOptions: [{ id: '', name: '未选择' }].concat(remoteData.getColleges()) }
+    return this.load().data
+  }
+
+  loadColleges(page) {
+    return remoteData.loadColleges(this.storage, page || 1).then(result => ({ data: {
+      collegeOptions: [{ id: '', name: '未选择' }].concat(remoteData.getColleges()),
+      collegeHasMore: !!result && result.page * result.pageSize < result.total,
+      collegePage: page || 1
+    } }))
+  }
+
   static getInitialData() {
     return getInitialAccountViewData()
   }
@@ -90,6 +109,7 @@ class AccountViewModel {
     }
 
     this.pending = Object.assign({}, draft)
+    this.loadedEditRevision = this.editRevision
 
     return {
       data: {
@@ -144,7 +164,7 @@ class AccountViewModel {
     const colleges = [{ id: '', name: '未选择' }].concat(remoteData.getColleges())
     const college = colleges[Number(index)] || colleges[0]
     this.pending = Object.assign({}, this.pending, { college: college.id ? college.name : '', collegeId: college.id || null })
-    return { data: { collegeIndex: Number(index), dirty: true } }
+    return { data: { collegeIndex: Number(index), 'draft.college': this.pending.college, dirty: true } }
   }
 
   /** 输入：只记改动，不回写 value（回写会让光标跳到末尾） */

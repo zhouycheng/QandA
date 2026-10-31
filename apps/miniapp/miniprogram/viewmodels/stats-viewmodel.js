@@ -88,6 +88,9 @@ function collectAnsweredIds(progress) {
 
 function getInitialStatsViewData() {
   return {
+    requiresLogin: true,
+    statsLoading: false,
+    statsError: '',
     identity: {
       subtitle: '登录后同步学习记录'
     },
@@ -149,9 +152,23 @@ class StatsViewModel {
     this.cache = null
   }
 
-  refreshRemote(subjectId) {
+  refreshRemote(options) {
+    if (!this.repository.getAuth(this.storage).loggedIn) return Promise.resolve(this.load())
     if (!this.repository.isRemoteEnabled || !this.repository.isRemoteEnabled()) return Promise.resolve(null)
-    return this.repository.refreshRemote(this.storage, 'all').then(() => this.load()).catch((error) => ({ command: { type: 'toast', title: error.message } }))
+    this.statsError = ''
+    return this.repository.refreshRemote(this.storage, 'stats', Object.assign({}, options, { period: this.range === '7d' ? 'WEEK' : this.range === '30d' ? 'MONTH' : 'ALL' }))
+      .then(() => ({ data: this.projectRemote() })).catch(error => { this.statsError = error.message; return { data: this.projectRemote() } })
+  }
+
+  projectRemote() {
+    const data = this.load().data
+    if (data.requiresLogin) return data
+    if (this.repository.getRemoteResourceState) {
+      const state = this.repository.getRemoteResourceState('statistics', { period: this.range === '7d' ? 'WEEK' : this.range === '30d' ? 'MONTH' : 'ALL' })
+      data.statsLoading = state.status === 'loading' && !state.data
+      data.statsError = state.error || this.statsError || ''
+    }
+    return data
   }
 
   static getInitialData() {
@@ -159,6 +176,11 @@ class StatsViewModel {
   }
 
   load() {
+    if (!this.repository.getAuth(this.storage).loggedIn) {
+      this.cache = null
+      this.range = '7d'
+      return { data: Object.assign(getInitialStatsViewData(), { activity: this.buildActivity(getRecentDays({}, HEATMAP_DAYS)) }) }
+    }
     const progress = this.repository.getProgress(this.storage)
     const details = this.repository.getSubjectSummaries()
       .map((subject) => this.repository.getSubjectDetail(subject.id))
@@ -175,15 +197,24 @@ class StatsViewModel {
     this.cache = { overall, days, studySeconds: Number(studyTime.totalSeconds) || 0 }
 
     const favorites = this.repository.getFavorites(this.storage)
+    const overview = this.repository.isRemoteEnabled && this.repository.isRemoteEnabled() && this.repository.getRemoteOverview(this.storage)
+    const entries = this.buildEntries(wrongBook, favorites, progress)
+    if (overview) {
+      entries.wrong.value = String(overview.wrongCount)
+      entries.wrong.caption = overview.wrongCount ? '待复习的题目' : '还没有错题'
+      entries.favorite.value = String(overview.favoriteCount)
+      entries.favorite.caption = overview.favoriteCount ? '查看收藏与练习状态' : '还没有收藏'
+    }
 
     return {
       data: Object.assign(getInitialStatsViewData(), {
+        requiresLogin: false,
         identity: this.buildIdentity(),
         overall,
-        wrongCount: getPendingIds(wrongBook).length,
-        masteredCount: getMasteredIds(wrongBook).length,
-        favoriteCount: countFavorites(favorites),
-        entries: this.buildEntries(wrongBook, favorites, progress),
+        wrongCount: overview ? overview.wrongCount : getPendingIds(wrongBook).length,
+        masteredCount: overview ? overview.masteredCount : getMasteredIds(wrongBook).length,
+        favoriteCount: overview ? overview.favoriteCount : countFavorites(favorites),
+        entries,
         studyTimeText: formatStudyDuration(studyTime.totalSeconds),
         activity: this.buildActivity(days)
       }, this.buildRangeView())
@@ -227,6 +258,7 @@ class StatsViewModel {
 
   /** 切换区间：只重算三个数字与趋势图，热力图与身份不重算 */
   setRange(value) {
+    if (!this.repository.getAuth(this.storage).loggedIn) return null
     const matched = RANGE_OPTIONS.find((option) => option.value === value)
 
     if (!matched || matched.value === this.range) {

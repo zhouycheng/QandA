@@ -1,10 +1,13 @@
+const navigation = require('../../utils/navigation.js')
+const { withPageLifecycle } = require('../../utils/page-lifecycle.js')
 const { StatsViewModel } = require('../../viewmodels/stats-viewmodel.js')
 const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
 /**
  * 复盘页（路由仍是 page/stats/index，tabBar 文案叫「复盘」）。
  * 只读汇总，不产生任何写副作用。
  */
-Page({
+Page(withPageLifecycle({
+  customHeader: true,
   data: StatsViewModel.getInitialData(),
 
   onLoad() {
@@ -21,7 +24,6 @@ Page({
 
     this.syncTabBar()
     // 底栏是四个 tab 共用的一条实例：别的页开着弹层切过来时可能还是隐藏态，这里兜底恢复
-    this.setTabBarHidden(false)
     this.applyViewModelResult(this.viewModel.load())
     this.applyViewModelResult(this.viewModel.refreshRemote())
   },
@@ -39,25 +41,15 @@ Page({
     }
   },
 
-  setTabBarHidden(hidden) {
-    if (typeof this.getTabBar !== 'function') {
-      return
-    }
-
-    const tabBar = this.getTabBar()
-
-    if (tabBar && typeof tabBar.setHidden === 'function') {
-      tabBar.setHidden(hidden)
-    }
-  },
 
   /** 切换区间：只重算三个数字与趋势图，热力图和身份不重算 */
   handleRangeTap(e) {
-    if (!this.viewModel) {
+    if (!this.viewModel || this.data.requiresLogin) {
       return
     }
 
     this.applyViewModelResult(this.viewModel.setRange(e.currentTarget.dataset.value))
+    this.applyViewModelResult(this.viewModel.refreshRemote())
   },
 
   /**
@@ -65,14 +57,17 @@ Page({
    * 复盘页是 tab 页，navigateTo 会让底栏留在下面 —— 那两个页面不是 tab，这样才符合层级。
    */
   handleEntryTap(e) {
+    if (this.data.requiresLogin) return this.handleLoginTap()
     const url = e.currentTarget.dataset.url
 
     if (!url) {
       return
     }
 
-    wx.navigateTo({ url })
+    navigation.navigateTo({ url })
   },
+
+  handleLoginTap() { navigation.navigateTo({ url: '/page/login/index' }) },
 
   // 下拉刷新：重新汇总一遍本地数据
   onPullDownRefresh() {
@@ -81,20 +76,10 @@ Page({
       return
     }
 
-    this.applyViewModelResult(this.viewModel.load())
-    this.applyViewModelResult(this.viewModel.refreshRemote())
-    this.finishPullDownRefresh()
+    return this.applyViewModelResult(this.viewModel.refreshRemote({ force: true })).finally(() => wx.stopPullDownRefresh())
   },
 
-  /**
-   * 立刻 stop 会让「正在刷新」一闪而过，反而显得敷衍。
-   * 留 400ms 让用户看清反馈再收回，手感才完整。
-   */
-  finishPullDownRefresh() {
-    setTimeout(() => {
-      wx.stopPullDownRefresh()
-    }, 400)
-  },
+  handleRetryLoad() { return this.applyViewModelResult(this.viewModel.refreshRemote({ force: true })) },
 
   applyViewModelResult(result) {
     if (result && typeof result.then === 'function') {
@@ -115,4 +100,4 @@ Page({
       })
     }
   }
-})
+}))

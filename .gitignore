@@ -13,3 +13,4 @@ apps/miniapp/.tmp-preview/
 
 # 小程序本机接口配置
 apps/miniapp/miniprogram/ext.json
+apps/miniapp/miniprogram/runtime.local.js

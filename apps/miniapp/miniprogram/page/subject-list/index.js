@@ -1,9 +1,10 @@
+const navigation = require('../../utils/navigation.js')
+const { withPageLifecycle } = require('../../utils/page-lifecycle.js')
 const { SubjectListViewModel } = require('../../viewmodels/subject-list-viewmodel.js')
 const { createWxStorageAdapter } = require('../../utils/wx-storage.js')
 const { getInitialHomeHeaderData } = require('../../utils/home-header.js')
-const ROUTE_LOADING_DELAY = 240
 
-Page({
+Page(withPageLifecycle({
   data: Object.assign(SubjectListViewModel.getInitialData(), getInitialHomeHeaderData()),
 
   isNavigating: false,
@@ -31,8 +32,6 @@ Page({
   onShow() {
     this.isNavigating = false
     this.syncTabBar()
-    // 兜底：万一上次是「弹层没关就跳走」，回来时底栏必须还在
-    this.setTabBarHidden(false)
 
     // 从答题页返回时重新读取进度，保证统计实时
     if (this.hasLoadedOnce && this.viewModel) {
@@ -58,22 +57,7 @@ Page({
     }
   },
 
-  /**
-   * 弹层打开时收起底栏。
-   * 自定义 tabBar 是独立图层，页面里的 fixed 弹层永远在它下面，
-   * 不收起就会出现「公告正文和按钮被底栏压住」。
-   */
-  setTabBarHidden(hidden) {
-    if (typeof this.getTabBar !== 'function') {
-      return
-    }
-
-    const tabBar = this.getTabBar()
-
-    if (tabBar && typeof tabBar.setHidden === 'function') {
-      tabBar.setHidden(hidden)
-    }
-  },
+  noop() {},
 
   onShareAppMessage() {
     return this.viewModel.getShareMessage()
@@ -86,16 +70,12 @@ Page({
       return
     }
 
-    this.refresh()
-    // 留 400ms 让「正在刷新」被看到再收回，避免指示器一闪而过
-    setTimeout(() => {
-      wx.stopPullDownRefresh()
-    }, 400)
+    return this.refresh({ force: true }).finally(() => wx.stopPullDownRefresh())
   },
 
-  refresh() {
-    this.applyViewModelResult(this.viewModel.load())
-    this.applyViewModelResult(this.viewModel.refreshRemote())
+  refresh(options) {
+    this.applyViewModelResult({ data: this.viewModel.projectRemote() })
+    return this.applyViewModelResult(this.viewModel.refreshRemote(options))
   },
 
   handleContinueTap() {
@@ -111,7 +91,7 @@ Page({
   // ---------- 倒计时卡 ----------
 
   /**
-   * 已设置 → 直接进设置页修改；未设置 → 同样进设置页，由 ?focus=exam 自动聚焦分组。
+   * ViewModel 根据当前身份决定进入登录页或独立倒计时页。
    * 两种情况都走同一个入口，不因为状态不同而分成「看详情」和「去设置」两条路。
    */
   handleExamTap() {
@@ -207,12 +187,24 @@ Page({
   // ---------- 公告（小喇叭） ----------
 
   handleAnnouncementTap() {
-    this.setTabBarHidden(true)
     this.applyViewModelResult(this.viewModel.openAnnouncement())
+    this.setData({ announcementLoading: true, announcementError: '' })
+    return this.viewModel.loadAnnouncements(1).then(result => this.applyViewModelResult(result))
+      .catch(error => this.setData({ announcementError: error.message }))
+      .finally(() => this.setData({ announcementLoading: false }))
   },
 
+  handleAnnouncementMore() {
+    if (this.data.announcementLoading) return
+    this.setData({ announcementLoading: true })
+    return this.viewModel.loadAnnouncements((this.data.announcementPage || 1) + 1).then(result => this.applyViewModelResult(result))
+      .catch(error => this.setData({ announcementError: error.message }))
+      .finally(() => this.setData({ announcementLoading: false }))
+  },
+
+  handleRetryLoad() { return this.refresh({ force: true }) },
+
   handleAnnouncementClose() {
-    this.setTabBarHidden(false)
     this.applyViewModelResult(this.viewModel.closeAnnouncement())
   },
 
@@ -239,14 +231,19 @@ Page({
 
   chooseBank(command, offset) {
     const banks = command.banks || []
+    if (!banks.length && command.hasMore) return this.applyViewModelResult(this.viewModel.loadMockChoices(command.remotePage + 1))
     if (!banks.length) return wx.showToast({ title: '当前没有可练习题库', icon: 'none' })
     const start = offset || 0
     const page = banks.slice(start, start + 5)
-    const more = banks.length > 5
+    const more = banks.length > 5 || command.hasMore || command.remotePage > 1
     wx.showActionSheet({
       itemList: page.map((bank) => bank.name).concat(more ? ['更多题库'] : []),
       success: (result) => {
-        if (result.tapIndex === page.length) return this.chooseBank(command, start + 5 < banks.length ? start + 5 : 0)
+        if (result.tapIndex === page.length) {
+          if (start + 5 < banks.length) return this.chooseBank(command, start + 5)
+          if (command.remotePage) return this.applyViewModelResult(this.viewModel.loadMockChoices(command.hasMore ? command.remotePage + 1 : 1))
+          return this.chooseBank(command, 0)
+        }
         const bank = page[result.tapIndex]
         if (bank) this.applyViewModelResult(this.viewModel.openMock(bank.id))
       }
@@ -285,7 +282,7 @@ Page({
     }
 
     if (command.type === 'switchTab') {
-      wx.switchTab({
+      navigation.switchTab({
         url: command.url,
         fail: () => {
           wx.showToast({
@@ -299,25 +296,6 @@ Page({
 
   openRouteWithLoading(payload) {
     const detail = payload || {}
-    this.isNavigating = true
-    // 加载遮罩也是 fixed 浮层，同样会被底栏压在下面，一并收起
-    this.setTabBarHidden(true)
-    this.setData({
-      routeLoadingVisible: true,
-      routeLoadingTitle: detail.title || '正在打开',
-      routeLoadingDescription: detail.description || ''
-    })
-
-    setTimeout(() => {
-      wx.navigateTo({
-        url: detail.url,
-        complete: () => {
-          this.setTabBarHidden(false)
-          this.setData({
-            routeLoadingVisible: false
-          })
-        }
-      })
-    }, ROUTE_LOADING_DELAY)
+    return navigation.navigateTo({ url: detail.url })
   }
-})
+}))
