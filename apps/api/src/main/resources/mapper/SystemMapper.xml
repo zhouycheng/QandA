@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="qanda.backend.platform.persistence.SystemMapper">
-  <select id="ready" resultType="boolean">SELECT to_regclass('public.user_account') IS NOT NULL AND to_regclass('public.question_bank') IS NOT NULL AND to_regclass('public.practice_result') IS NOT NULL AND EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='practice_session' AND column_name='writer_enabled')</select>
+  <select id="ready" resultType="boolean">SELECT to_regclass('public.user_account') IS NOT NULL AND to_regclass('public.question_bank') IS NOT NULL AND to_regclass('public.practice_result') IS NOT NULL AND EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='practice_session' AND column_name='configuration_snapshot' AND is_nullable='NO')</select>
   <select id="lock" resultType="int">SELECT 1 FROM pg_advisory_xact_lock(hashtextextended(#{scope},0))</select>
   <select id="receipt" resultType="qanda.backend.platform.persistence.CommandReceipt">SELECT * FROM command_receipt WHERE scope=#{scope} AND operation=#{operation} AND command_id=#{commandId}</select>
   <select id="attempt" resultType="qanda.backend.platform.persistence.LoginAttempt">SELECT failures,blocked_until FROM login_attempt WHERE scope_digest=#{digest}</select>

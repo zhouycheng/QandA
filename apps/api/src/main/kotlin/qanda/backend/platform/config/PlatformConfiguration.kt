@@ -80,13 +80,17 @@ class PlatformConfiguration {
         environment.getProperty("server.address", "127.0.0.1"),
         environment.getRequiredProperty("spring.datasource.url"),
         environment.getRequiredProperty("spring.datasource.password"),
+        environment.getProperty("BACKEND_LOCAL_CONTAINER", Boolean::class.java, false),
     ) }
 }
 
-class BackendSafety(mode: String, address: String, databaseUrl: String, password: String) {
+class BackendSafety(mode: String, address: String, databaseUrl: String, password: String, localContainer: Boolean=false) {
+    companion object {
+        fun localBindingAllowed(address: String, localContainer: Boolean=false) = address in setOf("127.0.0.1", "::1") || localContainer && address=="0.0.0.0"
+    }
     init {
         require(mode in setOf("local", "test", "production")) { "Unknown backend mode" }
-        require(mode == "production" || address in setOf("127.0.0.1", "::1")) { "Local/test mode requires loopback binding" }
+        require(mode == "production" || localBindingAllowed(address,localContainer)) { "Local/test mode requires loopback binding or explicit local container mode" }
         require(databaseUrl.matches(Regex("jdbc:postgresql://[^/]+/qanda_backend(?:\\?.*)?"))) { "The backend requires the dedicated qanda_backend database" }
         require(password.isNotBlank()) { "Backend database password is required" }
     }

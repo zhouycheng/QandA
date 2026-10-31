@@ -138,7 +138,7 @@ CREATE TABLE practice_session (
  client_type varchar(16) NOT NULL CHECK(client_type IN ('WEB','MINI_PROGRAM')),
  feedback varchar(16) NOT NULL CHECK(feedback IN ('IMMEDIATE','AFTER_FINISH')), status varchar(16) NOT NULL CHECK(status IN ('IN_PROGRESS','SUBMITTED','CANCELLED')),
  version bigint NOT NULL DEFAULT 1 CHECK(version>0), current_index integer NOT NULL DEFAULT 0 CHECK(current_index>=0), duration_seconds integer NOT NULL DEFAULT 0 CHECK(duration_seconds>=0),
- configuration_snapshot text, writer_enabled boolean NOT NULL DEFAULT false, writer_device_id uuid, writer_token uuid, pending_writer_device_id uuid,
+ configuration_snapshot text NOT NULL, writer_device_id uuid, writer_token uuid, pending_writer_device_id uuid,
  acknowledged_sequence bigint NOT NULL DEFAULT 0 CHECK(acknowledged_sequence>=0), CHECK((writer_device_id IS NULL)=(writer_token IS NULL)),
  created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(), submitted_at timestamptz, UNIQUE(id,user_id), CHECK((status='SUBMITTED')=(submitted_at IS NOT NULL))
 );

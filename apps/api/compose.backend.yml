@@ -1,5 +1,34 @@
 name: qanda-backend
 services:
+  api:
+    image: qanda-backend:dev
+    build: .
+    env_file: .env.backend
+    dns: ["223.5.5.5", "1.1.1.1"]
+    environment:
+      BACKEND_BIND_ADDRESS: 0.0.0.0
+      BACKEND_API_PORT: 8083
+      BACKEND_LOCAL_CONTAINER: "true"
+      BACKEND_DB_URL: jdbc:postgresql://postgres:5432/qanda_backend
+      BACKEND_CAPTURE_SMTP_HOST: mailpit
+      BACKEND_CAPTURE_SMTP_PORT: 1025
+      BACKEND_FILE_ROOT: /var/lib/qanda/assets
+      BACKEND_DOCS_ENABLED: "true"
+      TENCENT_SECRET_ID: ${TENCENT_SECRET_ID:-}
+      TENCENT_SECRET_KEY: ${TENCENT_SECRET_KEY:-}
+      TENCENT_SES_REGION: ${TENCENT_SES_REGION:-}
+      TENCENT_SES_FROM_EMAIL: ${TENCENT_SES_FROM_EMAIL:-}
+      TENCENT_SES_VERIFICATION_TEMPLATE_ID: ${TENCENT_SES_VERIFICATION_TEMPLATE_ID:-}
+    ports: ["127.0.0.1:${BACKEND_API_PORT:-8083}:8083"]
+    volumes: ["backend_assets:/var/lib/qanda/assets"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    restart: unless-stopped
+    mem_limit: 768m
+    stop_grace_period: 30s
   postgres:
     image: postgres:17.6-alpine
     environment:
@@ -9,7 +38,9 @@ services:
       TZ: UTC
       PGTZ: UTC
     ports: ["127.0.0.1:56432:5432"]
-    volumes: ["backend_pg:/var/lib/postgresql/data"]
+    volumes:
+      - backend_pg:/var/lib/postgresql/data
+      - ./src/main/resources/db/schema.sql:/docker-entrypoint-initdb.d/001-schema.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U qanda_backend -d qanda_backend"]
       interval: 2s
@@ -17,7 +48,7 @@ services:
       retries: 30
   mailpit:
     image: axllent/mailpit:v1.32.0
-    profiles: ["local-capture"]
     ports: ["127.0.0.1:51025:1025", "127.0.0.1:58025:8025"]
 volumes:
   backend_pg:
+  backend_assets:
