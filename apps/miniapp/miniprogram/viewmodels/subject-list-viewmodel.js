@@ -480,7 +480,7 @@ class SubjectListViewModel {
    */
   openMock(selectedBankId, loaded) {
     if (this.repository.isRemoteEnabled && this.repository.isRemoteEnabled() && !loaded) {
-      if (!selectedBankId) return this.loadMockChoices(1)
+      if (!selectedBankId) return this.loadRemoteMock()
       return this.repository.loadRemoteBank(this.storage, selectedBankId).then(() => this.openMock(selectedBankId, true))
     }
     const selected = selectedBankId && this.repository.getSubjectSummaries().find(subject => subject.banks.some(bank => bank.id === selectedBankId))
@@ -530,12 +530,37 @@ class SubjectListViewModel {
     }
   }
 
-  async loadMockChoices(page) {
-    const result = await this.repository.loadRemoteBanks(this.storage, { page })
-    if (!result) return null
-    const banks = result.items.filter(bank => bank.activeQuestionCount > 0)
-    if (result.total === 1 && banks.length === 1) return this.openMock(banks[0].id)
-    return { command: { type: 'chooseBank', banks, remotePage: page, hasMore: page * result.pageSize < result.total } }
+  async loadRemoteMock() {
+    let subjectPage = 1
+    let subjectResult = await this.repository.loadRemoteSubjects(this.storage, { page: subjectPage })
+    if (!subjectResult) return { command: { type: 'toast', title: '题库加载失败，请检查网络后重试' } }
+    const preferredSubjectId = this.resolveMockSubjectId()
+    const checkedSubjects = new Set()
+    while (subjectResult) {
+      const subjects = this.repository.getSubjectSummaries()
+      const candidates = [preferredSubjectId].concat(subjects.filter(subject => Number(subject.questionCount) > 0).map(subject => subject.id))
+      for (const subjectId of candidates) {
+        if (!subjectId || checkedSubjects.has(subjectId)) continue
+        checkedSubjects.add(subjectId)
+        let bankPage = 1
+        let bankResult = await this.repository.loadRemoteBanks(this.storage, { subjectId, page: bankPage })
+        while (bankResult) {
+          const bank = bankResult.items.find(item => item.subjectId === subjectId && Number(item.activeQuestionCount === undefined ? item.questionCount : item.activeQuestionCount) > 0)
+          if (bank) {
+            await this.repository.loadRemoteBank(this.storage, bank.id)
+            return this.openMock(bank.id, true)
+          }
+          if (bankPage * bankResult.pageSize >= bankResult.total) break
+          bankPage += 1
+          bankResult = await this.repository.loadRemoteBanks(this.storage, { subjectId, page: bankPage })
+        }
+        if (!bankResult) return { command: { type: 'toast', title: '题库加载失败，请检查网络后重试' } }
+      }
+      if (subjectPage * subjectResult.pageSize >= subjectResult.total) break
+      subjectPage += 1
+      subjectResult = await this.repository.loadRemoteSubjects(this.storage, { page: subjectPage })
+    }
+    return { command: { type: 'toast', title: '当前没有可练习题库' } }
   }
 
   /** 模拟考试用哪科：上次练过优先，否则题库第一个科目 */
