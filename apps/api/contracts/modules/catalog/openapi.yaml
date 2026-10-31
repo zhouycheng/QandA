@@ -3598,6 +3598,15 @@
             }
           },
           {
+            "name": "includeProgress",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
             "name": "page",
             "in": "query",
             "required": false,
@@ -4020,11 +4029,7 @@
             }
           }
         },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
+        "security": []
       }
     },
     "/api/v1/subjects/{id}": {
@@ -4041,6 +4046,15 @@
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          {
+            "name": "includeProgress",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
             }
           }
         ],
@@ -4446,11 +4460,7 @@
             }
           }
         },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
+        "security": []
       }
     },
     "/api/v1/colleges": {

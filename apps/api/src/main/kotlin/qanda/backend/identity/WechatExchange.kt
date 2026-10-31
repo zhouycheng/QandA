@@ -8,6 +8,7 @@ import qanda.backend.identity.api.WechatCodeExchange
 import qanda.backend.identity.api.WechatIdentity
 import qanda.backend.platform.http.ApiException
 import qanda.backend.platform.http.ErrorDetails
+import qanda.backend.platform.config.BackendSafety
 import java.io.ByteArrayOutputStream
 import java.net.URI
 import java.net.URLEncoder
@@ -36,7 +37,7 @@ class OfficialWechatCodeExchange(private val environment: Environment, private v
         }
     }
     private fun local(code: String): WechatIdentity {
-        if (environment.getProperty("qanda.backend.mode","production") !in setOf("local","test") || environment.getProperty("server.address","127.0.0.1") !in setOf("127.0.0.1","::1")) unavailable("WECHAT_UNAVAILABLE")
+        if (environment.getProperty("qanda.backend.mode","production") !in setOf("local","test") || !BackendSafety.localBindingAllowed(environment.getProperty("server.address","127.0.0.1"),environment.getProperty("BACKEND_LOCAL_CONTAINER",Boolean::class.java,false))) unavailable("WECHAT_UNAVAILABLE")
         val parts = code.split(':',limit=2)
         if (parts.size != 2 || parts[0] !in setOf("local-learner-1","local-learner-2","local-learner-3") || runCatching { UUID.fromString(parts[1]).toString() == parts[1] }.getOrDefault(false) != true || !localCodes.add(code)) invalidCode()
         return WechatIdentity("local-test-app",parts[0],null)

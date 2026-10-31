@@ -11,7 +11,7 @@ data class StatisticsView(val startDate: LocalDate,val endDateExclusive: LocalDa
                           val correctCount: Long,val wrongCount: Long,val unansweredCount: Long,val objectiveAccuracy: Double,val shortAnswerCount: Long,
                           val selfRatedCount: Long,val selfRatedCorrectCount: Long,val selfRatedWrongCount: Long,val durationSeconds: Long)
 data class DayView(val date: LocalDate,val practiceCount: Long,val answeredCount: Long,val correctCount: Long,val durationSeconds: Long)
-data class WrongView(val questionId: UUID,val questionBankId: UUID,val stem: String,val type: String,val lastOutcome: String,val lastPracticedAt: Instant,val rightCount: Long,val wrongCount: Long,val available: Boolean)
+data class WrongView(val questionId: UUID,val questionBankId: UUID,val stem: String,val type: String,val lastOutcome: String,val lastPracticedAt: Instant,val rightCount: Long,val wrongCount: Long,val available: Boolean,val subjectId: UUID?=null,val subjectName: String?=null,val questionBankName: String?=null)
 data class QuestionProgressView(val questionId: UUID,val questionBankId: UUID,val outcome: String,val lastPracticedAt: Instant)
 data class WrongAttemptView(val sessionId: UUID,val revisionId: UUID,val outcome: String,val selfAssessment: String?,val submittedAt: Instant)
 data class ActivityDayView(val date: LocalDate,val activeUsers: Long,val newUsers: Long,val returningUsers: Long)

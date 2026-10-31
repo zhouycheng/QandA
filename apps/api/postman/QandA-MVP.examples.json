@@ -494,12 +494,6 @@
     }
   },
   {
-    "operationId": "Identity_profile_GET",
-    "method": "GET",
-    "path": "/api/v1/me/profile",
-    "body": null
-  },
-  {
     "operationId": "Identity_updateProfile_PUT",
     "method": "PUT",
     "path": "/api/v1/me/profile",
@@ -653,6 +647,12 @@
     "body": null
   },
   {
+    "operationId": "Learning_collectionSummary_GET",
+    "method": "GET",
+    "path": "/api/v1/me/question-collections/summary",
+    "body": null
+  },
+  {
     "operationId": "Learning_history_GET",
     "method": "GET",
     "path": "/api/v1/me/practice-history",
@@ -662,6 +662,12 @@
     "operationId": "Learning_record_GET",
     "method": "GET",
     "path": "/api/v1/me/practice-history/{id}",
+    "body": null
+  },
+  {
+    "operationId": "Learning_overview_GET",
+    "method": "GET",
+    "path": "/api/v1/me/learning-overview",
     "body": null
   },
   {
@@ -830,18 +836,6 @@
     "body": null
   },
   {
-    "operationId": "Practice_progress_PUT",
-    "method": "PUT",
-    "path": "/api/v1/practice/sessions/{id}/progress",
-    "body": {
-      "expectedVersion": "{{expectedVersion}}",
-      "currentIndex": 0,
-      "durationSeconds": 0,
-      "writerToken": "{{writerToken}}",
-      "clientSequence": "{{clientSequence}}"
-    }
-  },
-  {
     "operationId": "Practice_progressAck_PUT",
     "method": "PUT",
     "path": "/api/v1/practice/sessions/{id}/progress-ack",
@@ -859,8 +853,21 @@
     "path": "/api/v1/practice/sessions/{id}/items/{itemId}/self-assessment",
     "body": {
       "expectedVersion": "{{expectedVersion}}",
-      "assessment": "CORRECT",
-      "writerToken": "{{writerToken}}"
+      "assessment": "CORRECT"
+    }
+  },
+  {
+    "operationId": "Practice_trialSnapshot_POST",
+    "method": "POST",
+    "path": "/api/v1/practice/trial-snapshots",
+    "body": {
+      "scope": {
+        "questionBankId": "{{questionBankId}}",
+        "count": 1,
+        "order": "SEQUENTIAL",
+        "selectionKind": "NORMAL"
+      },
+      "expectedContentVersion": "{{expectedContentVersion}}"
     }
   },
   {

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="qanda.backend.learning.LearningReadMapper">
+  <sql id="visible">q.status='ACTIVE' AND b.status='ACTIVE' AND b.publication_status='PUBLISHED' AND s.status='ACTIVE'</sql>
+  <select id="overview" resultType="qanda.backend.learning.OverviewRow">
+    <include refid="qanda.backend.learning.LearningMapper.wrongFacts"/>, visible AS (
+      SELECT q.id,b.id bank_id,s.id subject_id FROM question q JOIN question_bank b ON b.id=q.bank_id JOIN subject s ON s.id=b.subject_id WHERE <include refid="visible"/>
+    ) SELECT
+      (SELECT count(*) FROM facts WHERE rn=1) answered_count,
+      (SELECT count(*) FROM facts WHERE rn=1 AND judgment='CORRECT') correct_count,
+      (SELECT count(*) FROM facts WHERE rn=1 AND judgment='WRONG') wrong_count,
+      (SELECT count(*) FROM facts f JOIN totals t USING(question_id) WHERE f.rn=1 AND f.judgment='CORRECT' AND t.wrong_count>0) mastered_count,
+      (SELECT count(*) FROM user_favorite WHERE user_id=#{userId}) favorite_count,
+      (SELECT count(*) FROM visible) total_count,
+      (SELECT count(*) FROM subject WHERE status='ACTIVE') subject_count,
+      (SELECT count(*) FROM question_bank b JOIN subject s ON s.id=b.subject_id WHERE b.status='ACTIVE' AND b.publication_status='PUBLISHED' AND s.status='ACTIVE') bank_count,
+      (SELECT coalesce(sum(r.duration_seconds),0) FROM practice_result r JOIN practice_session s ON s.id=r.session_id WHERE s.user_id=#{userId} AND s.status='SUBMITTED') duration_seconds,
+      (SELECT count(*) FROM practice_session WHERE user_id=#{userId} AND status='SUBMITTED') practice_count
+  </select>
+  <select id="latestSession" resultType="qanda.backend.practice.PracticeSession">SELECT * FROM practice_session WHERE user_id=#{userId} AND status='IN_PROGRESS' ORDER BY updated_at DESC,id DESC LIMIT 1</select>
+  <sql id="collection">
+    <include refid="qanda.backend.learning.LearningMapper.wrongFacts"/>, collection AS (
+      SELECT q.id question_id,q.bank_id question_bank_id,s.id subject_id,s.name subject_name,b.name question_bank_name,
+        r.stem,r.type,(<include refid="visible"/>) available,(latest.question_id IS NOT NULL) practiced,
+        <choose><when test="f.kind == 'FAVORITE'">saved.created_at</when><otherwise>latest.submitted_at</otherwise></choose> created_at,
+        latest.submitted_at last_practiced_at,coalesce(latest.judgment,'') last_outcome,coalesce(t.right_count,0) right_count,coalesce(t.wrong_count,0) wrong_count
+      FROM question q JOIN question_bank b ON b.id=q.bank_id JOIN subject s ON s.id=b.subject_id JOIN question_revision r ON r.id=q.current_revision_id
+      LEFT JOIN facts latest ON latest.question_id=q.id AND latest.rn=1 LEFT JOIN totals t ON t.question_id=q.id
+      <choose>
+        <when test="f.kind == 'FAVORITE'">JOIN user_favorite saved ON saved.question_id=q.id AND saved.user_id=#{userId}</when>
+        <otherwise>WHERE t.wrong_count>0 <if test="f.status == 'UNMASTERED'">AND latest.judgment='WRONG'</if><if test="f.status == 'MASTERED'">AND latest.judgment='CORRECT'</if></otherwise>
+      </choose>
+    )
+  </sql>
+  <sql id="filters"><where>
+    <if test="f.subjectId != null">subject_id=#{f.subjectId}</if><if test="f.bankId != null">AND question_bank_id=#{f.bankId}</if>
+    <if test="f.chip == 'repeat'">AND wrong_count &gt;= 2</if><if test="f.chip == 'recent'">AND last_practiced_at &gt;= #{f.since}</if>
+    <if test="f.chip == 'pending'">AND NOT practiced</if><if test="f.chip == 'practiced'">AND practiced</if>
+  </where></sql>
+  <select id="collection" resultType="qanda.backend.learning.CollectionRow">
+    <include refid="collection"/> SELECT * FROM collection <include refid="filters"/> ORDER BY
+    <choose><when test="f.sort == 'urgent'">wrong_count DESC,last_practiced_at DESC,question_id</when><when test="f.sort == 'old'">created_at ASC,question_id</when><otherwise>created_at DESC,question_id</otherwise></choose>
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+  <select id="collectionCount" resultType="long"><include refid="collection"/> SELECT count(*) FROM collection <include refid="filters"/></select>
+  <select id="collectionTotals" resultType="qanda.backend.learning.CollectionTotals">
+    <include refid="collection"/> SELECT count(*) total,count(*) FILTER(WHERE wrong_count &gt;= 2) repeat_count,
+      count(*) FILTER(WHERE last_practiced_at &gt;= #{f.since}) recent_count,count(*) FILTER(WHERE practiced) practiced_count,
+      coalesce(sum(right_count),0) right_count,coalesce(sum(wrong_count),0) wrong_count FROM collection
+  </select>
+  <select id="collectionFacets" resultType="qanda.backend.learning.CollectionFacet">
+    <include refid="collection"/> SELECT subject_id,subject_name,question_bank_id,question_bank_name,count(*) count FROM collection
+    GROUP BY subject_id,subject_name,question_bank_id,question_bank_name ORDER BY subject_name,question_bank_name,question_bank_id
+  </select>
+</mapper>

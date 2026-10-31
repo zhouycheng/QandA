@@ -22,7 +22,6 @@ class PracticeSession {
     var createdAt: Instant = Instant.now()
     var submittedAt: Instant? = null
     var configurationSnapshot: String? = null
-    var writerEnabled: Boolean = false
     @TableField(updateStrategy = FieldStrategy.ALWAYS)
     var writerDeviceId: UUID? = null
     @TableField(updateStrategy = FieldStrategy.ALWAYS)

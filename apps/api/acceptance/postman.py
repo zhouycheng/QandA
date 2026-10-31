@@ -91,7 +91,7 @@ def main():
                 concrete = sample(schema, owner)
                 if route == "/api/v1/practice/sessions":
                     concrete["deviceId"] = str(uuid.UUID(int=1))
-                if route.startswith("/api/v1/practice/sessions/{id}/") and entry["method"] in ("PUT", "POST") and not route.endswith("writer-acquire"):
+                if route.startswith("/api/v1/practice/sessions/{id}/") and entry["method"] in ("PUT", "POST") and not route.endswith(("writer-acquire", "self-assessment")):
                     concrete["writerToken"] = str(uuid.UUID(int=1))
                     if route.endswith(("progress", "progress-ack")):
                         concrete["clientSequence"] = 1

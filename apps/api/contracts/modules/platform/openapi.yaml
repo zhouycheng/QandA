@@ -1307,11 +1307,7 @@
             }
           }
         },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
+        "security": []
       }
     }
   },

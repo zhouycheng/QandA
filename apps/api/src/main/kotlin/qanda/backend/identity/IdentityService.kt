@@ -25,7 +25,7 @@ class IdentityService(private val users: UserAccountMapper,private val profiles:
         val user=users.selectById(id) ?: missing();val profile=profiles.selectById(id)
         val college=profile?.majorId?.let { majors.selectById(it)?.collegeId } ?: profile?.collegeId
         return UserView(id,user.accountCode,user.nickname,user.email,bindings.selectCount(QueryWrapper<UserWechat>().eq("user_id",id))>0,
-            college,profile?.majorId,profile?.enrollmentYear,user.status,user.version,user.createdAt)
+            college,profile?.majorId,profile?.enrollmentYear,user.status,user.version,user.createdAt,college?.let { colleges.selectById(it)?.name },profile?.majorId?.let { majors.selectById(it)?.name })
     }
     fun register(input: RegistrationInput): MutationResult {
         val password=crypto.preparePassword(input.password);val display=nickname(input.nickname)

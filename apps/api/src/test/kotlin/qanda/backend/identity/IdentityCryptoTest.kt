@@ -36,6 +36,10 @@ class IdentityCryptoTest {
         val code = "local-learner-1:${UUID.randomUUID()}"
         assertEquals("local-learner-1",local.exchange(code).openId)
         assertEquals("WECHAT_CODE_INVALID",assertThrows(ApiException::class.java) { local.exchange(code) }.code)
+        val exposed = MockEnvironment().withProperty("BACKEND_WECHAT_PROVIDER","local").withProperty("qanda.backend.mode","local").withProperty("server.address","0.0.0.0")
+        assertEquals("WECHAT_UNAVAILABLE",assertThrows(ApiException::class.java) { OfficialWechatCodeExchange(exposed,jacksonObjectMapper()).exchange("local-learner-1:${UUID.randomUUID()}") }.code)
+        val container = OfficialWechatCodeExchange(exposed.withProperty("BACKEND_LOCAL_CONTAINER","true"),jacksonObjectMapper())
+        assertEquals("local-learner-1",container.exchange("local-learner-1:${UUID.randomUUID()}").openId)
         val missing = OfficialWechatCodeExchange(MockEnvironment(),jacksonObjectMapper())
         assertEquals("WECHAT_UNAVAILABLE",assertThrows(ApiException::class.java) { missing.exchange("some-code") }.code)
     }
