@@ -30,6 +30,7 @@ describe('Playground 场景数据', () => {
     const data = getScenarioData('empty')
     expect(data.colleges).toHaveLength(0)
     expect(data.majors).toHaveLength(0)
+    expect(data.grades).toHaveLength(0)
     expect(data.subjects).toHaveLength(0)
     expect(data.questionBanks).toHaveLength(0)
     expect(data.questions).toHaveLength(0)
@@ -57,6 +58,9 @@ describe('Playground 场景数据', () => {
     const collegeIds = new Set(data.colleges.map((college) => college.id))
     const majorIds = new Set(data.majors.map((major) => major.id))
     expect(data.majors.every((major) => collegeIds.has(major.collegeId))).toBe(true)
+    expect(data.grades.every((grade) => majorIds.has(grade.majorId))).toBe(true)
+    expect(data.users.every((user) => !user.majorId || !user.enrollmentYear ||
+      data.grades.some((grade) => grade.majorId === user.majorId && grade.enrollmentYear === user.enrollmentYear))).toBe(true)
     expect(data.subjects.every((subject) => subject.majorIds.length > 0)).toBe(true)
     expect(data.subjects.every((subject) => subject.majorIds.every((majorId) => majorIds.has(majorId)))).toBe(
       true,

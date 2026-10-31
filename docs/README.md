@@ -8,7 +8,9 @@
 - [小程序页面加载](miniapp-page-loading.md)：15 个页面的加载矩阵、缓存、原生导航、弹层与实测记录。
 - [小程序联调验收记录](miniapp-integration-verification.md)：同步规则、自动检查、真实 HTTP 和设备验收边界。
 - [Git 工作流](git-workflow.md)：分支、提交、PR 与合并要求。
-- [管理端学生平台改造说明](admin-student-platform-implementation.md)：管理端当前实现、验证记录与实际边界。
+- [院级管理设计与实现说明](admin-college-management.md)：学院、专业、入学年级目录及关联保护。
+- [题库工作台设计与实现说明](admin-bank-workbench.md)：课程多题库、多题型维护、展示范围与发布导入流程。
+- [管理端学生平台历史改造说明](admin-student-platform-implementation.md)：原页面、验证记录与当时边界；当前实现见管理端 README。
 
 ## 产品需求与架构
 

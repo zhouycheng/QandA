@@ -1,12 +1,11 @@
 import { Card, Space, Tag } from '@arco-design/web-react'
 import { useQuery } from '@tanstack/react-query'
-import { Link } from 'react-router-dom'
 import { ErrorState } from '../../components/error-state'
-import { PageTitle } from '../../components/page-title'
 import { LineChart } from '../../components/charts'
 import { useAdminGateway } from '../../gateways/gateway-context'
 import { dateRange } from '../../lib/format'
 import { feedbackStatusLabels } from '../../lib/recommendations'
+import { countQuestions, missingExplanations } from '../../lib/question-content'
 
 export function DashboardPage() {
   const gateway = useAdminGateway()
@@ -29,22 +28,13 @@ export function DashboardPage() {
     daily.set(record.date, day)
   }
   const metrics = [
-    ['注册用户', summary.data?.userCount, '/users'],
-    ['课程', summary.data?.subjectCount, '/subjects'],
-    ['已发布题库', banks.data?.filter((b) => b.publicationStatus === 'PUBLISHED').length, '/question-banks'],
-    ['题目总量', summary.data?.questionCount, '/questions'],
+    ['注册用户', summary.data?.userCount],
+    ['课程', summary.data?.subjectCount],
+    ['已发布题库', banks.data?.filter((b) => b.publicationStatus === 'PUBLISHED').length],
+    ['题目总量', summary.data?.questionCount],
   ] as const
   return (
-    <>
-      <PageTitle
-        title="运营概览"
-        description="先处理学生反馈，再完善复习内容。让同学更快找到合适的题库。"
-        action={
-          <Link className="primary-link" to="/question-banks">
-            进入题库工作台 →
-          </Link>
-        }
-      />
+    <section aria-label="运营概览">
       {error ? (
         <ErrorState
           message={error.message}
@@ -59,36 +49,35 @@ export function DashboardPage() {
       ) : (
         <>
           <div className="compact-metrics dashboard-metrics">
-            {metrics.map(([label, value, path]) => (
-              <Link to={path} key={label}>
+            {metrics.map(([label, value]) => (
+              <div key={label}>
                 <span>{label}</span>
                 <strong>{value === undefined ? '—' : value.toLocaleString()}</strong>
-                <small>查看详情 →</small>
-              </Link>
+              </div>
             ))}
           </div>
           <div className="dashboard-content-grid">
-            <Card bordered={false} title="内容待办" extra={<Link to="/feedback">全部反馈 →</Link>}>
+            <Card bordered={false} title="内容待办">
               <div className="todo-grid">
-                <Link to="/feedback?kind=QUESTION">
+                <div>
                   <span className="todo-dot orange" />
                   <strong>{pending.filter((f) => f.kind === 'QUESTION').length}</strong>
                   <span>题目反馈</span>
-                </Link>
-                <Link to="/feedback?kind=COURSE_REQUEST">
+                </div>
+                <div>
                   <span className="todo-dot blue" />
                   <strong>{pending.filter((f) => f.kind === 'COURSE_REQUEST').length}</strong>
                   <span>缺课需求</span>
-                </Link>
-                <Link to="/question-banks?status=DRAFT">
+                </div>
+                <div>
                   <span className="todo-dot purple" />
                   <strong>{drafts.length}</strong>
                   <span>题库草稿</span>
-                </Link>
+                </div>
               </div>
               <h3 className="card-subtitle">最近待处理</h3>
               {pending.slice(0, 4).map((f) => (
-                <Link className="task-list-row" key={f.id} to={`/feedback?kind=${f.kind}`}>
+                <div className="task-list-row" key={f.id}>
                   <div>
                     <strong>{f.title}</strong>
                     <span className="muted">{f.kind === 'QUESTION' ? '题目纠错' : '课程需求'}</span>
@@ -96,7 +85,7 @@ export function DashboardPage() {
                   <Tag color={f.status === 'OPEN' ? 'orange' : 'arcoblue'}>
                     {feedbackStatusLabels[f.status]}
                   </Tag>
-                </Link>
+                </div>
               ))}
               {!pending.length && <p className="empty-note">当前没有待处理反馈</p>}
             </Card>
@@ -105,22 +94,17 @@ export function DashboardPage() {
               <div className="quality-row">
                 <span>缺少解析的启用题目</span>
                 <strong>
-                  {questions.data?.filter((q) => q.status === 'ACTIVE' && !q.explanation.trim()).length ?? 0}{' '}
+                  {missingExplanations(questions.data?.filter((q) => q.status === 'ACTIVE') ?? [])}{' '}
                   道
                 </strong>
               </div>
               <div className="quality-row">
                 <span>尚未分章的题目</span>
-                <strong>{questions.data?.filter((q) => !q.chapterId).length ?? 0} 道</strong>
+                <strong>{countQuestions(questions.data?.filter((q) => !q.chapterId) ?? [])} 道</strong>
               </div>
               <div className="quality-row">
                 <span>空题库</span>
                 <strong>{banks.data?.filter((b) => b.questionCount === 0).length ?? 0} 份</strong>
-              </div>
-              <div className="quick-links">
-                <Link to="/subjects">维护课程目录 →</Link>
-                <Link to="/question-banks">整理章节与题目 →</Link>
-                <Link to="/recommendations">检查推荐范围 →</Link>
               </div>
               <div className="workflow-note">
                 <strong>建议整理顺序</strong>
@@ -132,13 +116,12 @@ export function DashboardPage() {
             bordered={false}
             title="近 14 天练习趋势"
             className="section-gap"
-            extra={<Link to="/activity">使用统计 →</Link>}
           >
             <LineChart data={[...daily.values()]} label="近14天每日答题量" />
             <Space className="muted">统计来自本地演示记录，正式数据接入后保持相同口径。</Space>
           </Card>
         </>
       )}
-    </>
+    </section>
   )
 }

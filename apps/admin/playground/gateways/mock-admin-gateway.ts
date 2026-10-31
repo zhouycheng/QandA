@@ -6,6 +6,8 @@ import type {
   CollegeQuery,
   CreateCollegeInput,
   CreateMajorInput,
+  CreateGradesInput,
+  Grade,
   CreateQuestionBankInput,
   CreateQuestionInput,
   CreateSubjectInput,
@@ -15,6 +17,7 @@ import type {
   SubjectQuery,
   UpdateCollegeInput,
   UpdateMajorInput,
+  UpdateGradeInput,
   UpdateQuestionBankInput,
   UpdateQuestionInput,
   UpdateSubjectInput,
@@ -34,6 +37,9 @@ import type {
 import { hashPassword, validateQuestion } from '../../src/lib/content-rules'
 import { getAdminSession } from '../../src/lib/auth'
 import { localDate } from '../../src/lib/format'
+import { referencesGrade } from '../../src/lib/directory'
+import { getScopeError } from '../../src/lib/bank-workbench'
+import { contentFingerprint, countQuestions, missingExplanations, questionItems, questionSearchText } from '../../src/lib/question-content'
 
 const DEFAULT_DELAY = 300
 
@@ -86,7 +92,7 @@ export class MockAdminContentGateway implements AdminContentGateway {
         (b) => b.id === input.questionBankId && b.publicationStatus === 'PUBLISHED',
       ) &&
       input.status === 'ACTIVE' &&
-      !input.explanation?.trim()
+      missingExplanations([input]) > 0
     )
       throw new Error('已发布题库中的启用题目必须有解析。可先下架题库整理。')
     if (
@@ -98,7 +104,7 @@ export class MockAdminContentGateway implements AdminContentGateway {
       throw new Error('章节不存在或不属于当前题库。')
   }
 
-  private validateBank(input: BankInput) {
+  private validateBank(input: BankInput, requireScope = false) {
     const state = getMockAdminState()
     if (!input.name.trim() || input.name.trim().length > 80 || (input.description?.length ?? 0) > 2000)
       throw new Error('题库名称必填且最多 80 字，说明最多 2000 字。')
@@ -107,27 +113,8 @@ export class MockAdminContentGateway implements AdminContentGateway {
     const scopeType = input.scopeType ?? 'ALL'
     if (!['ALL', 'TARGETED'].includes(scopeType)) throw new Error('适用范围类型无效。')
     const audiences = scopeType === 'ALL' ? [] : structuredClone(input.audiences ?? [])
-    if (scopeType === 'TARGETED' && audiences.length === 0) throw new Error('请至少添加一条有效推荐条件。')
-    for (const audience of audiences) {
-      if (!audience.collegeId && !audience.majorId && !audience.enrollmentYear)
-        throw new Error('每条推荐条件至少填写一个条件。')
-      if (audience.collegeId && !state.colleges.some((c) => c.id === audience.collegeId))
-        throw new Error('推荐学院不存在。')
-      if (
-        audience.majorId &&
-        !state.majors.some(
-          (m) => m.id === audience.majorId && (!audience.collegeId || m.collegeId === audience.collegeId),
-        )
-      )
-        throw new Error('推荐专业不存在或不属于所选学院。')
-      if (
-        audience.enrollmentYear !== undefined &&
-        (!Number.isInteger(audience.enrollmentYear) ||
-          audience.enrollmentYear < 2000 ||
-          audience.enrollmentYear > new Date().getFullYear() + 1)
-      )
-        throw new Error('请输入有效的四位入学年份。')
-    }
+    const scopeError = getScopeError(scopeType, audiences, state, requireScope)
+    if (scopeError) throw new Error(scopeError)
     return {
       name: input.name.trim(),
       description: input.description?.trim() ?? '',
@@ -262,14 +249,14 @@ export class MockAdminContentGateway implements AdminContentGateway {
     if (status === 'PUBLISHED') {
       if (!state.subjects.some((s) => s.id === current.subjectId && s.status === 'ACTIVE'))
         throw new Error('请先启用所属课程。')
-      this.validateBank(current)
+      this.validateBank(current, true)
       const questions = state.questions.filter((q) => q.questionBankId === id && q.status === 'ACTIVE')
       if (!questions.length) throw new Error('题库至少需要一道启用的题目才能发布。')
       for (const q of questions) {
         validateQuestion(q)
         this.validateQuestionPlacement(q)
       }
-      if (questions.some((q) => !q.explanation.trim())) throw new Error('发布前请补全所有启用题目的解析。')
+      if (missingExplanations(questions)) throw new Error('发布前请补全所有启用题目及阅读小题的解析。')
       if (!current.description.trim()) throw new Error('发布前请填写题库说明，帮助学生选择。')
     }
     const updated = {
@@ -553,7 +540,7 @@ export class MockAdminContentGateway implements AdminContentGateway {
     await simulateRequest('write')
     const state = getMockAdminState()
     if (!state.questionBanks.some((b) => b.id === input.questionBankId)) throw new Error('目标题库不存在。')
-    if (!input.questions.length || input.questions.length > 10000)
+    if (!input.questions.length || countQuestions(input.questions) > 10000)
       throw new Error('一次最多导入 10000 道题。')
     const now = new Date().toISOString()
     // Validate the whole batch before writing so a bad question cannot leave a partial import.
@@ -573,8 +560,8 @@ export class MockAdminContentGateway implements AdminContentGateway {
       }
     })
     state.setQuestions([...questions, ...state.questions])
-    recordOperation('题库工作台', `导入题目（共 ${questions.length} 条）`)
-    return questions.length
+    recordOperation('题库工作台', `导入题目（共 ${countQuestions(questions)} 道，${questions.length} 条记录）`)
+    return countQuestions(questions)
   }
 
   async getDashboardSummary() {
@@ -584,11 +571,11 @@ export class MockAdminContentGateway implements AdminContentGateway {
       collegeCount: colleges.length,
       subjectCount: subjects.length,
       questionBankCount: questionBanks.length,
-      questionCount: questions.length,
+      questionCount: countQuestions(questions),
       userCount: users.length,
       answeredCount: activityRecords.reduce((sum, r) => sum + r.answeredCount, 0),
-      choiceCount: questions.filter((q) => q.type !== 'TRUE_FALSE').length,
-      trueFalseCount: questions.filter((q) => q.type === 'TRUE_FALSE').length,
+      choiceCount: questions.flatMap(questionItems).filter((q) => q.type === 'SINGLE_CHOICE' || q.type === 'MULTIPLE_CHOICE').length,
+      trueFalseCount: questions.flatMap(questionItems).filter((q) => q.type === 'TRUE_FALSE').length,
     }
   }
 
@@ -738,11 +725,81 @@ export class MockAdminContentGateway implements AdminContentGateway {
     if (state.users.some((u) => u.majorId === id)) throw new Error('专业仍有用户，请停用以保留资料关联。')
     if (state.questionBanks.some((bank) => bank.audiences.some((a) => a.majorId === id)))
       throw new Error('专业仍被题库推荐范围引用，请先调整适用范围。')
+    if (state.grades.some((grade) => grade.majorId === id))
+      throw new Error('专业下仍有年级，请先删除年级，或停用专业以保留关联。')
     state.setMajors(state.majors.filter((major) => major.id !== id))
     state.setSubjects(
       state.subjects.map((s) => ({ ...s, majorIds: s.majorIds.filter((majorId) => majorId !== id) })),
     )
     recordOperation('专业管理', `删除记录：${id}`)
+  }
+
+  async listGrades(majorId?: string) {
+    await simulateRequest()
+    return structuredClone(getMockAdminState().grades.filter((g) => !majorId || g.majorId === majorId))
+      .sort((a, b) => b.enrollmentYear - a.enrollmentYear)
+  }
+
+  private validateGradeYear(year: number) {
+    if (!Number.isInteger(year) || year < 2000 || year > new Date().getFullYear() + 1)
+      throw new Error('请输入 2000 年至明年的四位入学年份。')
+  }
+
+  private gradeInUse(grade: Grade) {
+    const state = getMockAdminState()
+    const major = state.majors.find((m) => m.id === grade.majorId)
+    return state.users.some((u) => u.majorId === grade.majorId && u.enrollmentYear === grade.enrollmentYear) ||
+      Boolean(major && state.questionBanks.some((b) => b.scopeType === 'TARGETED' &&
+        b.audiences.some((a) => referencesGrade(a, grade, major))))
+  }
+
+  async createGrades(input: CreateGradesInput) {
+    await simulateRequest('write')
+    const state = getMockAdminState()
+    if (!state.majors.some((m) => m.id === input.majorId)) throw new Error('所属专业不存在。')
+    if (!['ACTIVE', 'INACTIVE'].includes(input.status)) throw new Error('年级状态无效。')
+    if (!input.enrollmentYears.length) throw new Error('请至少选择一个入学年份。')
+    const years = [...new Set(input.enrollmentYears)]
+    for (const year of years) {
+      this.validateGradeYear(year)
+      if (state.grades.some((g) => g.majorId === input.majorId && g.enrollmentYear === year))
+        throw new Error(`该专业已存在 ${year} 级，请勿重复添加。`)
+    }
+    const now = new Date().toISOString()
+    const grades: Grade[] = years.map((enrollmentYear) => ({
+      id: createId('grade'), majorId: input.majorId, enrollmentYear, status: input.status,
+      createdAt: now, updatedAt: now,
+    }))
+    state.setGrades([...grades, ...state.grades])
+    recordOperation('年级管理', `新增年级：${years.join('、')} 级`)
+    return grades
+  }
+
+  async updateGrade(id: string, input: UpdateGradeInput) {
+    await simulateRequest('write')
+    const state = getMockAdminState()
+    const current = state.grades.find((g) => g.id === id)
+    if (!current) throw new Error('年级不存在。')
+    this.validateGradeYear(input.enrollmentYear)
+    if (!['ACTIVE', 'INACTIVE'].includes(input.status)) throw new Error('年级状态无效。')
+    if (state.grades.some((g) => g.id !== id && g.majorId === current.majorId && g.enrollmentYear === input.enrollmentYear))
+      throw new Error('该专业已存在相同年级。')
+    if (current.enrollmentYear !== input.enrollmentYear && this.gradeInUse(current))
+      throw new Error('该年级已有学生或题库关联，不能直接更改入学年份。可以修改可选状态，历史归属会保留。')
+    const grade = { ...current, enrollmentYear: input.enrollmentYear, status: input.status, updatedAt: new Date().toISOString() }
+    state.setGrades(state.grades.map((g) => g.id === id ? grade : g))
+    recordOperation('年级管理', `编辑年级：${grade.enrollmentYear} 级`)
+    return grade
+  }
+
+  async deleteGrade(id: string) {
+    await simulateRequest('write')
+    const state = getMockAdminState()
+    const grade = state.grades.find((g) => g.id === id)
+    if (!grade) throw new Error('年级不存在。')
+    if (this.gradeInUse(grade)) throw new Error('该年级已有学生或题库关联，请停用以保留历史归属。')
+    state.setGrades(state.grades.filter((g) => g.id !== id))
+    recordOperation('年级管理', `删除年级：${grade.enrollmentYear} 级`)
   }
 
   async listSubjects(query?: SubjectQuery) {
@@ -834,9 +891,8 @@ export class MockAdminContentGateway implements AdminContentGateway {
       .filter((bank) => normalize(bank.name).includes(keyword))
       .map((bank) => ({
         ...bank,
-        questionCount: questions.filter((question) => question.questionBankId === bank.id).length,
-        activeQuestionCount: questions.filter((q) => q.questionBankId === bank.id && q.status === 'ACTIVE')
-          .length,
+        questionCount: countQuestions(questions.filter((question) => question.questionBankId === bank.id)),
+        activeQuestionCount: countQuestions(questions.filter((q) => q.questionBankId === bank.id && q.status === 'ACTIVE')),
       }))
   }
 
@@ -845,6 +901,8 @@ export class MockAdminContentGateway implements AdminContentGateway {
     const state = getMockAdminState()
     if (!state.subjects.some((s) => s.id === input.subjectId) || !input.name.trim())
       throw new Error('请选择有效课程并填写题库名称。')
+    if (state.questionBanks.some((b) => b.subjectId === input.subjectId && normalize(b.name) === normalize(input.name)))
+      throw new Error('该课程下已有同名题库，请使用不同名称区分教材或年份。')
     const now = new Date().toISOString()
     const bank = {
       ...input,
@@ -870,6 +928,8 @@ export class MockAdminContentGateway implements AdminContentGateway {
       throw new Error('已发布题库的内容说明不能为空。')
     if (!state.subjects.some((s) => s.id === input.subjectId) || !input.name.trim())
       throw new Error('请选择有效课程并填写题库名称。')
+    if (state.questionBanks.some((b) => b.id !== id && b.subjectId === input.subjectId && normalize(b.name) === normalize(input.name)))
+      throw new Error('该课程下已有同名题库。')
     if (
       input.subjectId !== current.subjectId &&
       (state.questions.some((q) => q.questionBankId === id) ||
@@ -879,7 +939,7 @@ export class MockAdminContentGateway implements AdminContentGateway {
     const bank = {
       ...current,
       ...input,
-      ...this.validateBank({ ...current, ...input }),
+      ...this.validateBank({ ...current, ...input }, current.publicationStatus === 'PUBLISHED'),
       status: current.status,
       publicationStatus: current.publicationStatus,
       updatedAt: new Date().toISOString(),
@@ -917,11 +977,10 @@ export class MockAdminContentGateway implements AdminContentGateway {
           !query?.chapterId ||
           (query.chapterId === 'unassigned' ? !q.chapterId : q.chapterId === query.chapterId),
       )
-      .filter((question) => !query?.type || question.type === query.type)
+      .filter((question) => !query?.type || question.type === query.type || question.subQuestions?.some((sub) => sub.type === query.type))
       .filter((question) => !query?.status || question.status === query.status)
       .filter((question) => {
-        const searchable = `${question.stem} ${question.options.map((option) => option.content).join(' ')}`
-        return normalize(searchable).includes(keyword)
+        return normalize(questionSearchText(question)).includes(keyword)
       })
   }
 
@@ -955,12 +1014,17 @@ export class MockAdminContentGateway implements AdminContentGateway {
     const state = getMockAdminState()
     const current = state.questions.find((question) => question.id === id)
     if (!current) throw new Error('题目不存在。')
+    if (current.type !== input.type) throw new Error('已有题目不能切换题型，请新建对应题型。')
+    if (current.subQuestions?.some((sub) => input.subQuestions?.some((next) => next.id === sub.id && next.type !== sub.type)))
+      throw new Error('已有阅读小题不能切换题型，请添加新的小题。')
+    if (current.type === 'READING' && current.subQuestions?.some((sub) => !input.subQuestions?.some((next) => next.id === sub.id) && state.feedback.some((f) => f.questionId === sub.id)))
+      throw new Error('阅读小题仍有反馈记录，请保留小题或停用整个题组。')
+    if (current.status === 'ACTIVE' && (input.status !== 'ACTIVE' || input.questionBankId !== current.questionBankId))
+      this.requireRemainingQuestion(current)
     if (!state.questionBanks.some((b) => b.id === input.questionBankId)) throw new Error('所属题库不存在。')
     this.validateQuestionPlacement(input)
     const valid = validateQuestion(input)
-    const changed =
-      JSON.stringify([current.stem, current.options, current.correctAnswer, current.explanation]) !==
-      JSON.stringify([valid.stem, valid.options, valid.correctAnswer, valid.explanation])
+    const changed = contentFingerprint(current) !== contentFingerprint(valid)
     const question = {
       ...current,
       ...valid,
@@ -975,9 +1039,19 @@ export class MockAdminContentGateway implements AdminContentGateway {
   async deleteQuestion(id: string) {
     await simulateRequest('write')
     const state = getMockAdminState()
-    if (state.feedback.some((f) => f.questionId === id))
+    const current = state.questions.find((q) => q.id === id)
+    if (!current) throw new Error('题目不存在。')
+    if (current.status === 'ACTIVE') this.requireRemainingQuestion(current)
+    if (state.feedback.some((f) => f.questionId === id || current.subQuestions?.some((sub) => sub.id === f.questionId)))
       throw new Error('题目仍有反馈记录，请停用以保留关联。')
     state.setQuestions(state.questions.filter((question) => question.id !== id))
     recordOperation('题目管理', `删除记录：${id}`)
+  }
+
+  private requireRemainingQuestion(question: import('../../src/types/admin').Question) {
+    const state = getMockAdminState()
+    if (state.questionBanks.some((b) => b.id === question.questionBankId && b.publicationStatus === 'PUBLISHED') &&
+      !state.questions.some((q) => q.questionBankId === question.questionBankId && q.id !== question.id && q.status === 'ACTIVE'))
+      throw new Error('已发布题库至少保留一道启用题目，请先下架再调整。')
   }
 }

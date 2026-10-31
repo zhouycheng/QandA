@@ -1,6 +1,7 @@
 import type { Question } from '../../src/types/admin'
 import { collegeFixtures } from '../fixtures/colleges'
 import { majorFixtures } from '../fixtures/majors'
+import { createGradeFixtures } from '../fixtures/grades'
 import { questionBankFixtures } from '../fixtures/question-banks'
 import { questionFixtures } from '../fixtures/questions'
 import { subjectFixtures } from '../fixtures/subjects'
@@ -74,13 +75,14 @@ export function getScenarioData(scenario: PlaygroundScenario) {
     userCourses: scenario === 'empty' ? [] : structuredClone(userCourseFixtures),
   }
   if (scenario === 'empty') {
-    return { colleges: [], majors: [], subjects: [], questionBanks: [], questions: [], ...operations }
+    return { colleges: [], majors: [], grades: [], subjects: [], questionBanks: [], questions: [], ...operations }
   }
 
   return {
     ...operations,
     colleges: structuredClone(collegeFixtures),
     majors: structuredClone(majorFixtures),
+    grades: createGradeFixtures(majorFixtures, operations.users, questionBankFixtures),
     subjects: structuredClone(subjectFixtures),
     questionBanks: structuredClone(questionBankFixtures),
     questions:
